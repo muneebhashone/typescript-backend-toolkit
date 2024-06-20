@@ -1,0 +1,6 @@
+{
+  "eslint.experimental.useFlatConfig": true,
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "git.ignoreLimitWarning": true,
+  "prettier.useEditorConfig": false
+}
