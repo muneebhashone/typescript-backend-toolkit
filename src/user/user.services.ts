@@ -10,23 +10,13 @@ import {
   or,
 } from 'drizzle-orm';
 import { db } from '../drizzle/db';
-import { PermissionsType, RoleType } from '../drizzle/enums';
-import { companies, users } from '../drizzle/schema';
+import { RoleType } from '../drizzle/enums';
+import { users } from '../drizzle/schema';
 import { ConflictError, NotFoundError } from '../errors/errors.service';
+import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
 import { GetPaginatorReturnType, getPaginator } from '../utils/getPaginator';
-import { GetUsersSchemaType, UserStatusSchemaType } from './user.schema';
-import { DefaultPermissions } from './user.constants';
-import { createCompany } from '../company/company.service';
-import { UserType } from '../types';
-
-export const assignCredits = async (userId: number, credits: number) => {
-  await db
-    .update(users)
-    .set({ credits: credits })
-    .where(eq(users.id, userId))
-    .execute();
-};
+import { GetUsersSchemaType } from './user.schema';
 
 export const activeToggle = async (userId: number) => {
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
@@ -107,12 +97,6 @@ export const RolesMapper: Record<RoleType, RoleType[]> = {
   ],
 };
 
-export const MustHaveCompanyIds: RoleType[] = [
-  'CLIENT_SUPER_USER',
-  'WHITE_LABEL_ADMIN',
-  'WHITE_LABEL_SUB_ADMIN',
-];
-
 export const getUsers = async (
   userId: number,
   payload: GetUsersSchemaType,
@@ -130,10 +114,6 @@ export const getUsers = async (
 
   const rolesToSearchFor: RoleType[] = RolesMapper[currentUser.role];
 
-  if (MustHaveCompanyIds.includes(currentUser.role)) {
-    andConditions.push(eq(users.companyId, Number(currentUser.companyId)));
-  }
-
   if (payload.searchString) {
     andConditions.push(
       or(
@@ -149,10 +129,6 @@ export const getUsers = async (
 
   if (payload.filterByRole) {
     andConditions.push(eq(users.role, payload.filterByRole));
-  }
-
-  if (payload.filterByStatus) {
-    andConditions.push(eq(users.status, payload.filterByStatus));
   }
 
   andConditions.push(inArray(users.role, rolesToSearchFor));
@@ -181,44 +157,6 @@ export const getUsers = async (
     results,
     paginatorInfo,
   };
-};
-
-export const updateUserPermissions = async (
-  userId: number,
-  permissions: PermissionsType[],
-): Promise<void> => {
-  await getUserById(userId);
-
-  await db
-    .update(users)
-    .set({ permissions: permissions })
-    .where(eq(users.id, userId))
-    .execute();
-};
-
-export const userStatusChange = async (
-  id: number,
-  payload: UserStatusSchemaType,
-): Promise<InferSelectModel<typeof users>> => {
-  const user = (
-    await db
-      .update(users)
-      .set({ status: payload.status })
-      .where(eq(users.id, id))
-      .returning()
-      .execute()
-  )[0];
-
-  if (user.companyId && user.role === 'CLIENT_SUPER_USER') {
-    await db
-      .update(companies)
-      .set({ status: payload.status })
-      .where(eq(companies.id, user.companyId))
-      .returning()
-      .execute();
-  }
-
-  return user;
 };
 
 export const createUser = async (
@@ -255,64 +193,22 @@ export const createUser = async (
 };
 
 export type SeedUsersReturn = {
-  company: InferSelectModel<typeof companies>;
   superAdmin: InferSelectModel<typeof users>;
-  whiteLabelAdmin: InferSelectModel<typeof users>;
-  clientSuperUser: InferSelectModel<typeof users>;
 };
 
 export const seedUsers = async (): Promise<SeedUsersReturn> => {
-  await db.delete(companies).execute();
   await db.delete(users).execute();
 
   const password = 'Pa$$w0rd!';
-
-  const company = await createCompany(
-    {
-      city: 'New York',
-      country: 'United States',
-      companyName: 'Zim White Label Company',
-    },
-    'APPROVED',
-  );
-
   // Super Admin
   const superAdmin = await createUser({
     email: 'zim-admin@mailinator.com',
     name: 'Zim Super Admin',
     credits: 1000,
     password: password,
-    status: 'APPROVED',
     isActive: true,
     role: 'SUPER_ADMIN',
-    permissions: DefaultPermissions['SUPER_ADMIN'],
   });
 
-  // White Label Admin
-  const whiteLabelAdmin = await createUser({
-    email: 'zim-white-label-admin@mailinator.com',
-    name: 'Zim Super Admin',
-    credits: 1000,
-    password: password,
-    status: 'APPROVED',
-    isActive: true,
-    role: 'WHITE_LABEL_ADMIN',
-    companyId: company.id,
-    permissions: DefaultPermissions['WHITE_LABEL_ADMIN'],
-  });
-
-  // Client Super User
-  const clientSuperUser = await createUser({
-    email: 'zim-client-super-user@mailinator.com',
-    name: 'Zim Client Super User',
-    credits: 1000,
-    password: password,
-    status: 'APPROVED',
-    isActive: true,
-    role: 'CLIENT_SUPER_USER',
-    companyId: company.id,
-    permissions: DefaultPermissions['CLIENT_SUPER_USER'],
-  });
-
-  return { company, superAdmin, clientSuperUser, whiteLabelAdmin };
+  return { superAdmin };
 };

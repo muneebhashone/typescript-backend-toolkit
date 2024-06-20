@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "dotenv -e .env -- ts-node-dev --transpile-only ./src/main.ts",
     "seeder": "ts-node --transpile-only ./src/seeder.ts",
-    "postinstall": "pnpm drizzle-kit generate && pnpm dlx tsx migrate.ts",
     "migration:generate": "pnpm drizzle-kit generate",
     "migration:run": "dotenv -e .env -- pnpm dlx tsx migrate.ts",
     "migration:fresh": "rimraf migrations && pnpm run migration:generate && pnpm run migration:run",

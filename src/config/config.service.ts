@@ -7,8 +7,6 @@ const configSchema = z.object({
   REDIS_URL: z.string().url(),
   PORT: z.string().regex(/^\d+$/).transform(Number),
   DATABASE_URL: z.string().url(),
-  SEARATES_API_KEY: z.string().min(1),
-  SEARATES_URL: z.string().url(),
   SMTP_HOST: z.string().min(1),
   SMTP_PORT: z.string().regex(/^\d+$/).transform(Number),
   SMTP_USERNAME: z.string().email(),

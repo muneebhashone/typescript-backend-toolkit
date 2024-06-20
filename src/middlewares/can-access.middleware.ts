@@ -1,22 +1,16 @@
-import {
-  PermissionsType,
-  RoleType,
-  permissionEnums,
-  rolesEnums,
-} from '../drizzle/enums';
-import { Request, Response, NextFunction } from 'express';
-import { JwtPayload } from '../utils/auth.utils';
-import { db } from '../drizzle/db';
 import { InferSelectModel, eq } from 'drizzle-orm';
+import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import { db } from '../drizzle/db';
+import { RoleType, rolesEnums } from '../drizzle/enums';
 import { users } from '../drizzle/schema';
 import { errorResponse } from '../utils/api.utils';
-import { StatusCodes } from 'http-status-codes';
+import { JwtPayload } from '../utils/auth.utils';
 
-export type CanAccessByType = 'roles' | 'permissions';
+export type CanAccessByType = 'roles';
 
 export type CanAccessOptions = {
   roles: RoleType | '*';
-  permissions: PermissionsType | '*';
 };
 
 export const canAccess =
@@ -48,24 +42,11 @@ export const canAccess =
     const accessorsToScanFor = access?.includes('*')
       ? by === 'roles'
         ? rolesEnums
-        : permissionEnums
-      : access;
+        : access
+      : [];
 
     if (by === 'roles' && accessorsToScanFor) {
       can = (accessorsToScanFor as RoleType[]).includes(currentUser.role);
-    }
-
-    if (by === 'permissions' && accessorsToScanFor) {
-      can = (accessorsToScanFor as PermissionsType[]).every((permission) => {
-        if (
-          'permissions' in currentUser &&
-          Array.isArray(currentUser.permissions) &&
-          currentUser.permissions.length
-        ) {
-          return currentUser.permissions?.includes(permission);
-        }
-        return false;
-      });
     }
 
     if (!accessorsToScanFor) {
@@ -76,15 +57,6 @@ export const canAccess =
       return errorResponse(
         res,
         'User is not authorized to perform this action',
-        StatusCodes.UNAUTHORIZED,
-        { [`${by}_required`]: access },
-      );
-    }
-
-    if (!can && by === 'permissions') {
-      return errorResponse(
-        res,
-        "User doesn't have sufficient permissions to perform this action",
         StatusCodes.UNAUTHORIZED,
         { [`${by}_required`]: access },
       );
