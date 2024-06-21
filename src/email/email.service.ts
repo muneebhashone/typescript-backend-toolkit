@@ -2,20 +2,6 @@ import { EmailTemplates, renderTemplate } from '../utils/email.utils';
 import mailer from '../lib/email.server';
 import config from '../config/config.service';
 
-export type SendTrackingEmailPayload = EmailTemplates['tracking'] & {
-  email: string;
-};
-
-export const sendTrackingEmail = async (payload: SendTrackingEmailPayload) => {
-  const { carrier, email, name, status, trackingNumber } = payload;
-  await mailer.sendMail({
-    from: config.EMAIL_FROM,
-    to: email,
-    subject: `Shipping Status Update: ${trackingNumber}`,
-    html: renderTemplate('tracking', { status, name, trackingNumber, carrier }),
-  });
-};
-
 export type SendSetPasswordEmailTypePayload = EmailTemplates['set-password'] & {
   email: string;
 };
@@ -47,5 +33,20 @@ export const sendResetPasswordEmail = async (
     to: email,
     subject: 'Reset Your Password',
     html: renderTemplate('reset-password', { resetLink, userName }),
+  });
+};
+
+export type SendOTPTypePayload = EmailTemplates['otp'] & {
+  email: string;
+};
+
+export const sendOTPEmail = async (payload: SendOTPTypePayload) => {
+  const { email, otpCode, userName } = payload;
+
+  await mailer.sendMail({
+    from: config.EMAIL_FROM,
+    to: email,
+    subject: 'Your One-Time Password (OTP)',
+    html: renderTemplate('otp', { otpCode, userName }),
   });
 };

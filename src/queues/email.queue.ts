@@ -1,10 +1,10 @@
 import {
+  SendOTPTypePayload,
   SendResetPasswordTypePayload,
   SendSetPasswordEmailTypePayload,
-  SendTrackingEmailPayload,
+  sendOTPEmail,
   sendResetPasswordEmail,
   sendSetPasswordEmail,
-  sendTrackingEmail,
 } from '../email/email.service';
 import logger from '../lib/logger.service';
 import { Queue } from '../lib/queue.server';
@@ -28,13 +28,13 @@ export const SetPasswordEmailQueue = Queue<SendSetPasswordEmailTypePayload>(
   },
 );
 
-export const ResetPasswordQueue = Queue<SendResetPasswordTypePayload>(
-  'ResetPasswordQueue',
+export const SendOtpEmailQueue = Queue<SendOTPTypePayload>(
+  'SendOtpEmailQueue',
   async (job) => {
     try {
       const { data } = job;
 
-      await sendResetPasswordEmail({
+      await sendOTPEmail({
         ...data,
       });
 
@@ -47,13 +47,13 @@ export const ResetPasswordQueue = Queue<SendResetPasswordTypePayload>(
   },
 );
 
-export const TrackingEmailQueue = Queue<SendTrackingEmailPayload>(
-  'TrackingEmailQueue',
+export const ResetPasswordQueue = Queue<SendResetPasswordTypePayload>(
+  'ResetPasswordQueue',
   async (job) => {
     try {
       const { data } = job;
 
-      await sendTrackingEmail({
+      await sendResetPasswordEmail({
         ...data,
       });
 
