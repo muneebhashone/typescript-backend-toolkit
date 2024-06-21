@@ -1,239 +1,9 @@
 {
-  "id": "7d051332-7dc7-4db1-92a9-1fa4583c1b02",
+  "id": "2828e997-b876-488a-8bc7-7b5baa48c7c2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "6",
   "dialect": "postgresql",
   "tables": {
-    "public.companies": {
-      "name": "companies",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "address": {
-          "name": "address",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "country": {
-          "name": "country",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "city": {
-          "name": "city",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "industry": {
-          "name": "industry",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "credits": {
-          "name": "credits",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "default": 0
-        },
-        "status": {
-          "name": "status",
-          "type": "USER_STATUS",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "companies_name_unique": {
-          "name": "companies_name_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
-        }
-      }
-    },
-    "public.shipments": {
-      "name": "shipments",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "carrier": {
-          "name": "carrier",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "aggregator": {
-          "name": "aggregator",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "arrivalTime": {
-          "name": "arrivalTime",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "sealine": {
-          "name": "sealine",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "container_no": {
-          "name": "container_no",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "mbl_no": {
-          "name": "mbl_no",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "trackWith": {
-          "name": "trackWith",
-          "type": "SHIPMENT_TRACK_WITH",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "company_id": {
-          "name": "company_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "creator_id": {
-          "name": "creator_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "reference_no": {
-          "name": "reference_no",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "followers": {
-          "name": "followers",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "tags": {
-          "name": "tags",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "progress": {
-          "name": "progress",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "is_tracking": {
-          "name": "is_tracking",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "shipments_company_id_companies_id_fk": {
-          "name": "shipments_company_id_companies_id_fk",
-          "tableFrom": "shipments",
-          "tableTo": "companies",
-          "columnsFrom": [
-            "company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "shipments_creator_id_users_id_fk": {
-          "name": "shipments_creator_id_users_id_fk",
-          "tableFrom": "shipments",
-          "tableTo": "users",
-          "columnsFrom": [
-            "creator_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
     "public.users": {
       "name": "users",
       "schema": "",
@@ -250,8 +20,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "name": {
-          "name": "name",
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_name": {
+          "name": "last_name",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
@@ -262,7 +38,25 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'CLIENT_SUPER_USER'"
+          "default": "'DEFAULT_USER'"
+        },
+        "dob": {
+          "name": "dob",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone_no": {
+          "name": "phone_no",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone_country": {
+          "name": "phone_country",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
         },
         "is_active": {
           "name": "is_active",
@@ -288,69 +82,10 @@
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
-        },
-        "status": {
-          "name": "status",
-          "type": "USER_STATUS",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "company_id": {
-          "name": "company_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "client_id": {
-          "name": "client_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "permissions": {
-          "name": "permissions",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "credits": {
-          "name": "credits",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "default": 0
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "users_company_id_companies_id_fk": {
-          "name": "users_company_id_companies_id_fk",
-          "tableFrom": "users",
-          "tableTo": "companies",
-          "columnsFrom": [
-            "company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "users_client_id_users_id_fk": {
-          "name": "users_client_id_users_id_fk",
-          "tableFrom": "users",
-          "tableTo": "users",
-          "columnsFrom": [
-            "client_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "users_email_unique": {
@@ -361,60 +96,6 @@
           ]
         }
       }
-    },
-    "public.vessels": {
-      "name": "vessels",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "fid": {
-          "name": "fid",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "flag": {
-          "name": "flag",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "shipment_id": {
-          "name": "shipment_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "vessels_shipment_id_shipments_id_fk": {
-          "name": "vessels_shipment_id_shipments_id_fk",
-          "tableFrom": "vessels",
-          "tableTo": "shipments",
-          "columnsFrom": [
-            "shipment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
     }
   },
   "enums": {
@@ -422,29 +103,9 @@
       "name": "ROLE",
       "schema": "public",
       "values": [
-        "WHITE_LABEL_ADMIN",
-        "WHITE_LABEL_SUB_ADMIN",
-        "CLIENT_SUPER_USER",
-        "CLIENT_USER",
+        "DEFAULT_USER",
         "SUPER_ADMIN",
-        "SUB_ADMIN"
-      ]
-    },
-    "public.SHIPMENT_TRACK_WITH": {
-      "name": "SHIPMENT_TRACK_WITH",
-      "schema": "public",
-      "values": [
-        "CONTAINER_NUMBER",
-        "MBL_NUMBER"
-      ]
-    },
-    "public.USER_STATUS": {
-      "name": "USER_STATUS",
-      "schema": "public",
-      "values": [
-        "REJECTED",
-        "APPROVED",
-        "REQUESTED"
+        "VENDOR"
       ]
     }
   },

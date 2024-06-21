@@ -1,6 +1,6 @@
 import {
   boolean,
-  integer,
+  date,
   pgEnum,
   pgTable,
   serial,
@@ -13,11 +13,14 @@ export const roleEnum = pgEnum('ROLE', rolesEnums);
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   email: varchar('email').unique().notNull(),
-  name: varchar('name').notNull(),
-  role: roleEnum('role').notNull().default('CLIENT_SUPER_USER'),
+  firstName: varchar('first_name').notNull(),
+  lastName: varchar('last_name').notNull(),
+  role: roleEnum('role').notNull().default('DEFAULT_USER'),
+  dob: date('dob').notNull(),
+  phoneNo: varchar('phone_no').notNull(),
+  phoneCountry: varchar('phone_country').notNull(),
   isActive: boolean('is_active').default(false),
   password: varchar('password').notNull(),
   passwordResetToken: varchar('password_reset_token'),
   setPasswordToken: varchar('set_password_token'),
-  credits: integer('credits').default(0),
 });
