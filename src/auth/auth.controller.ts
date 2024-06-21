@@ -22,7 +22,6 @@ import {
   changePassword,
   forgetPassword,
   loginUser,
-  registerCompany,
   resetPassword,
   setPassword,
 } from './auth.service';
@@ -86,43 +85,11 @@ export const handleRegisterUser = async (
   try {
     await createUser({
       ...req.body,
-      permissions: [
-        'VIEW_DASHBOARD',
-        'VIEW_SHIPMENT',
-        'VIEW_USER',
-        'EDIT_SHIPMENT',
-        'EDIT_USER',
-        'DELETE_SHIPMENT',
-        'DELETE_USER',
-      ],
-      role: 'CLIENT_SUPER_USER',
-      status: 'REQUESTED',
+      role: 'DEFAULT_USER',
+      isActive: true,
     });
 
-    return successResponse(
-      res,
-      'Account successfully created, pending approval',
-    );
-  } catch (err) {
-    if (err instanceof ConflictError) {
-      return errorResponse(res, err.message, StatusCodes.CONFLICT);
-    }
-
-    return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
-  }
-};
-
-export const handleRegisterCompany = async (
-  req: Request<never, never, RegisterCompanySchemaType>,
-  res: Response,
-) => {
-  try {
-    await registerCompany(req.body);
-
-    return successResponse(
-      res,
-      'Account successfully created, pending approval',
-    );
+    return successResponse(res, 'User has been successfully registered');
   } catch (err) {
     if (err instanceof ConflictError) {
       return errorResponse(res, err.message, StatusCodes.CONFLICT);

@@ -7,7 +7,6 @@ import {
   handleGetCurrentUser,
   handleLogin,
   handleLogout,
-  handleRegisterCompany,
   handleRegisterUser,
   handleResetPassword,
   handleSetPassword,
@@ -16,7 +15,6 @@ import {
   changePasswordSchema,
   forgetPasswordSchema,
   loginUserSchema,
-  registerCompanySchema,
   registerUserSchema,
   resetPasswordSchema,
   setPasswordSchema,
@@ -31,13 +29,6 @@ authRouter.post(
   '/register/user',
   validateZodSchema({ body: registerUserSchema }),
   handleRegisterUser,
-);
-
-// Register a White Label Admin
-authRouter.post(
-  '/register/company',
-  validateZodSchema({ body: registerCompanySchema }),
-  handleRegisterCompany,
 );
 
 authRouter.post(

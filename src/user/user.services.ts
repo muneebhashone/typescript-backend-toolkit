@@ -10,7 +10,6 @@ import {
   or,
 } from 'drizzle-orm';
 import { db } from '../drizzle/db';
-import { RoleType } from '../drizzle/enums';
 import { users } from '../drizzle/schema';
 import { ConflictError, NotFoundError } from '../errors/errors.service';
 import { UserType } from '../types';
@@ -79,24 +78,6 @@ export const deleteBulkUsers = async (userIds: number[]) => {
   await db.delete(users).where(inArray(users.id, userIds)).execute();
 };
 
-export const RolesMapper: Record<RoleType, RoleType[]> = {
-  CLIENT_SUPER_USER: ['CLIENT_USER'],
-  SUPER_ADMIN: [
-    'CLIENT_SUPER_USER',
-    'SUB_ADMIN',
-    'WHITE_LABEL_ADMIN',
-    'WHITE_LABEL_SUB_ADMIN',
-  ],
-  WHITE_LABEL_ADMIN: ['WHITE_LABEL_SUB_ADMIN', 'CLIENT_SUPER_USER'],
-  WHITE_LABEL_SUB_ADMIN: ['CLIENT_SUPER_USER'],
-  CLIENT_USER: [],
-  SUB_ADMIN: [
-    'CLIENT_SUPER_USER',
-    'WHITE_LABEL_ADMIN',
-    'WHITE_LABEL_SUB_ADMIN',
-  ],
-};
-
 export const getUsers = async (
   userId: number,
   payload: GetUsersSchemaType,
@@ -112,12 +93,11 @@ export const getUsers = async (
   let filter: SQL<unknown> | null = null;
   const andConditions: (SQL<unknown> | undefined)[] = [];
 
-  const rolesToSearchFor: RoleType[] = RolesMapper[currentUser.role];
-
   if (payload.searchString) {
     andConditions.push(
       or(
-        ilike(users.name, `%${payload.searchString}%`),
+        ilike(users.firstName, `%${payload.searchString}%`),
+        ilike(users.lastName, `%${payload.searchString}%`),
         ilike(users.email, `%${payload.searchString}%`),
       ),
     );
@@ -131,7 +111,7 @@ export const getUsers = async (
     andConditions.push(eq(users.role, payload.filterByRole));
   }
 
-  andConditions.push(inArray(users.role, rolesToSearchFor));
+  andConditions.push(inArray(users.role, ['DEFAULT_USER', 'VENDOR']));
 
   filter = and(...andConditions) as SQL<unknown>;
 
@@ -203,11 +183,14 @@ export const seedUsers = async (): Promise<SeedUsersReturn> => {
   // Super Admin
   const superAdmin = await createUser({
     email: 'zim-admin@mailinator.com',
-    name: 'Zim Super Admin',
-    credits: 1000,
+    firstName: 'Zim',
+    lastName: 'Super Admin',
     password: password,
     isActive: true,
     role: 'SUPER_ADMIN',
+    phoneNo: '123456789',
+    phoneCountry: 'United States',
+    dob: '1999-01-01',
   });
 
   return { superAdmin };

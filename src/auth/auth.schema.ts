@@ -4,7 +4,38 @@ const baseAuthSchema = {
   email: z
     .string({ required_error: 'Email is required' })
     .email({ message: 'Email is not valid' }),
-  password: z.string({ required_error: 'Password is required' }).min(8).max(64),
+  password: z
+    .string({ required_error: 'Password is required' })
+    .min(8, 'Password must contain atleast 8 characters')
+    .max(64, 'Password should not contain more than 64 characters')
+    .refine((password) => {
+      const containsUppercase = (ch: string) => /[A-Z]/.test(ch);
+      const containsLowercase = (ch: string) => /[a-z]/.test(ch);
+      const containsSpecialChar = (ch: string) =>
+        /[`!@#$%^&*()_\-+=\[\]{};':"\\|,.<>\/?~ ]/.test(ch);
+      let countOfUpperCase = 0,
+        countOfLowerCase = 0,
+        countOfNumbers = 0,
+        countOfSpecialChar = 0;
+      for (let i = 0; i < password.length; i++) {
+        let ch = password.charAt(i);
+        if (!isNaN(Number(ch))) countOfNumbers++;
+        else if (containsUppercase(ch)) countOfUpperCase++;
+        else if (containsLowercase(ch)) countOfLowerCase++;
+        else if (containsSpecialChar(ch)) countOfSpecialChar++;
+      }
+
+      if (
+        countOfLowerCase < 1 ||
+        countOfUpperCase < 1 ||
+        countOfSpecialChar < 1 ||
+        countOfNumbers < 1
+      ) {
+        return false;
+      }
+
+      return true;
+    }, 'Password must be strong, should contain 1 lowercase letter, 1 uppercase letter, 1 special character, 1 number atleast'),
 };
 
 export const setPasswordSchema = z
@@ -60,11 +91,27 @@ export const forgetPasswordSchema = z.object({
     .email({ message: 'Email must be valid' }),
 });
 
-export const registerUserSchema = z.object({
-  ...baseAuthSchema,
-  name: z.string({ required_error: 'Name is required' }),
-  companyId: z.string().min(1).transform(Number),
-});
+export const registerUserSchema = z
+  .object({
+    ...baseAuthSchema,
+    firstName: z.string({ required_error: 'Name is required' }).min(1),
+    lastName: z.string({ required_error: 'Name is required' }).min(1),
+    phoneNo: z.string({ required_error: 'Phone number is required' }),
+    phoneCountry: z.string({ required_error: 'Phone Country is required' }),
+    confirmPassword: z.string({
+      required_error: 'Confirm password is required',
+    }),
+    dob: z
+      .string({ required_error: 'Birthday is required' })
+      .date("Date must be formated as 'YYYY-MM-DD'"),
+  })
+  .refine(({ password, confirmPassword }) => {
+    if (password !== confirmPassword) {
+      return false;
+    }
+
+    return true;
+  }, 'Password and confirm password must be same');
 
 export const loginUserSchema = z.object({
   ...baseAuthSchema,
