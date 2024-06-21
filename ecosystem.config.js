@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'zim-tracking-server',
+      name: 'city-link-api',
       script: './dist/main.js',
     },
   ],
