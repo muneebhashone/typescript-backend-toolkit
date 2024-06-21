@@ -3,12 +3,6 @@ import fs from 'fs';
 import path from 'node:path';
 
 export type EmailTemplates = {
-  tracking: {
-    name: string;
-    trackingNumber: string;
-    carrier: string;
-    status: string;
-  };
   'set-password': {
     name: string;
     passwordSetLink: string;
@@ -16,6 +10,10 @@ export type EmailTemplates = {
   'reset-password': {
     resetLink: string;
     userName: string;
+  };
+  otp: {
+    userName: string;
+    otpCode: string;
   };
 };
 

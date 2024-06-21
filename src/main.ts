@@ -15,6 +15,7 @@ import redisStore from './lib/session.store';
 import { extractJwt } from './middlewares/extract-jwt-schema.middleware';
 import apiRoutes from './routes/routes';
 import cookieParser from 'cookie-parser';
+import { generateRandomNumbers } from './utils/common.utils';
 
 const boostrapServer = async () => {
   const app = express();

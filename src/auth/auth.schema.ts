@@ -91,6 +91,13 @@ export const forgetPasswordSchema = z.object({
     .email({ message: 'Email must be valid' }),
 });
 
+export const verifyOtpSchema = z.object({
+  otp: z.string({ required_error: 'OTP is required' }).min(6).max(6),
+  email: z
+    .string({ required_error: 'Email is required' })
+    .email('Email must be valid'),
+});
+
 export const registerUserSchema = z
   .object({
     ...baseAuthSchema,
@@ -124,3 +131,4 @@ export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
 export type ForgetPasswordSchemaType = z.infer<typeof forgetPasswordSchema>;
 export type ResetPasswordSchemaType = z.infer<typeof resetPasswordSchema>;
 export type SetPasswordSchemaType = z.infer<typeof setPasswordSchema>;
+export type VerifyOtpSchemaType = z.infer<typeof verifyOtpSchema>;

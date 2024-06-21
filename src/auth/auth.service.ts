@@ -34,6 +34,7 @@ import {
   RegisterUserSchemaType,
   ResetPasswordSchemaType,
   SetPasswordSchemaType,
+  VerifyOtpSchemaType,
 } from './auth.schema';
 
 export const setPassword = async (payload: SetPasswordSchemaType) => {
@@ -136,6 +137,26 @@ export const forgetPassword = async (
     userName: user.firstName,
     resetLink: generateResetPasswordLink(token),
   });
+};
+
+export const verifyOtp = async (
+  payload: VerifyOtpSchemaType,
+): Promise<UserType> => {
+  const user = await db.query.users.findFirst({
+    where: eq(users.email, payload.email),
+  });
+
+  if (!user) {
+    throw new Error("User isn't registered");
+  }
+
+  if (user.otp !== payload.otp) {
+    throw new Error('Invalid OTP');
+  }
+
+  await db.update(users).set({ otp: null }).where(eq(users.id, user.id));
+
+  return user;
 };
 
 export const changePassword = async (

@@ -7,16 +7,16 @@ import {
 } from '../errors/errors.service';
 import { createUser, getUserById } from '../user/user.services';
 import { errorResponse, successResponse } from '../utils/api.utils';
-import { JwtPayload } from '../utils/auth.utils';
+import { JwtPayload, signToken } from '../utils/auth.utils';
 import { AUTH_COOKIE_KEY, COOKIE_CONFIG } from './auth.constants';
 import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
   LoginUserSchemaType,
-  RegisterCompanySchemaType,
   RegisterUserSchemaType,
   ResetPasswordSchemaType,
   SetPasswordSchemaType,
+  VerifyOtpSchemaType,
 } from './auth.schema';
 import {
   changePassword,
@@ -24,7 +24,10 @@ import {
   loginUser,
   resetPassword,
   setPassword,
+  verifyOtp,
 } from './auth.service';
+import { generateRandomNumbers } from '../utils/common.utils';
+import { SendOtpEmailQueue } from '../queues/email.queue';
 
 export const handleSetPassword = async (
   req: Request<never, never, SetPasswordSchemaType>,
@@ -77,19 +80,43 @@ export const handleChangePassword = async (
     return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
   }
 };
+// TODO: Return token, and have update profile route where location will get updated
+export const handleVerifyOtp = async (
+  req: Request<never, never, VerifyOtpSchemaType>,
+  res: Response,
+) => {
+  try {
+    const user = await verifyOtp(req.body);
+  } catch (err) {
+    if (err instanceof ConflictError) {
+      return errorResponse(res, err.message, StatusCodes.CONFLICT);
+    }
+
+    return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
+  }
+};
 
 export const handleRegisterUser = async (
   req: Request<never, never, RegisterUserSchemaType>,
   res: Response,
 ) => {
   try {
-    await createUser({
+    const otp = generateRandomNumbers(6);
+
+    const user = await createUser({
       ...req.body,
       role: 'DEFAULT_USER',
       isActive: true,
+      otp: otp,
     });
 
-    return successResponse(res, 'User has been successfully registered');
+    await SendOtpEmailQueue.add(String(otp), {
+      email: user.email,
+      otpCode: otp,
+      userName: `${user.firstName} ${user.lastName}`,
+    });
+
+    return successResponse(res, 'Please check your email, OTP has been sent');
   } catch (err) {
     if (err instanceof ConflictError) {
       return errorResponse(res, err.message, StatusCodes.CONFLICT);

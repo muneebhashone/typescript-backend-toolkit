@@ -23,4 +23,5 @@ export const users = pgTable('users', {
   password: varchar('password').notNull(),
   passwordResetToken: varchar('password_reset_token'),
   setPasswordToken: varchar('set_password_token'),
+  otp: varchar('otp'),
 });

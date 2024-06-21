@@ -38,3 +38,13 @@ export const sanitizeRecord = <T extends Record<any, any>>(record: T): T => {
     return record;
   }
 };
+
+export const generateRandomNumbers = (length: number): string => {
+  let id = '';
+
+  for (let i = 0; i < length; i++) {
+    id += String(Math.round(Math.random() * i) + 1)[0];
+  }
+
+  return id;
+};
