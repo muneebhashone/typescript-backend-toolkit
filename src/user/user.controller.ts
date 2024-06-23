@@ -8,6 +8,7 @@ import {
   BulkUserIdSchemaType,
   CreateUserSchemaType,
   GetUsersSchemaType,
+  UpdateUserSchemaType,
   UserIdSchemaType,
 } from './user.schema';
 import {
@@ -17,7 +18,9 @@ import {
   deleteUser,
   getUsers,
   seedUsers,
+  updateUser,
 } from './user.services';
+import { UserType } from '../types';
 
 export const handleToggleActive = async (
   req: Request<UserIdSchemaType>,
@@ -66,6 +69,21 @@ export const handleDeleteUser = async (
     await deleteUser(req.params.id);
 
     return successResponse(res, 'User has been deleted');
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleUpdateUser = async (
+  req: Request<never, never, UpdateUserSchemaType>,
+  res: Response,
+) => {
+  try {
+    const currentUser = req.user as UserType;
+
+    const updatedUser = await updateUser(req.body, currentUser.id);
+
+    return successResponse(res, 'User has been updated', updatedUser);
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

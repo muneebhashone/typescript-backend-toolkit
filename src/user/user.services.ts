@@ -15,7 +15,7 @@ import { ConflictError, NotFoundError } from '../errors/errors.service';
 import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
 import { GetPaginatorReturnType, getPaginator } from '../utils/getPaginator';
-import { GetUsersSchemaType } from './user.schema';
+import { GetUsersSchemaType, UpdateUserSchemaType } from './user.schema';
 
 export const activeToggle = async (userId: number) => {
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
@@ -137,6 +137,20 @@ export const getUsers = async (
     results,
     paginatorInfo,
   };
+};
+
+export const updateUser = async (
+  payload: UpdateUserSchemaType,
+  userId: number,
+): Promise<UserType> => {
+  const user = await db
+    .update(users)
+    .set({ ...payload })
+    .where(eq(users.id, userId))
+    .returning()
+    .execute();
+
+  return user[0];
 };
 
 export const createUser = async (
