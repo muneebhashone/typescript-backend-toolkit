@@ -6,9 +6,15 @@ import {
   handleCreateUser,
   handleGetUsers,
   handleToggleActive,
+  handleUpdateUser,
   handleUserSeeder,
 } from './user.controller';
-import { createUserSchema, getUsersSchema, userIdSchema } from './user.schema';
+import {
+  createUserSchema,
+  getUsersSchema,
+  updateUserSchema,
+  userIdSchema,
+} from './user.schema';
 
 export const USER_ROUTER_ROOT = '/users';
 
@@ -21,6 +27,13 @@ userRouter.get(
   canAccess(),
   validateZodSchema({ params: userIdSchema }),
   handleToggleActive,
+);
+
+userRouter.put(
+  '/',
+  canAccess(),
+  validateZodSchema({ body: updateUserSchema }),
+  handleUpdateUser,
 );
 
 userRouter.get(

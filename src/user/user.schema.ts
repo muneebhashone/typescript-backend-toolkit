@@ -10,7 +10,7 @@ const baseCreateUser = {
   email: z
     .string({ required_error: 'Email is required' })
     .email({ message: 'Email is not valid' }),
-  name: z.string({ required_error: 'Name is required' }),
+  name: z.string({ required_error: 'Name is required' }).min(1),
 };
 
 export const createUserSchema = z.object({
@@ -19,11 +19,48 @@ export const createUserSchema = z.object({
   lastName: z.string({ required_error: 'Name is required' }).min(1),
   phoneNo: z
     .string({ required_error: 'Phone number is required' })
-    .min(6, 'Phone number must atleast contains 6 characters'),
+    .min(6, 'Phone number must atleast contains 6 characters')
+    .max(15, 'Phone number should not be greater than 15 characters'),
   phoneCountry: z.string({ required_error: 'Phone Country is required' }),
   dob: z
     .string({ required_error: 'Birthday is required' })
     .date("Date must be formated as 'YYYY-MM-DD'"),
+});
+
+export const updateUserSchema = z
+  .object({
+    firstName: z.string().min(1).optional(),
+    lastName: z.string().min(1).optional(),
+    phoneNo: z
+      .string()
+      .min(6, 'Phone number must atleast contains 6 characters')
+      .max(15, 'Phone number should not be greater than 15 characters')
+      .optional(),
+    phoneCountry: z.string().optional(),
+    dob: z.string().date("Date must be formated as 'YYYY-MM-DD'").optional(),
+    name: z.string().min(1).optional(),
+    country: z.string({ required_error: 'Country is required' }).min(1),
+    city: z.string({ required_error: 'City is required' }).min(1),
+    state: z.string({ required_error: 'State is required' }).min(1),
+    streetAddress: z
+      .string({ required_error: 'Street Address is required' })
+      .min(1),
+    postalCode: z.string().min(1).max(12).optional(),
+  })
+  .strict();
+
+export const setUserLocationSchema = z.object({
+  country: z.string({ required_error: 'Country is required' }).min(1),
+  city: z.string({ required_error: 'City is required' }).min(1),
+  state: z.string({ required_error: 'State is required' }).min(1),
+  streetAddress: z
+    .string({ required_error: 'Street Address is required' })
+    .min(1),
+  postalCode: z
+    .string({ required_error: 'Postal Code is required' })
+    .min(1)
+    .max(12)
+    .nullable(),
 });
 
 export const userIdSchema = z.object({
@@ -71,3 +108,4 @@ export type CreateUserSchemaType = z.infer<typeof createUserSchema>;
 export type GetUsersSchemaType = z.infer<typeof getUsersSchema>;
 export type UserIdSchemaType = z.infer<typeof userIdSchema>;
 export type BulkUserIdSchemaType = z.infer<typeof bulkUserIdsSchema>;
+export type UpdateUserSchemaType = z.infer<typeof updateUserSchema>;

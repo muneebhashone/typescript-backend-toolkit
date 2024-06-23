@@ -80,18 +80,25 @@ export const handleChangePassword = async (
     return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
   }
 };
-// TODO: Return token, and have update profile route where location will get updated
+
 export const handleVerifyOtp = async (
   req: Request<never, never, VerifyOtpSchemaType>,
   res: Response,
 ) => {
   try {
     const user = await verifyOtp(req.body);
-  } catch (err) {
-    if (err instanceof ConflictError) {
-      return errorResponse(res, err.message, StatusCodes.CONFLICT);
-    }
 
+    const token = await signToken({
+      email: user.email,
+      name: user.firstName,
+      role: user.role,
+      sub: String(user.id),
+    });
+
+    res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
+
+    res.json({ accessToken: token });
+  } catch (err) {
     return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
   }
 };
@@ -101,7 +108,7 @@ export const handleRegisterUser = async (
   res: Response,
 ) => {
   try {
-    const otp = generateRandomNumbers(6);
+    const otp = generateRandomNumbers(4);
 
     const user = await createUser({
       ...req.body,
