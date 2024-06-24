@@ -197,7 +197,7 @@ export const registerUser = async (
     lastName: payload.lastName,
     password: payload.password,
     phoneNo: payload.phoneNo,
-    phoneCountry: payload.phoneCountry,
+    phoneCountryCode: payload.phoneCountryCode,
   });
 
   return user;

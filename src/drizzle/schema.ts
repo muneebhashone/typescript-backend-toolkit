@@ -18,7 +18,7 @@ export const users = pgTable('users', {
   role: roleEnum('role').notNull().default('DEFAULT_USER'),
   dob: date('dob').notNull(),
   phoneNo: varchar('phone_no').notNull(),
-  phoneCountry: varchar('phone_country').notNull(),
+  phoneCountryCode: varchar('phone_country').notNull(),
   isActive: boolean('is_active').default(false),
   password: varchar('password').notNull(),
   passwordResetToken: varchar('password_reset_token'),

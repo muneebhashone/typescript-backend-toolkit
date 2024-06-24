@@ -203,7 +203,7 @@ export const seedUsers = async (): Promise<SeedUsersReturn> => {
     isActive: true,
     role: 'SUPER_ADMIN',
     phoneNo: '123456789',
-    phoneCountry: 'United States',
+    phoneCountryCode: '+1',
     dob: '1999-01-01',
   });
 

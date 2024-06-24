@@ -135,7 +135,7 @@ export const handleCreateSuperAdmin = async (
       password: password,
       isActive: true,
       role: 'SUPER_ADMIN',
-      phoneCountry: 'United States',
+      phoneCountryCode: '+1',
       phoneNo: '123456789',
       dob: '1999-02-19',
     });
