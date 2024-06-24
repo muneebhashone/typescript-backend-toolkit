@@ -93,9 +93,11 @@ export const forgetPasswordSchema = z.object({
 
 export const verifyOtpSchema = z.object({
   otp: z.string({ required_error: 'OTP is required' }).min(6).max(6),
-  email: z
-    .string({ required_error: 'Email is required' })
-    .email('Email must be valid'),
+  userId: z
+    .string()
+    .min(1)
+    .refine((value) => !isNaN(Number(value)), 'Id must be valid')
+    .transform(Number),
 });
 
 export const registerUserSchema = z
