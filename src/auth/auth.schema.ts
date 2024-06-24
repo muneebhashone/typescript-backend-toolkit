@@ -106,7 +106,9 @@ export const registerUserSchema = z
     firstName: z.string({ required_error: 'Name is required' }).min(1),
     lastName: z.string({ required_error: 'Name is required' }).min(1),
     phoneNo: z.string({ required_error: 'Phone number is required' }),
-    phoneCountry: z.string({ required_error: 'Phone Country is required' }),
+    phoneCountryCode: z.string({
+      required_error: 'Phone Country Code is required',
+    }),
     confirmPassword: z.string({
       required_error: 'Confirm password is required',
     }),
