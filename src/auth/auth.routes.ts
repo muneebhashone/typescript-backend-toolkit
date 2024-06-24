@@ -10,6 +10,7 @@ import {
   handleRegisterUser,
   handleResetPassword,
   handleSetPassword,
+  handleVerifyOtp,
 } from './auth.controller';
 import {
   changePasswordSchema,
@@ -18,6 +19,7 @@ import {
   registerUserSchema,
   resetPasswordSchema,
   setPasswordSchema,
+  verifyOtpSchema,
 } from './auth.schema';
 
 export const AUTH_ROUTER_ROOT = '/auth';
@@ -38,6 +40,12 @@ authRouter.post(
 );
 
 authRouter.post('/logout', handleLogout);
+
+authRouter.post(
+  '/verify-otp',
+  validateZodSchema({ body: verifyOtpSchema }),
+  handleVerifyOtp,
+);
 
 authRouter.get('/user', handleGetCurrentUser);
 

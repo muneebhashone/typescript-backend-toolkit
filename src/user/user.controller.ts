@@ -83,7 +83,7 @@ export const handleUpdateUser = async (
 
     const updatedUser = await updateUser(req.body, currentUser.id);
 
-    return successResponse(res, 'User has been updated', updatedUser);
+    return successResponse(res, 'Profile has been updated', updatedUser);
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

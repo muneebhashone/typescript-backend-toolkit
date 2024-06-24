@@ -123,7 +123,9 @@ export const handleRegisterUser = async (
       userName: `${user.firstName} ${user.lastName}`,
     });
 
-    return successResponse(res, 'Please check your email, OTP has been sent');
+    return successResponse(res, 'Please check your email, OTP has been sent', {
+      userId: user.id,
+    });
   } catch (err) {
     if (err instanceof ConflictError) {
       return errorResponse(res, err.message, StatusCodes.CONFLICT);

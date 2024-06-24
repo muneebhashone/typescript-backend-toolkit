@@ -143,7 +143,7 @@ export const verifyOtp = async (
   payload: VerifyOtpSchemaType,
 ): Promise<UserType> => {
   const user = await db.query.users.findFirst({
-    where: eq(users.email, payload.email),
+    where: eq(users.id, payload.userId),
   });
 
   if (!user) {
