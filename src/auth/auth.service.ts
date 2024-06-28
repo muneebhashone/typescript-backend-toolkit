@@ -32,10 +32,12 @@ import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
   LoginUserByEmailSchemaType,
+  LoginUserByPhoneSchemaType,
   RegisterHostByPhoneSchemaType,
   RegisterUserByEmailSchemaType,
   ResetPasswordSchemaType,
   SetPasswordSchemaType,
+  ValidateLoginOtpSchemaType,
   VerifyOtpSchemaType,
 } from './auth.schema';
 import { generateRandomNumbers } from '../utils/common.utils';
@@ -292,7 +294,17 @@ export const registerHostByPhone = async (
   return { user, otpSendTo };
 };
 
-export const loginUser = async (
+export const canUserAuthorize = (user: UserType) => {
+  if (!user.isActive) {
+    throw new Error('Your account is disabled');
+  }
+
+  if (user.otp !== null) {
+    throw new Error('Your account is not verified');
+  }
+};
+
+export const loginUserByEmail = async (
   payload: LoginUserByEmailSchemaType,
 ): Promise<string> => {
   const user = await db.query.users.findFirst({
@@ -303,13 +315,64 @@ export const loginUser = async (
     throw new InvalidCredentialseError('Invalid email or password');
   }
 
-  if (!user.isActive) {
-    throw new Error('Your account is disabled');
+  await canUserAuthorize(user);
+
+  const jwtPayload: JwtPayload = {
+    sub: String(user.id),
+    email: user?.email,
+    phoneNo: user?.phoneNo,
+    role: String(user.role) as RoleType,
+  };
+
+  const token = await signToken(jwtPayload);
+
+  return token;
+};
+
+export const loginUserByPhone = async (
+  payload: LoginUserByPhoneSchemaType,
+): Promise<UserType> => {
+  const user = await db.query.users.findFirst({
+    where: eq(users.phoneNo, payload.phoneNo),
+  });
+
+  if (!user) {
+    throw new Error('User not found');
   }
 
-  if (user.otp !== null) {
-    throw new Error('Your account is not verified');
+  await canUserAuthorize(user);
+
+  const loginOtp = generateRandomNumbers(4);
+
+  await db
+    .update(users)
+    .set({ loginOtp: loginOtp })
+    .where(eq(users.id, user.id))
+    .execute();
+
+  return user;
+};
+
+export const validateLoginOtp = async (payload: ValidateLoginOtpSchemaType) => {
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, payload.userId),
+  });
+
+  if (!user) {
+    throw new Error('User not found');
   }
+
+  if ('loginOtp' in user && user.loginOtp !== payload.code) {
+    throw new Error('Code is invalid');
+  }
+
+  await canUserAuthorize(user);
+
+  await db
+    .update(users)
+    .set({ loginOtp: null })
+    .where(eq(users.id, user.id))
+    .execute();
 
   const jwtPayload: JwtPayload = {
     sub: String(user.id),

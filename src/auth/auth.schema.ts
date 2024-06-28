@@ -28,8 +28,9 @@ const baseAuthSchemaEmail = {
 const baseAuthSchemaPhone = {
   phoneNo: z
     .string({ required_error: 'Phone No is required' })
-    .refine((value) =>
-      validator.isMobilePhone(value, 'any', { strictMode: true }),
+    .refine(
+      (value) => validator.isMobilePhone(value, 'any', { strictMode: true }),
+      'Phone no. is not valid',
     ),
 };
 
@@ -50,14 +51,6 @@ export const resetPasswordSchema = z.object({
   confirmPassword: passwordValidation('Confirm password'),
 });
 
-export const registerCompanySchema = z.object({
-  ...baseAuthSchemaPhone,
-  name: z.string({ required_error: 'Name is required' }),
-  companyName: z.string({ required_error: 'Company name is required' }).min(1),
-  country: z.string({ required_error: 'Country is required' }).min(1),
-  city: z.string({ required_error: 'City is required' }).min(1),
-});
-
 export const changePasswordSchema = z.object({
   currentPassword: passwordValidation('Current password'),
   newPassword: passwordValidation('New password'),
@@ -70,11 +63,15 @@ export const forgetPasswordSchema = z.object({
 });
 
 export const verifyOtpSchema = z.object({
-  otp: z.string({ required_error: 'OTP is required' }).min(4).max(4),
+  otp: z
+    .string({ required_error: 'OTP is required' })
+    .min(4)
+    .max(4)
+    .refine((value) => validator.isAlphanumeric(value), 'otp must be valid'),
   userId: z
     .string()
     .min(1)
-    .refine((value) => !isNaN(Number(value)), 'Id must be valid')
+    .refine((value) => validator.isAlphanumeric(value), 'Id must be valid')
     .transform(Number),
 });
 
@@ -84,6 +81,7 @@ export const registerHostByPhoneSchema = z
     password: passwordValidation('Password'),
     repeatPassword: passwordValidation('Repeat password'),
   })
+  .strict()
   .refine(({ password, repeatPassword }) => {
     if (password !== repeatPassword) {
       return false;
@@ -105,6 +103,7 @@ export const registerUserByEmailSchema = z
       .string({ required_error: 'Birthday is required' })
       .date("Date must be formated as 'YYYY-MM-DD'"),
   })
+  .strict()
   .refine(({ password, confirmPassword }) => {
     if (password !== confirmPassword) {
       return false;
@@ -117,7 +116,21 @@ export const loginUserByEmailSchema = z.object({
   ...baseAuthSchemaEmail,
 });
 
-export type RegisterCompanySchemaType = z.infer<typeof registerCompanySchema>;
+export const loginUserByPhoneSchema = z.object({
+  ...baseAuthSchemaPhone,
+});
+
+export const validateLoginOtpSchema = z.object({
+  userId: z
+    .string({ required_error: 'userId is required' })
+    .refine((value) => validator.isAlphanumeric(value), 'Id must be valid')
+    .transform(Number),
+  code: z
+    .string()
+    .min(4)
+    .max(4)
+    .refine((value) => validator.isAlphanumeric(value), 'code must be valid'),
+});
 
 export type RegisterUserByEmailSchemaType = z.infer<
   typeof registerUserByEmailSchema
@@ -128,8 +141,11 @@ export type RegisterHostByPhoneSchemaType = z.infer<
 >;
 
 export type LoginUserByEmailSchemaType = z.infer<typeof loginUserByEmailSchema>;
+export type LoginUserByPhoneSchemaType = z.infer<typeof loginUserByPhoneSchema>;
+
 export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
 export type ForgetPasswordSchemaType = z.infer<typeof forgetPasswordSchema>;
 export type ResetPasswordSchemaType = z.infer<typeof resetPasswordSchema>;
 export type SetPasswordSchemaType = z.infer<typeof setPasswordSchema>;
 export type VerifyOtpSchemaType = z.infer<typeof verifyOtpSchema>;
+export type ValidateLoginOtpSchemaType = z.infer<typeof validateLoginOtpSchema>;

@@ -82,6 +82,10 @@ export const canAccess =
       );
     }
 
+    if (currentUser && !by && !access) {
+      can = true;
+    }
+
     if (!can) {
       return errorResponse(
         res,

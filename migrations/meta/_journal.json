@@ -15,6 +15,13 @@
       "when": 1719593664639,
       "tag": "0001_ambiguous_slapstick",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1719597892688,
+      "tag": "0002_mysterious_ikaris",
+      "breakpoints": true
     }
   ]
 }

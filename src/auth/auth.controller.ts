@@ -5,7 +5,6 @@ import {
   InvalidCredentialseError,
   NotFoundError,
 } from '../errors/errors.service';
-import { createUser, getUserById } from '../user/user.services';
 import { errorResponse, successResponse } from '../utils/api.utils';
 import { JwtPayload, signToken } from '../utils/auth.utils';
 import { AUTH_COOKIE_KEY, COOKIE_CONFIG } from './auth.constants';
@@ -13,24 +12,26 @@ import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
   LoginUserByEmailSchemaType,
+  LoginUserByPhoneSchemaType,
   RegisterHostByPhoneSchemaType,
   RegisterUserByEmailSchemaType,
   ResetPasswordSchemaType,
   SetPasswordSchemaType,
+  ValidateLoginOtpSchemaType,
   VerifyOtpSchemaType,
 } from './auth.schema';
 import {
   changePassword,
   forgetPassword,
-  loginUser,
+  loginUserByEmail,
+  loginUserByPhone,
   registerHostByPhone,
   registerUserByEmail,
   resetPassword,
   setPassword,
+  validateLoginOtp,
   verifyOtp,
 } from './auth.service';
-import { generateRandomNumbers } from '../utils/common.utils';
-import { SendOtpEmailQueue } from '../queues/email.queue';
 
 export const handleSetPassword = async (
   req: Request<never, never, SetPasswordSchemaType>,
@@ -162,12 +163,52 @@ export const handleLogout = async (_: Request, res: Response) => {
   }
 };
 
-export const handleLogin = async (
+export const handleLoginByEmail = async (
   req: Request<never, never, LoginUserByEmailSchemaType>,
   res: Response,
 ) => {
   try {
-    const token = await loginUser(req.body);
+    const token = await loginUserByEmail(req.body);
+
+    res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
+
+    return res.json({ token: token });
+  } catch (err) {
+    if (err instanceof InvalidCredentialseError) {
+      return errorResponse(res, err.message, StatusCodes.BAD_REQUEST);
+    }
+
+    return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
+  }
+};
+
+export const handleLoginByPhone = async (
+  req: Request<never, never, LoginUserByPhoneSchemaType>,
+  res: Response,
+) => {
+  try {
+    const user = await loginUserByPhone(req.body);
+
+    const phone = `*******${user.phoneNo?.slice(-3)}`;
+
+    return successResponse(res, `Code has been sent to ${phone}`, {
+      userId: user.id,
+    });
+  } catch (err) {
+    if (err instanceof InvalidCredentialseError) {
+      return errorResponse(res, err.message, StatusCodes.BAD_REQUEST);
+    }
+
+    return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
+  }
+};
+
+export const handleValidateLoginCode = async (
+  req: Request<never, never, ValidateLoginOtpSchemaType>,
+  res: Response,
+) => {
+  try {
+    const token = await validateLoginOtp(req.body);
 
     res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
 
