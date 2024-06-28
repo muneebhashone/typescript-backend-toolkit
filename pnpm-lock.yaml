@@ -120,7 +120,7 @@ dependencies:
     specifier: ^4.7.5
     version: 4.7.5
   validator:
-    specifier: ^13.9.0
+    specifier: ^13.12.0
     version: 13.12.0
   zod:
     specifier: ^3.21.4

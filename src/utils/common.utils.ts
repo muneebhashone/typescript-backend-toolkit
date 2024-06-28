@@ -1,3 +1,5 @@
+import config from '../config/config.service';
+
 const transformableToBooleanTruthy = ['true', 'TRUE', 't', 'T', '1'];
 const transformableToBooleanFalsy = ['false', 'FALSE', 'f', 'F', '0'];
 
@@ -42,8 +44,12 @@ export const sanitizeRecord = <T extends Record<any, any>>(record: T): T => {
 export const generateRandomNumbers = (length: number): string => {
   let id = '';
 
-  for (let i = 0; i < length; i++) {
-    id += String(Math.round(Math.random() * i) + 1)[0];
+  if (config.STATIC_OTP) {
+    id = '1234';
+  } else {
+    for (let i = 0; i < length; i++) {
+      id += String(Math.round(Math.random() * i) + 1)[0];
+    }
   }
 
   return id;

@@ -158,11 +158,24 @@ export const createUser = async (
   checkExist: boolean = true,
 ): Promise<UserType> => {
   if (checkExist) {
-    const isUserExist = await db.query.users.findFirst({
-      where: eq(users.email, payload.email),
-    });
-    if (isUserExist) {
-      throw new ConflictError('User already exists with a same email address');
+    let isUserExist: UserType | null | undefined = null;
+
+    if (payload.email) {
+      isUserExist = await db.query.users.findFirst({
+        where: eq(users.email, payload.email),
+      });
+
+      if (isUserExist) {
+        throw new ConflictError('User already exists with same email address');
+      }
+    } else if (payload.phoneNo) {
+      isUserExist = await db.query.users.findFirst({
+        where: eq(users.email, payload.phoneNo),
+      });
+
+      if (isUserExist) {
+        throw new ConflictError('User already exists with same phone number');
+      }
     }
   }
 
@@ -203,7 +216,6 @@ export const seedUsers = async (): Promise<SeedUsersReturn> => {
     isActive: true,
     role: 'SUPER_ADMIN',
     phoneNo: '123456789',
-    phoneCountryCode: '+1',
     dob: '1999-01-01',
   });
 

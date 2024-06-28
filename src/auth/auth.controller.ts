@@ -12,8 +12,9 @@ import { AUTH_COOKIE_KEY, COOKIE_CONFIG } from './auth.constants';
 import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
-  LoginUserSchemaType,
-  RegisterUserSchemaType,
+  LoginUserByEmailSchemaType,
+  RegisterHostByPhoneSchemaType,
+  RegisterUserByEmailSchemaType,
   ResetPasswordSchemaType,
   SetPasswordSchemaType,
   VerifyOtpSchemaType,
@@ -90,7 +91,6 @@ export const handleVerifyOtp = async (
 
     const token = await signToken({
       email: user.email,
-      name: user.firstName,
       role: user.role,
       sub: String(user.id),
     });
@@ -103,29 +103,43 @@ export const handleVerifyOtp = async (
   }
 };
 
-export const handleRegisterUser = async (
-  req: Request<never, never, RegisterUserSchemaType>,
+export const handleRegisterHost = async (
+  req: Request<never, never, RegisterHostByPhoneSchemaType>,
   res: Response,
 ) => {
   try {
     const otp = generateRandomNumbers(4);
 
+    const otpSendTo = [];
+
     const user = await createUser({
       ...req.body,
-      role: 'DEFAULT_USER',
+      role: 'VENDOR',
       isActive: true,
       otp: otp,
     });
 
-    await SendOtpEmailQueue.add(String(otp), {
-      email: user.email,
-      otpCode: otp,
-      userName: `${user.firstName} ${user.lastName}`,
-    });
+    if (user.email) {
+      await SendOtpEmailQueue.add(String(otp), {
+        email: user.email,
+        otpCode: otp,
+        userName: `${user.firstName ?? 'Host'}`,
+      });
 
-    return successResponse(res, 'Please check your email, OTP has been sent', {
-      userId: user.id,
-    });
+      otpSendTo.push('email');
+    }
+
+    if (user.phoneNo) {
+      otpSendTo.push('phone');
+    }
+
+    return successResponse(
+      res,
+      `Please check your ${otpSendTo.join(' or ')}, OTP has been sent`,
+      {
+        userId: user.id,
+      },
+    );
   } catch (err) {
     if (err instanceof ConflictError) {
       return errorResponse(res, err.message, StatusCodes.CONFLICT);
@@ -135,10 +149,53 @@ export const handleRegisterUser = async (
   }
 };
 
-export const handleLogout = async (
-  _: Request<never, never, LoginUserSchemaType>,
+export const handleRegisterUser = async (
+  req: Request<never, never, RegisterUserByEmailSchemaType>,
   res: Response,
 ) => {
+  try {
+    const otp = generateRandomNumbers(4);
+
+    const otpSendTo = [];
+
+    const user = await createUser({
+      ...req.body,
+      role: 'DEFAULT_USER',
+      isActive: true,
+      otp: otp,
+    });
+
+    if (user.email) {
+      await SendOtpEmailQueue.add(String(otp), {
+        email: user.email,
+        otpCode: otp,
+        userName: `${user.firstName} ${user.lastName}`,
+      });
+
+      otpSendTo.push('email');
+    }
+
+    if (user.phoneNo) {
+      otpSendTo.push('phone');
+    }
+
+    return successResponse(
+      res,
+      `Please check your ${otpSendTo.join(' or ')}, OTP has been sent`,
+      {
+        userId: user.id,
+      },
+    );
+  } catch (err) {
+    if (err instanceof ConflictError) {
+      return errorResponse(res, err.message, StatusCodes.CONFLICT);
+    }
+
+    return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
+  }
+};
+
+export const handleLogout = async (_: Request, res: Response) => {
   try {
     res.cookie(AUTH_COOKIE_KEY, undefined, COOKIE_CONFIG);
 
@@ -149,7 +206,7 @@ export const handleLogout = async (
 };
 
 export const handleLogin = async (
-  req: Request<never, never, LoginUserSchemaType>,
+  req: Request<never, never, LoginUserByEmailSchemaType>,
   res: Response,
 ) => {
   try {
