@@ -41,6 +41,14 @@ export const canAccess =
       return errorResponse(res, 'Login again', StatusCodes.UNAUTHORIZED);
     }
 
+    if (currentUser.otp !== null) {
+      return errorResponse(
+        res,
+        'Your account is not verified',
+        StatusCodes.UNAUTHORIZED,
+      );
+    }
+
     if (!currentUser.isActive) {
       return errorResponse(
         res,
