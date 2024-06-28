@@ -1,54 +1,43 @@
 import z from 'zod';
+import validator from 'validator';
 
-const baseAuthSchema = {
+const passwordValidation = (fieldName: string) =>
+  z
+    .string({ required_error: `${fieldName} is required` })
+    .min(8, `${fieldName} must contain atleast 8 characters`)
+    .max(64, `${fieldName} should not contain more than 64 characters`)
+    .refine(
+      (value) =>
+        validator.isStrongPassword(value, {
+          minLength: 8,
+          minLowercase: 1,
+          minUppercase: 1,
+          minSymbols: 1,
+          minNumbers: 1,
+        }),
+      `${fieldName} must be strong, should contain 1 lowercase letter, 1 uppercase letter, 1 special character, 1 number atleast`,
+    );
+
+const baseAuthSchemaEmail = {
   email: z
     .string({ required_error: 'Email is required' })
     .email({ message: 'Email is not valid' }),
-  password: z
-    .string({ required_error: 'Password is required' })
-    .min(8, 'Password must contain atleast 8 characters')
-    .max(64, 'Password should not contain more than 64 characters')
-    .refine((password) => {
-      const containsUppercase = (ch: string) => /[A-Z]/.test(ch);
-      const containsLowercase = (ch: string) => /[a-z]/.test(ch);
-      const containsSpecialChar = (ch: string) =>
-        /[`!@#$%^&*()_\-+=\[\]{};':"\\|,.<>\/?~ ]/.test(ch);
-      let countOfUpperCase = 0,
-        countOfLowerCase = 0,
-        countOfNumbers = 0,
-        countOfSpecialChar = 0;
-      for (let i = 0; i < password.length; i++) {
-        let ch = password.charAt(i);
-        if (!isNaN(Number(ch))) countOfNumbers++;
-        else if (containsUppercase(ch)) countOfUpperCase++;
-        else if (containsLowercase(ch)) countOfLowerCase++;
-        else if (containsSpecialChar(ch)) countOfSpecialChar++;
-      }
+  password: passwordValidation('Password'),
+};
 
-      if (
-        countOfLowerCase < 1 ||
-        countOfUpperCase < 1 ||
-        countOfSpecialChar < 1 ||
-        countOfNumbers < 1
-      ) {
-        return false;
-      }
-
-      return true;
-    }, 'Password must be strong, should contain 1 lowercase letter, 1 uppercase letter, 1 special character, 1 number atleast'),
+const baseAuthSchemaPhone = {
+  phoneNo: z
+    .string({ required_error: 'Phone No is required' })
+    .refine((value) =>
+      validator.isMobilePhone(value, 'any', { strictMode: true }),
+    ),
 };
 
 export const setPasswordSchema = z
   .object({
     token: z.string({ required_error: 'token is required' }).min(1),
-    password: z
-      .string({ required_error: 'Password is required' })
-      .min(8, 'Password must contain atleast 8 characters')
-      .max(64, 'Password should not contain more than 64 characters'),
-    confirmPassword: z
-      .string({ required_error: 'Confirm password is required' })
-      .min(8, 'Password must contain atleast 8 characters')
-      .max(64, 'Password should not contain more than 64 characters'),
+    password: passwordValidation('Password'),
+    confirmPassword: passwordValidation('Confirm password'),
   })
   .refine(
     (values) => values.confirmPassword === values.password,
@@ -57,18 +46,12 @@ export const setPasswordSchema = z
 
 export const resetPasswordSchema = z.object({
   token: z.string({ required_error: 'token is required' }).min(1),
-  password: z
-    .string({ required_error: 'Password is required' })
-    .min(8, 'Password must contain atleast 8 characters')
-    .max(64, 'Password should not contain more than 64 characters'),
-  confirmPassword: z
-    .string({ required_error: 'Confirm password is required' })
-    .min(8, 'Password must contain atleast 8 characters')
-    .max(64, 'Password should not contain more than 64 characters'),
+  password: passwordValidation('Password'),
+  confirmPassword: passwordValidation('Confirm password'),
 });
 
 export const registerCompanySchema = z.object({
-  ...baseAuthSchema,
+  ...baseAuthSchemaPhone,
   name: z.string({ required_error: 'Name is required' }),
   companyName: z.string({ required_error: 'Company name is required' }).min(1),
   country: z.string({ required_error: 'Country is required' }).min(1),
@@ -76,13 +59,8 @@ export const registerCompanySchema = z.object({
 });
 
 export const changePasswordSchema = z.object({
-  currentPassword: z
-    .string({ required_error: 'Current password is required' })
-    .min(1),
-  newPassword: z
-    .string({ required_error: 'New password is required' })
-    .min(8, 'Password must contain atleast 8 characters')
-    .max(64, 'Password should not contain more than 64 characters'),
+  currentPassword: passwordValidation('Current password'),
+  newPassword: passwordValidation('New password'),
 });
 
 export const forgetPasswordSchema = z.object({
@@ -100,15 +78,26 @@ export const verifyOtpSchema = z.object({
     .transform(Number),
 });
 
-export const registerUserSchema = z
+export const registerHostByPhoneSchema = z
   .object({
-    ...baseAuthSchema,
+    ...baseAuthSchemaPhone,
+    password: passwordValidation('Password'),
+    repeatPassword: passwordValidation('Repeat password'),
+  })
+  .refine(({ password, repeatPassword }) => {
+    if (password !== repeatPassword) {
+      return false;
+    }
+
+    return true;
+  }, 'Password and repeat password must be same');
+
+export const registerUserByEmailSchema = z
+  .object({
+    ...baseAuthSchemaEmail,
+    ...baseAuthSchemaPhone,
     firstName: z.string({ required_error: 'Name is required' }).min(1),
     lastName: z.string({ required_error: 'Name is required' }).min(1),
-    phoneNo: z.string({ required_error: 'Phone number is required' }),
-    phoneCountryCode: z.string({
-      required_error: 'Phone Country Code is required',
-    }),
     confirmPassword: z.string({
       required_error: 'Confirm password is required',
     }),
@@ -124,13 +113,21 @@ export const registerUserSchema = z
     return true;
   }, 'Password and confirm password must be same');
 
-export const loginUserSchema = z.object({
-  ...baseAuthSchema,
+export const loginUserByEmailSchema = z.object({
+  ...baseAuthSchemaEmail,
 });
 
 export type RegisterCompanySchemaType = z.infer<typeof registerCompanySchema>;
-export type RegisterUserSchemaType = z.infer<typeof registerUserSchema>;
-export type LoginUserSchemaType = z.infer<typeof loginUserSchema>;
+
+export type RegisterUserByEmailSchemaType = z.infer<
+  typeof registerUserByEmailSchema
+>;
+
+export type RegisterHostByPhoneSchemaType = z.infer<
+  typeof registerHostByPhoneSchema
+>;
+
+export type LoginUserByEmailSchemaType = z.infer<typeof loginUserByEmailSchema>;
 export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
 export type ForgetPasswordSchemaType = z.infer<typeof forgetPasswordSchema>;
 export type ResetPasswordSchemaType = z.infer<typeof resetPasswordSchema>;

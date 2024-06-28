@@ -7,6 +7,7 @@ import {
   handleGetCurrentUser,
   handleLogin,
   handleLogout,
+  handleRegisterHost,
   handleRegisterUser,
   handleResetPassword,
   handleSetPassword,
@@ -15,8 +16,9 @@ import {
 import {
   changePasswordSchema,
   forgetPasswordSchema,
-  loginUserSchema,
-  registerUserSchema,
+  loginUserByEmailSchema,
+  registerHostByPhoneSchema,
+  registerUserByEmailSchema,
   resetPasswordSchema,
   setPasswordSchema,
   verifyOtpSchema,
@@ -26,16 +28,21 @@ export const AUTH_ROUTER_ROOT = '/auth';
 
 const authRouter = Router();
 
-// Register a User (Client) under White Label Admin
 authRouter.post(
   '/register/user',
-  validateZodSchema({ body: registerUserSchema }),
+  validateZodSchema({ body: registerUserByEmailSchema }),
   handleRegisterUser,
 );
 
 authRouter.post(
+  '/register/host',
+  validateZodSchema({ body: registerHostByPhoneSchema }),
+  handleRegisterHost,
+);
+
+authRouter.post(
   '/login',
-  validateZodSchema({ body: loginUserSchema }),
+  validateZodSchema({ body: loginUserByEmailSchema }),
   handleLogin,
 );
 

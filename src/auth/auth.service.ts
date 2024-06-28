@@ -30,8 +30,8 @@ import {
 import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
-  LoginUserSchemaType,
-  RegisterUserSchemaType,
+  LoginUserByEmailSchemaType,
+  RegisterUserByEmailSchemaType,
   ResetPasswordSchemaType,
   SetPasswordSchemaType,
   VerifyOtpSchemaType,
@@ -92,6 +92,10 @@ export const resetPassword = async (payload: ResetPasswordSchemaType) => {
 export const prepareSetPasswordAndSendEmail = async (
   user: UserType,
 ): Promise<void> => {
+  if (!user.email) {
+    throw new Error('Email is missing in the fields');
+  }
+
   const token = await signSetPasswordToken({
     email: user.email,
     userId: String(user.id),
@@ -119,6 +123,14 @@ export const forgetPassword = async (
 
   if (!user) {
     throw new Error("user doesn't exists");
+  }
+
+  if (!user.email) {
+    throw new Error('Email is missing in the fields');
+  }
+
+  if (!user.firstName) {
+    throw new Error('Firstname is missing in the fields');
   }
 
   const token = await signPasswordResetToken({
@@ -165,7 +177,7 @@ export const changePassword = async (
 ): Promise<void> => {
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
 
-  if (!user) {
+  if (!user || !user.password) {
     throw new NotFoundError('User is not found');
   }
 
@@ -188,7 +200,7 @@ export const changePassword = async (
 };
 
 export const registerUser = async (
-  payload: RegisterUserSchemaType,
+  payload: RegisterUserByEmailSchemaType,
 ): Promise<InferSelectModel<typeof users>> => {
   const user = await createUser({
     email: payload.email,
@@ -197,14 +209,13 @@ export const registerUser = async (
     lastName: payload.lastName,
     password: payload.password,
     phoneNo: payload.phoneNo,
-    phoneCountryCode: payload.phoneCountryCode,
   });
 
   return user;
 };
 
 export const loginUser = async (
-  payload: LoginUserSchemaType,
+  payload: LoginUserByEmailSchemaType,
 ): Promise<string> => {
   const user = await db.query.users.findFirst({
     where: eq(users.email, payload.email),
@@ -221,7 +232,7 @@ export const loginUser = async (
   const jwtPayload: JwtPayload = {
     sub: String(user.id),
     email: user.email,
-    name: user.firstName,
+    phoneNo: user.phoneNo,
     role: String(user.role) as RoleType,
   };
 

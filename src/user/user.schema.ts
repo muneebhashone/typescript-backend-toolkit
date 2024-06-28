@@ -5,6 +5,7 @@ import {
   stringToBoolean,
   transformableToBooleanError,
 } from '../utils/common.utils';
+import validator from 'validator';
 
 const baseCreateUser = {
   email: z
@@ -21,7 +22,6 @@ export const createUserSchema = z.object({
     .string({ required_error: 'Phone number is required' })
     .min(6, 'Phone number must atleast contains 6 characters')
     .max(15, 'Phone number should not be greater than 15 characters'),
-  phoneCountryCode: z.string({ required_error: 'Phone Country is required' }),
   dob: z
     .string({ required_error: 'Birthday is required' })
     .date("Date must be formated as 'YYYY-MM-DD'"),
@@ -36,7 +36,6 @@ export const updateUserSchema = z
       .min(6, 'Phone number must atleast contains 6 characters')
       .max(15, 'Phone number should not be greater than 15 characters')
       .optional(),
-    phoneCountryCode: z.string().optional(),
     dob: z.string().date("Date must be formated as 'YYYY-MM-DD'").optional(),
     name: z.string().min(1).optional(),
     country: z.string({ required_error: 'Country is required' }).min(1),
@@ -45,7 +44,10 @@ export const updateUserSchema = z
     streetAddress: z
       .string({ required_error: 'Street Address is required' })
       .min(1),
-    postalCode: z.string().min(1).max(12).optional(),
+    postalCode: z
+      .string()
+      .refine((value) => validator.isPostalCode(value, 'any'))
+      .optional(),
   })
   .strict();
 
@@ -57,9 +59,8 @@ export const setUserLocationSchema = z.object({
     .string({ required_error: 'Street Address is required' })
     .min(1),
   postalCode: z
-    .string({ required_error: 'Postal Code is required' })
-    .min(1)
-    .max(12)
+    .string()
+    .refine((value) => validator.isPostalCode(value, 'any'))
     .nullable(),
 });
 
