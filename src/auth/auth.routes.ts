@@ -5,22 +5,26 @@ import {
   handleChangePassword,
   handleForgetPassword,
   handleGetCurrentUser,
-  handleLogin,
+  handleLoginByEmail,
+  handleLoginByPhone,
   handleLogout,
   handleRegisterHost,
   handleRegisterUser,
   handleResetPassword,
   handleSetPassword,
+  handleValidateLoginCode,
   handleVerifyOtp,
 } from './auth.controller';
 import {
   changePasswordSchema,
   forgetPasswordSchema,
   loginUserByEmailSchema,
+  loginUserByPhoneSchema,
   registerHostByPhoneSchema,
   registerUserByEmailSchema,
   resetPasswordSchema,
   setPasswordSchema,
+  validateLoginOtpSchema,
   verifyOtpSchema,
 } from './auth.schema';
 
@@ -41,18 +45,30 @@ authRouter.post(
 );
 
 authRouter.post(
-  '/login',
+  '/login/email',
   validateZodSchema({ body: loginUserByEmailSchema }),
-  handleLogin,
+  handleLoginByEmail,
 );
 
-authRouter.post('/logout', handleLogout);
+authRouter.post(
+  '/login/phone',
+  validateZodSchema({ body: loginUserByPhoneSchema }),
+  handleLoginByPhone,
+);
 
 authRouter.post(
   '/verify-otp',
   validateZodSchema({ body: verifyOtpSchema }),
   handleVerifyOtp,
 );
+
+authRouter.post(
+  '/verify-code',
+  validateZodSchema({ body: validateLoginOtpSchema }),
+  handleValidateLoginCode,
+);
+
+authRouter.post('/logout', handleLogout);
 
 authRouter.get('/user', canAccess(), handleGetCurrentUser);
 
