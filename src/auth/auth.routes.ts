@@ -54,7 +54,7 @@ authRouter.post(
   handleVerifyOtp,
 );
 
-authRouter.get('/user', handleGetCurrentUser);
+authRouter.get('/user', canAccess(), handleGetCurrentUser);
 
 authRouter.post(
   '/forget-password',

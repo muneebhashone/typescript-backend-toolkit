@@ -8,6 +8,7 @@ import {
   BulkUserIdSchemaType,
   CreateUserSchemaType,
   GetUsersSchemaType,
+  UpdateHostSchemaType,
   UpdateUserSchemaType,
   UserIdSchemaType,
 } from './user.schema';
@@ -18,6 +19,7 @@ import {
   deleteUser,
   getUsers,
   seedUsers,
+  updateHost,
   updateUser,
 } from './user.services';
 import { UserType } from '../types';
@@ -84,6 +86,21 @@ export const handleUpdateUser = async (
     const updatedUser = await updateUser(req.body, currentUser.id);
 
     return successResponse(res, 'Profile has been updated', updatedUser);
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleUpdateHost = async (
+  req: Request<never, never, UpdateHostSchemaType>,
+  res: Response,
+) => {
+  try {
+    const currentUser = req.user as UserType;
+
+    const updatedHost = await updateHost(req.body, currentUser.id);
+
+    return successResponse(res, 'Profile has been updated', updatedHost);
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

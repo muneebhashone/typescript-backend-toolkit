@@ -6,12 +6,14 @@ import {
   handleCreateUser,
   handleGetUsers,
   handleToggleActive,
+  handleUpdateHost,
   handleUpdateUser,
   handleUserSeeder,
 } from './user.controller';
 import {
   createUserSchema,
   getUsersSchema,
+  updateHostSchema,
   updateUserSchema,
   userIdSchema,
 } from './user.schema';
@@ -30,10 +32,17 @@ userRouter.get(
 );
 
 userRouter.put(
-  '/',
-  canAccess(),
+  '/user',
+  canAccess('roles', ['DEFAULT_USER']),
   validateZodSchema({ body: updateUserSchema }),
   handleUpdateUser,
+);
+
+userRouter.put(
+  '/host',
+  canAccess('roles', ['VENDOR']),
+  validateZodSchema({ body: updateHostSchema }),
+  handleUpdateHost,
 );
 
 userRouter.get(

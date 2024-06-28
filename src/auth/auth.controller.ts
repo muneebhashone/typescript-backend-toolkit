@@ -90,7 +90,8 @@ export const handleVerifyOtp = async (
     const user = await verifyOtp(req.body);
 
     const token = await signToken({
-      email: user.email,
+      phoneNo: user?.phoneNo,
+      email: user?.email,
       role: user.role,
       sub: String(user.id),
     });
@@ -226,7 +227,8 @@ export const handleLogin = async (
 
 export const handleGetCurrentUser = async (req: Request, res: Response) => {
   try {
-    const user = await getUserById(Number((req.user as JwtPayload).sub));
+    const user = req.user;
+
     return res.json({ user });
   } catch (err) {
     if (err instanceof NotFoundError) {

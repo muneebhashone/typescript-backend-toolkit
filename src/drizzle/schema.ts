@@ -7,6 +7,8 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { rolesEnums } from './enums';
+import { integer } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 export const roleEnum = pgEnum('ROLE', rolesEnums);
 
@@ -27,5 +29,20 @@ export const users = pgTable('users', {
   state: varchar('state'),
   city: varchar('city'),
   streetAddress: varchar('streetAddress'),
+  businessId: integer('business_id').references(() => businesses.id, {
+    onDelete: 'cascade',
+  }),
   postalCode: varchar('postalCode'),
 });
+
+export const businesses = pgTable('businesses', {
+  id: serial('id').primaryKey(),
+  name: varchar('name'),
+});
+
+export const userBusinessRelation = relations(users, ({ one }) => ({
+  business: one(businesses, {
+    fields: [users.businessId],
+    references: [businesses.id],
+  }),
+}));

@@ -6,6 +6,7 @@ import { RoleType, rolesEnums } from '../drizzle/enums';
 import { users } from '../drizzle/schema';
 import { errorResponse } from '../utils/api.utils';
 import { JwtPayload } from '../utils/auth.utils';
+import { getUserById } from '../user/user.services';
 
 export type CanAccessByType = 'roles';
 
@@ -21,7 +22,9 @@ export const canAccess =
     res: Response,
     next: NextFunction,
   ) => {
-    if (!req.user) {
+    const requestUser = req?.user as JwtPayload;
+
+    if (!requestUser) {
       return errorResponse(
         res,
         "token isn't attached or expired",
@@ -29,12 +32,21 @@ export const canAccess =
       );
     }
 
-    const currentUser = (await db.query.users.findFirst({
-      where: eq(users.id, Number((req.user as JwtPayload).sub)),
-    })) as InferSelectModel<typeof users>;
+    const currentUser = await getUserById(
+      Number(requestUser.sub),
+      requestUser.role,
+    );
 
     if (!currentUser) {
       return errorResponse(res, 'Login again', StatusCodes.UNAUTHORIZED);
+    }
+
+    if (!currentUser.isActive) {
+      return errorResponse(
+        res,
+        'Your account has been disabled',
+        StatusCodes.UNAUTHORIZED,
+      );
     }
 
     let can = false;
