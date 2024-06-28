@@ -70,7 +70,7 @@ export const forgetPasswordSchema = z.object({
 });
 
 export const verifyOtpSchema = z.object({
-  otp: z.string({ required_error: 'OTP is required' }).min(6).max(6),
+  otp: z.string({ required_error: 'OTP is required' }).min(4).max(4),
   userId: z
     .string()
     .min(1)
@@ -96,8 +96,8 @@ export const registerUserByEmailSchema = z
   .object({
     ...baseAuthSchemaEmail,
     ...baseAuthSchemaPhone,
-    firstName: z.string({ required_error: 'Name is required' }).min(1),
-    lastName: z.string({ required_error: 'Name is required' }).min(1),
+    firstName: z.string({ required_error: 'Firstname is required' }).min(1),
+    lastName: z.string({ required_error: 'Lastname is required' }).min(1),
     confirmPassword: z.string({
       required_error: 'Confirm password is required',
     }),

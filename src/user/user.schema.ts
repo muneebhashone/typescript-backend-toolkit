@@ -29,23 +29,38 @@ export const createUserSchema = z.object({
 
 export const updateUserSchema = z
   .object({
-    firstName: z.string().min(1).optional(),
-    lastName: z.string().min(1).optional(),
-    dob: z.string().date("Date must be formated as 'YYYY-MM-DD'").optional(),
-    name: z.string().min(1).optional(),
+    firstName: z.string().min(1).nullable().optional(),
+    lastName: z.string().min(1).nullable().optional(),
+    dob: z
+      .string()
+      .date("Date must be formated as 'YYYY-MM-DD'")
+      .nullable()
+      .optional(),
+    name: z.string().min(1).nullable().optional(),
     country: z
       .string({ required_error: 'Country is required' })
       .min(1)
+      .nullable()
       .optional(),
-    city: z.string({ required_error: 'City is required' }).min(1).optional(),
-    state: z.string({ required_error: 'State is required' }).min(1).optional(),
+    city: z
+      .string({ required_error: 'City is required' })
+      .min(1)
+      .nullable()
+      .optional(),
+    state: z
+      .string({ required_error: 'State is required' })
+      .min(1)
+      .nullable()
+      .optional(),
     streetAddress: z
       .string({ required_error: 'Street Address is required' })
       .min(1)
+      .nullable()
       .optional(),
     postalCode: z
       .string()
       .refine((value) => validator.isPostalCode(value, 'any'))
+      .nullable()
       .optional(),
   })
   .strict();

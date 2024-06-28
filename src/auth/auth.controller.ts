@@ -23,6 +23,8 @@ import {
   changePassword,
   forgetPassword,
   loginUser,
+  registerHostByPhone,
+  registerUserByEmail,
   resetPassword,
   setPassword,
   verifyOtp,
@@ -109,30 +111,7 @@ export const handleRegisterHost = async (
   res: Response,
 ) => {
   try {
-    const otp = generateRandomNumbers(4);
-
-    const otpSendTo = [];
-
-    const user = await createUser({
-      ...req.body,
-      role: 'VENDOR',
-      isActive: true,
-      otp: otp,
-    });
-
-    if (user.email) {
-      await SendOtpEmailQueue.add(String(otp), {
-        email: user.email,
-        otpCode: otp,
-        userName: `${user.firstName ?? 'Host'}`,
-      });
-
-      otpSendTo.push('email');
-    }
-
-    if (user.phoneNo) {
-      otpSendTo.push('phone');
-    }
+    const { user, otpSendTo } = await registerHostByPhone(req.body);
 
     return successResponse(
       res,
@@ -155,30 +134,7 @@ export const handleRegisterUser = async (
   res: Response,
 ) => {
   try {
-    const otp = generateRandomNumbers(4);
-
-    const otpSendTo = [];
-
-    const user = await createUser({
-      ...req.body,
-      role: 'DEFAULT_USER',
-      isActive: true,
-      otp: otp,
-    });
-
-    if (user.email) {
-      await SendOtpEmailQueue.add(String(otp), {
-        email: user.email,
-        otpCode: otp,
-        userName: `${user.firstName} ${user.lastName}`,
-      });
-
-      otpSendTo.push('email');
-    }
-
-    if (user.phoneNo) {
-      otpSendTo.push('phone');
-    }
+    const { otpSendTo, user } = await registerUserByEmail(req.body);
 
     return successResponse(
       res,

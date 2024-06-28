@@ -8,10 +8,11 @@ import {
 } from '../errors/errors.service';
 import {
   ResetPasswordQueue,
+  SendOtpEmailQueue,
   SetPasswordEmailQueue,
 } from '../queues/email.queue';
 import { UserType } from '../types';
-import { createUser } from '../user/user.services';
+import { createUser, updateUser } from '../user/user.services';
 import {
   generateResetPasswordLink,
   generateSetPasswordLink,
@@ -31,11 +32,13 @@ import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
   LoginUserByEmailSchemaType,
+  RegisterHostByPhoneSchemaType,
   RegisterUserByEmailSchemaType,
   ResetPasswordSchemaType,
   SetPasswordSchemaType,
   VerifyOtpSchemaType,
 } from './auth.schema';
+import { generateRandomNumbers } from '../utils/common.utils';
 
 export const setPassword = async (payload: SetPasswordSchemaType) => {
   const user = await db.query.users.findFirst({
@@ -199,19 +202,94 @@ export const changePassword = async (
     .execute();
 };
 
-export const registerUser = async (
+export const registerUserByEmail = async (
   payload: RegisterUserByEmailSchemaType,
-): Promise<InferSelectModel<typeof users>> => {
-  const user = await createUser({
-    email: payload.email,
-    dob: payload.dob,
-    firstName: payload.firstName,
-    lastName: payload.lastName,
-    password: payload.password,
-    phoneNo: payload.phoneNo,
+): Promise<{ user: UserType; otpSendTo: string[] }> => {
+  const userExist = await db.query.users.findFirst({
+    where: eq(users.email, payload.email),
   });
 
-  return user;
+  // User exist and have perform otp verification
+  if (userExist && userExist.otp === null) {
+    throw new Error('Account already exist');
+  }
+
+  const otp = generateRandomNumbers(4);
+
+  const otpSendTo = [];
+
+  // It means user is registered already but didn't perform otp verification
+  if (userExist) {
+    await db.delete(users).where(eq(users.id, userExist.id));
+  }
+
+  const user = await createUser(
+    {
+      email: payload.email,
+      firstName: payload.email,
+      lastName: payload.lastName,
+      password: payload.password,
+      dob: payload.dob,
+      phoneNo: payload.phoneNo,
+      role: 'DEFAULT_USER',
+      isActive: true,
+      otp: otp,
+    },
+    false,
+  );
+
+  await SendOtpEmailQueue.add(String(otp), {
+    email: payload.email,
+    otpCode: otp,
+    userName: `${payload.firstName} ${payload.lastName}`,
+  });
+
+  otpSendTo.push('email');
+
+  if (user.phoneNo) {
+    otpSendTo.push('phone');
+  }
+
+  return { user, otpSendTo };
+};
+
+export const registerHostByPhone = async (
+  payload: RegisterHostByPhoneSchemaType,
+): Promise<{ user: UserType; otpSendTo: string[] }> => {
+  const userExist = await db.query.users.findFirst({
+    where: eq(users.phoneNo, payload.phoneNo),
+  });
+
+  // User exist and have perform otp verification
+  if (userExist && userExist.otp === null) {
+    throw new Error('Account already exist');
+  }
+
+  const otp = generateRandomNumbers(4);
+
+  const otpSendTo = [];
+
+  // It means user is registered already but didn't perform otp verification
+  if (userExist) {
+    await db.delete(users).where(eq(users.id, userExist.id));
+  }
+
+  const user = await createUser(
+    {
+      password: payload.password,
+      phoneNo: payload.phoneNo,
+      role: 'VENDOR',
+      isActive: true,
+      otp: otp,
+    },
+    false,
+  );
+
+  if (user.phoneNo) {
+    otpSendTo.push('phone');
+  }
+
+  return { user, otpSendTo };
 };
 
 export const loginUser = async (
@@ -227,6 +305,10 @@ export const loginUser = async (
 
   if (!user.isActive) {
     throw new Error('Your account is disabled');
+  }
+
+  if (user.otp !== null) {
+    throw new Error('Your account is not verified');
   }
 
   const jwtPayload: JwtPayload = {
