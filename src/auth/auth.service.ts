@@ -231,8 +231,8 @@ export const loginUser = async (
 
   const jwtPayload: JwtPayload = {
     sub: String(user.id),
-    email: user.email,
-    phoneNo: user.phoneNo,
+    email: user?.email,
+    phoneNo: user?.phoneNo,
     role: String(user.role) as RoleType,
   };
 

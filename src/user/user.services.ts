@@ -15,7 +15,12 @@ import { ConflictError, NotFoundError } from '../errors/errors.service';
 import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
 import { GetPaginatorReturnType, getPaginator } from '../utils/getPaginator';
-import { GetUsersSchemaType, UpdateUserSchemaType } from './user.schema';
+import {
+  GetUsersSchemaType,
+  UpdateHostSchemaType,
+  UpdateUserSchemaType,
+} from './user.schema';
+import { RoleType } from '../drizzle/enums';
 
 export const activeToggle = async (userId: number) => {
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
@@ -37,8 +42,12 @@ export const activeToggle = async (userId: number) => {
 
 export const getUserById = async (
   userId: number,
+  role: RoleType = 'DEFAULT_USER',
 ): Promise<InferSelectModel<typeof users>> => {
-  const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    ...(role === 'VENDOR' ? { with: { business: true } } : {}),
+  });
 
   if (!user) {
     throw new NotFoundError('User not found');
@@ -141,6 +150,20 @@ export const getUsers = async (
 
 export const updateUser = async (
   payload: UpdateUserSchemaType,
+  userId: number,
+): Promise<UserType> => {
+  const user = await db
+    .update(users)
+    .set({ ...payload })
+    .where(eq(users.id, userId))
+    .returning()
+    .execute();
+
+  return user[0];
+};
+
+export const updateHost = async (
+  payload: UpdateHostSchemaType,
   userId: number,
 ): Promise<UserType> => {
   const user = await db

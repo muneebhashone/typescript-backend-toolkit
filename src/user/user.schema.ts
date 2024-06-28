@@ -31,22 +31,31 @@ export const updateUserSchema = z
   .object({
     firstName: z.string().min(1).optional(),
     lastName: z.string().min(1).optional(),
-    phoneNo: z
-      .string()
-      .min(6, 'Phone number must atleast contains 6 characters')
-      .max(15, 'Phone number should not be greater than 15 characters')
-      .optional(),
     dob: z.string().date("Date must be formated as 'YYYY-MM-DD'").optional(),
     name: z.string().min(1).optional(),
-    country: z.string({ required_error: 'Country is required' }).min(1),
-    city: z.string({ required_error: 'City is required' }).min(1),
-    state: z.string({ required_error: 'State is required' }).min(1),
+    country: z
+      .string({ required_error: 'Country is required' })
+      .min(1)
+      .optional(),
+    city: z.string({ required_error: 'City is required' }).min(1).optional(),
+    state: z.string({ required_error: 'State is required' }).min(1).optional(),
     streetAddress: z
       .string({ required_error: 'Street Address is required' })
-      .min(1),
+      .min(1)
+      .optional(),
     postalCode: z
       .string()
       .refine((value) => validator.isPostalCode(value, 'any'))
+      .optional(),
+  })
+  .strict();
+
+export const updateHostSchema = updateUserSchema
+  .extend({
+    businessId: z
+      .string()
+      .refine((value) => validator.isAlphanumeric(value))
+      .transform(Number)
       .optional(),
   })
   .strict();
@@ -110,3 +119,4 @@ export type GetUsersSchemaType = z.infer<typeof getUsersSchema>;
 export type UserIdSchemaType = z.infer<typeof userIdSchema>;
 export type BulkUserIdSchemaType = z.infer<typeof bulkUserIdsSchema>;
 export type UpdateUserSchemaType = z.infer<typeof updateUserSchema>;
+export type UpdateHostSchemaType = z.infer<typeof updateHostSchema>;
