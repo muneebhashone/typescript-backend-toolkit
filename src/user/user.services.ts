@@ -149,7 +149,7 @@ export const getUsers = async (
 };
 
 export const updateUser = async (
-  payload: UpdateUserSchemaType,
+  payload: InferInsertModel<typeof users>,
   userId: number,
 ): Promise<UserType> => {
   const user = await db

@@ -1,12 +1,9 @@
-import { InferSelectModel, eq } from 'drizzle-orm';
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { db } from '../drizzle/db';
 import { RoleType, rolesEnums } from '../drizzle/enums';
-import { users } from '../drizzle/schema';
+import { getUserById } from '../user/user.services';
 import { errorResponse } from '../utils/api.utils';
 import { JwtPayload } from '../utils/auth.utils';
-import { getUserById } from '../user/user.services';
 
 export type CanAccessByType = 'roles';
 

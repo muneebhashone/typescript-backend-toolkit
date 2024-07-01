@@ -5,7 +5,7 @@ import config from '../config/config.service';
 
 export const errorResponse = (
   res: Response,
-  message: string,
+  message?: string,
   statusCode?: StatusCodes,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload?: any,
@@ -21,7 +21,7 @@ export const errorResponse = (
 
 export const successResponse = (
   res: Response,
-  message: string,
+  message?: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload?: Record<any, any>,
   statusCode: StatusCodes = StatusCodes.OK,
