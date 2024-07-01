@@ -1,4 +1,4 @@
-import { InferInsertModel, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db } from '../drizzle/db';
 import { businesses } from '../drizzle/schema';
 import { BusinessType } from '../types';

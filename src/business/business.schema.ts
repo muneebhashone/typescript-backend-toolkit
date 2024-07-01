@@ -13,7 +13,7 @@ export const businessCreateOrUpdateSchema = z.object({
   name: z
     .string({ required_error: 'Name is required' })
     .min(3, 'Name should contain atleast 3 characters')
-    .refine((value) => value.toLowerCase()),
+    .transform((value) => value.toLowerCase()),
 });
 
 export type BusinessIdSchemaType = z.infer<typeof businessIdSchema>;

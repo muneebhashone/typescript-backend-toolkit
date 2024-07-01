@@ -10,17 +10,13 @@ import {
   or,
 } from 'drizzle-orm';
 import { db } from '../drizzle/db';
+import { RoleType } from '../drizzle/enums';
 import { users } from '../drizzle/schema';
 import { ConflictError, NotFoundError } from '../errors/errors.service';
 import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
 import { GetPaginatorReturnType, getPaginator } from '../utils/getPaginator';
-import {
-  GetUsersSchemaType,
-  UpdateHostSchemaType,
-  UpdateUserSchemaType,
-} from './user.schema';
-import { RoleType } from '../drizzle/enums';
+import { GetUsersSchemaType, UpdateHostSchemaType } from './user.schema';
 
 export const activeToggle = async (userId: number) => {
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });

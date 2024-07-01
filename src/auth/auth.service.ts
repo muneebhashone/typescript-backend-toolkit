@@ -1,4 +1,4 @@
-import { InferInsertModel, InferSelectModel, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db } from '../drizzle/db';
 import { RoleType } from '../drizzle/enums';
 import { users } from '../drizzle/schema';
@@ -12,7 +12,7 @@ import {
   SetPasswordEmailQueue,
 } from '../queues/email.queue';
 import { UserType } from '../types';
-import { createUser, updateUser } from '../user/user.services';
+import { createUser } from '../user/user.services';
 import {
   generateResetPasswordLink,
   generateSetPasswordLink,
@@ -28,6 +28,7 @@ import {
   signToken,
   verifyToken,
 } from '../utils/auth.utils';
+import { generateRandomNumbers } from '../utils/common.utils';
 import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
@@ -40,7 +41,6 @@ import {
   ValidateLoginOtpSchemaType,
   VerifyOtpSchemaType,
 } from './auth.schema';
-import { generateRandomNumbers } from '../utils/common.utils';
 
 export const setPassword = async (payload: SetPasswordSchemaType) => {
   const user = await db.query.users.findFirst({
