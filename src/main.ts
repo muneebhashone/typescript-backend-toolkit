@@ -2,6 +2,7 @@ import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import session from 'express-session';
@@ -14,8 +15,6 @@ import logger, { httpLogger } from './lib/logger.service';
 import redisStore from './lib/session.store';
 import { extractJwt } from './middlewares/extract-jwt-schema.middleware';
 import apiRoutes from './routes/routes';
-import cookieParser from 'cookie-parser';
-import { generateRandomNumbers } from './utils/common.utils';
 
 const boostrapServer = async () => {
   const app = express();

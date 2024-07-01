@@ -16,6 +16,7 @@ export const UPLOAD_ROUTER_ROOT = '/upload';
 const uploadRouter = Router();
 
 uploadRouter.post('/profile', canAccess(), uploadProfile, handleProfileUpload);
+
 uploadRouter.post(
   '/business-thumbnail/:id',
   canAccess(),

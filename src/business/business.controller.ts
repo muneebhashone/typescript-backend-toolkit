@@ -11,7 +11,7 @@ import {
   BusinessIdSchemaType,
 } from './business.schema';
 
-export const handleGetBusinesses = async (req: Request, res: Response) => {
+export const handleGetBusinesses = async (_: Request, res: Response) => {
   try {
     const result = await getBusiness();
 

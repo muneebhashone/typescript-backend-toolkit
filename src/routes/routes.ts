@@ -7,6 +7,7 @@ import healthCheckRouter, {
 import businessRouter, {
   BUSINESS_ROUTER_ROOT,
 } from '../business/business.router';
+import uploadRouter, { UPLOAD_ROUTER_ROOT } from '../upload/upload.router';
 
 const router = express.Router();
 
@@ -14,5 +15,6 @@ router.use(HEALTH_ROUTER_ROOT, healthCheckRouter);
 router.use(USER_ROUTER_ROOT, userRouter);
 router.use(AUTH_ROUTER_ROOT, authRouter);
 router.use(BUSINESS_ROUTER_ROOT, businessRouter);
+router.use(UPLOAD_ROUTER_ROOT, uploadRouter);
 
 export default router;
