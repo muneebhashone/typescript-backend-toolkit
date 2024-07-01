@@ -1,4 +1,5 @@
 import config from '../config/config.service';
+import path from 'node:path';
 
 const transformableToBooleanTruthy = ['true', 'TRUE', 't', 'T', '1'];
 const transformableToBooleanFalsy = ['false', 'FALSE', 'f', 'F', '0'];
@@ -53,4 +54,15 @@ export const generateRandomNumbers = (length: number): string => {
   }
 
   return id;
+};
+
+export const checkFiletype = (file: Express.Multer.File): boolean => {
+  const filetypes = /jpeg|jpg|png/;
+
+  const checkExtname = filetypes.test(
+    path.extname(file.originalname).toLowerCase(),
+  );
+  const checkMimetype = filetypes.test(file.mimetype);
+
+  return checkExtname && checkMimetype;
 };
