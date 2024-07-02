@@ -207,13 +207,21 @@ export const changePassword = async (
 export const registerUserByEmail = async (
   payload: RegisterUserByEmailSchemaType,
 ): Promise<{ user: UserType; otpSendTo: string[] }> => {
-  const userExist = await db.query.users.findFirst({
+  const userExistByEmail = await db.query.users.findFirst({
     where: eq(users.email, payload.email),
   });
 
   // User exist and have perform otp verification
-  if (userExist && userExist.otp === null) {
-    throw new Error('Account already exist');
+  if (userExistByEmail && userExistByEmail.otp === null) {
+    throw new Error('Account already exist with same email address');
+  }
+
+  const userExistByPhone = await db.query.users.findFirst({
+    where: eq(users.phoneNo, payload.phoneNo),
+  });
+
+  if (userExistByPhone && userExistByPhone.otp === null) {
+    throw new Error('Account already exist with same phone no.');
   }
 
   const otp = generateRandomNumbers(4);
@@ -221,8 +229,12 @@ export const registerUserByEmail = async (
   const otpSendTo = [];
 
   // It means user is registered already but didn't perform otp verification
-  if (userExist) {
-    await db.delete(users).where(eq(users.id, userExist.id));
+  if (userExistByEmail) {
+    await db.delete(users).where(eq(users.id, userExistByEmail.id));
+  }
+
+  if (userExistByPhone) {
+    await db.delete(users).where(eq(users.id, userExistByPhone.id));
   }
 
   const user = await createUser(
