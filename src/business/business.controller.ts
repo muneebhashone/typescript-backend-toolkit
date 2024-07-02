@@ -4,6 +4,7 @@ import {
   createBusiness,
   deleteBusiness,
   getBusiness,
+  seedBusinesses,
   updateBusiness,
 } from './business.service';
 import {
@@ -14,6 +15,16 @@ import {
 export const handleGetBusinesses = async (_: Request, res: Response) => {
   try {
     const result = await getBusiness();
+
+    return successResponse(res, undefined, result);
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleSeedBusinesses = async (_: Request, res: Response) => {
+  try {
+    const result = await seedBusinesses();
 
     return successResponse(res, undefined, result);
   } catch (err) {

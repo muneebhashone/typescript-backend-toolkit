@@ -12,6 +12,7 @@ import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
   LoginUserByEmailSchemaType,
+  LoginUserByPhoneAndPasswordSchemaType,
   LoginUserByPhoneSchemaType,
   RegisterHostByPhoneSchemaType,
   RegisterUserByEmailSchemaType,
@@ -25,6 +26,7 @@ import {
   forgetPassword,
   loginUserByEmail,
   loginUserByPhone,
+  loginUserByPhoneAndPassword,
   registerHostByPhone,
   registerUserByEmail,
   resetPassword,
@@ -173,6 +175,23 @@ export const handleLoginByEmail = async (
     res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
 
     return res.json({ token: token });
+  } catch (err) {
+    if (err instanceof InvalidCredentialseError) {
+      return errorResponse(res, err.message, StatusCodes.BAD_REQUEST);
+    }
+
+    return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
+  }
+};
+
+export const handleLoginByPhoneAndPassword = async (
+  req: Request<never, never, LoginUserByPhoneAndPasswordSchemaType>,
+  res: Response,
+) => {
+  try {
+    const token = await loginUserByPhoneAndPassword(req.body);
+
+    res.json({ accessToken: token });
   } catch (err) {
     if (err instanceof InvalidCredentialseError) {
       return errorResponse(res, err.message, StatusCodes.BAD_REQUEST);

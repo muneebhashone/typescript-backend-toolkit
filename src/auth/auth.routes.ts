@@ -7,6 +7,7 @@ import {
   handleGetCurrentUser,
   handleLoginByEmail,
   handleLoginByPhone,
+  handleLoginByPhoneAndPassword,
   handleLogout,
   handleRegisterHost,
   handleRegisterUser,
@@ -18,6 +19,7 @@ import {
 import {
   changePasswordSchema,
   forgetPasswordSchema,
+  loginByPhoneAndPasswordSchema,
   loginUserByEmailSchema,
   loginUserByPhoneSchema,
   registerHostByPhoneSchema,
@@ -48,6 +50,12 @@ authRouter.post(
   '/login/email',
   validateZodSchema({ body: loginUserByEmailSchema }),
   handleLoginByEmail,
+);
+
+authRouter.post(
+  '/login/phone-password',
+  validateZodSchema({ body: loginByPhoneAndPasswordSchema }),
+  handleLoginByPhoneAndPassword,
 );
 
 authRouter.post(

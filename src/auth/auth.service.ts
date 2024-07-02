@@ -33,6 +33,7 @@ import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
   LoginUserByEmailSchemaType,
+  LoginUserByPhoneAndPasswordSchemaType,
   LoginUserByPhoneSchemaType,
   RegisterHostByPhoneSchemaType,
   RegisterUserByEmailSchemaType,
@@ -41,6 +42,8 @@ import {
   ValidateLoginOtpSchemaType,
   VerifyOtpSchemaType,
 } from './auth.schema';
+
+export const checkEmailExist = async () => {};
 
 export const setPassword = async (payload: SetPasswordSchemaType) => {
   const user = await db.query.users.findFirst({
@@ -211,7 +214,6 @@ export const registerUserByEmail = async (
     where: eq(users.email, payload.email),
   });
 
-  // User exist and have perform otp verification
   if (userExistByEmail && userExistByEmail.otp === null) {
     throw new Error('Account already exist with same email address');
   }
@@ -230,11 +232,11 @@ export const registerUserByEmail = async (
 
   // It means user is registered already but didn't perform otp verification
   if (userExistByEmail) {
-    await db.delete(users).where(eq(users.id, userExistByEmail.id));
+    await db.delete(users).where(eq(users.id, userExistByEmail.id)).execute();
   }
 
   if (userExistByPhone) {
-    await db.delete(users).where(eq(users.id, userExistByPhone.id));
+    await db.delete(users).where(eq(users.id, userExistByPhone.id)).execute();
   }
 
   const user = await createUser(
@@ -325,6 +327,31 @@ export const loginUserByEmail = async (
 
   if (!user || !(await compareHash(String(user.password), payload.password))) {
     throw new InvalidCredentialseError('Invalid email or password');
+  }
+
+  await canUserAuthorize(user);
+
+  const jwtPayload: JwtPayload = {
+    sub: String(user.id),
+    email: user?.email,
+    phoneNo: user?.phoneNo,
+    role: String(user.role) as RoleType,
+  };
+
+  const token = await signToken(jwtPayload);
+
+  return token;
+};
+
+export const loginUserByPhoneAndPassword = async (
+  payload: LoginUserByPhoneAndPasswordSchemaType,
+): Promise<string> => {
+  const user = await db.query.users.findFirst({
+    where: eq(users.phoneNo, payload.phoneNo),
+  });
+
+  if (!user || !(await compareHash(String(user.password), payload.password))) {
+    throw new InvalidCredentialseError('Invalid phone no. or password');
   }
 
   await canUserAuthorize(user);
