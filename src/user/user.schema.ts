@@ -27,6 +27,21 @@ export const createUserSchema = z.object({
     .date("Date must be formated as 'YYYY-MM-DD'"),
 });
 
+export const updateUserEmailSchema = z.object({
+  email: z
+    .string({ required_error: 'Email is required' })
+    .email({ message: 'Email is not valid' }),
+});
+
+export const updateUserPhoneNoSchema = z.object({
+  phoneNo: z
+    .string({ required_error: 'Phone No is required' })
+    .refine(
+      (value) => validator.isMobilePhone(value, 'any', { strictMode: true }),
+      'Phone no. is not valid',
+    ),
+});
+
 export const updateUserSchema = z
   .object({
     firstName: z.string().min(1).nullable().optional(),
@@ -62,6 +77,7 @@ export const updateUserSchema = z
       .refine((value) => validator.isPostalCode(value, 'any'))
       .nullable()
       .optional(),
+    interest: z.number().min(1).optional(),
   })
   .strict();
 
@@ -72,6 +88,13 @@ export const updateHostSchema = updateUserSchema
       .refine((value) => validator.isAlphanumeric(value))
       .transform(Number)
       .optional(),
+    accountNumber: z
+      .string()
+      .min(1)
+      .refine((value) => validator.isIBAN(value), 'Must be valid IBAN number')
+      .optional(),
+    bankName: z.string().min(1).optional(),
+    accountName: z.string().min(1).optional(),
   })
   .strict();
 
@@ -101,6 +124,17 @@ export const bulkUserIdsSchema = z.object({
       'Ids must be string-integer',
     )
     .transform((values) => values.map(Number)),
+});
+
+export const verifyUpdateOtpSchema = z.object({
+  code: z
+    .string({ required_error: 'code is required' })
+    .min(4)
+    .max(4)
+    .refine((value) => validator.isAlphanumeric(value)),
+  for: z.enum(['email', 'phone'], {
+    required_error: "for must be one of ['email','phone']",
+  }),
 });
 
 export const getUsersSchema = z.object({
@@ -135,3 +169,8 @@ export type UserIdSchemaType = z.infer<typeof userIdSchema>;
 export type BulkUserIdSchemaType = z.infer<typeof bulkUserIdsSchema>;
 export type UpdateUserSchemaType = z.infer<typeof updateUserSchema>;
 export type UpdateHostSchemaType = z.infer<typeof updateHostSchema>;
+
+export type UpdateUserEmailSchemaType = z.infer<typeof updateUserEmailSchema>;
+export type UpdateUserPhoneSchemaType = z.infer<typeof updateUserPhoneNoSchema>;
+
+export type VerifyUpdateOtpSchemaType = z.infer<typeof verifyUpdateOtpSchema>;

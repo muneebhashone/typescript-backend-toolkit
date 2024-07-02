@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { InferInsertModel, eq } from 'drizzle-orm';
 import { db } from '../drizzle/db';
 import { businesses } from '../drizzle/schema';
 import { BusinessType } from '../types';
@@ -51,4 +51,39 @@ export const updateBusiness = async (
 
 export const deleteBusiness = async (businessId: number): Promise<void> => {
   await db.delete(businesses).where(eq(businesses.id, businessId));
+};
+
+export const seedBusinesses = async (): Promise<BusinessType[]> => {
+  await db.delete(businesses).execute();
+
+  const businessesData: InferInsertModel<typeof businesses>[] = [
+    {
+      name: 'Appartment Booking',
+      thumbnail:
+        'https://city-link.s3.us-east-2.amazonaws.com/direct-uploads/business-4.png',
+    },
+    {
+      name: 'Boat Booking',
+      thumbnail:
+        'https://city-link.s3.us-east-2.amazonaws.com/direct-uploads/business-3.png',
+    },
+    {
+      name: 'Executive Car Booking',
+      thumbnail:
+        'https://city-link.s3.us-east-2.amazonaws.com/direct-uploads/business-2.png',
+    },
+    {
+      name: 'Jet & Helicopter Booking',
+      thumbnail:
+        'https://city-link.s3.us-east-2.amazonaws.com/direct-uploads/business-1.png',
+    },
+  ];
+
+  const insertedData = await db
+    .insert(businesses)
+    .values(businessesData)
+    .returning()
+    .execute();
+
+  return insertedData;
 };

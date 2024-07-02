@@ -34,6 +34,11 @@ const baseAuthSchemaPhone = {
     ),
 };
 
+export const loginByPhoneAndPasswordSchema = z.object({
+  ...baseAuthSchemaPhone,
+  password: passwordValidation('Password'),
+});
+
 export const setPasswordSchema = z
   .object({
     token: z.string({ required_error: 'token is required' }).min(1),
@@ -142,6 +147,9 @@ export type RegisterHostByPhoneSchemaType = z.infer<
 
 export type LoginUserByEmailSchemaType = z.infer<typeof loginUserByEmailSchema>;
 export type LoginUserByPhoneSchemaType = z.infer<typeof loginUserByPhoneSchema>;
+export type LoginUserByPhoneAndPasswordSchemaType = z.infer<
+  typeof loginByPhoneAndPasswordSchema
+>;
 
 export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
 export type ForgetPasswordSchemaType = z.infer<typeof forgetPasswordSchema>;

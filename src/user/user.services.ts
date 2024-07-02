@@ -7,6 +7,7 @@ import {
   eq,
   ilike,
   inArray,
+  ne,
   or,
 } from 'drizzle-orm';
 import { db } from '../drizzle/db';
@@ -16,7 +17,15 @@ import { ConflictError, NotFoundError } from '../errors/errors.service';
 import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
 import { GetPaginatorReturnType, getPaginator } from '../utils/getPaginator';
-import { GetUsersSchemaType, UpdateHostSchemaType } from './user.schema';
+import {
+  GetUsersSchemaType,
+  UpdateHostSchemaType,
+  UpdateUserEmailSchemaType,
+  UpdateUserPhoneSchemaType,
+  VerifyUpdateOtpSchemaType,
+} from './user.schema';
+import { SendOtpEmailQueue } from '../queues/email.queue';
+import { generateRandomNumbers } from '../utils/common.utils';
 
 export const activeToggle = async (userId: number) => {
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
@@ -142,6 +151,115 @@ export const getUsers = async (
     results,
     paginatorInfo,
   };
+};
+
+export const verifyUpdateOtp = async (
+  payload: VerifyUpdateOtpSchemaType,
+  userId: number,
+): Promise<void> => {
+  const userToUpdate = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
+
+  if (!userToUpdate) {
+    throw new Error("User doesn't exist");
+  }
+
+  if (userToUpdate?.updateOtp !== payload.code) {
+    throw new Error('Invalid code');
+  }
+
+  if (payload.for === 'email' && userToUpdate.tempEmail) {
+    await db
+      .update(users)
+      .set({ email: userToUpdate.tempEmail, updateOtp: null, tempEmail: null })
+      .where(eq(users.id, userId))
+      .execute();
+  }
+
+  if (payload.for === 'phone' && userToUpdate.tempPhoneNo) {
+    await db
+      .update(users)
+      .set({
+        phoneNo: userToUpdate.tempPhoneNo,
+        updateOtp: null,
+        tempPhoneNo: null,
+      })
+      .where(eq(users.id, userId))
+      .execute();
+  }
+};
+
+export const updateUserPhone = async (
+  payload: UpdateUserPhoneSchemaType,
+  userId: number,
+): Promise<void> => {
+  const isPhoneNoAlreadyInUse = await db.query.users.findFirst({
+    where: and(eq(users.phoneNo, payload.phoneNo), ne(users.id, userId)),
+  });
+
+  if (isPhoneNoAlreadyInUse) {
+    throw new Error('Phone No. already in use');
+  }
+
+  const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+
+  if (!user) {
+    throw new Error("User doesn't exist");
+  }
+
+  if (user.phoneNo === payload.phoneNo) {
+    return;
+  }
+
+  const otpCode = generateRandomNumbers(4);
+
+  await db
+    .update(users)
+    .set({ tempPhoneNo: payload.phoneNo, updateOtp: otpCode })
+    .where(eq(users.id, userId))
+    .returning()
+    .execute();
+};
+
+export const updateUserEmail = async (
+  payload: UpdateUserEmailSchemaType,
+  userId: number,
+): Promise<void> => {
+  const isEmailAlreadyInUse = await db.query.users.findFirst({
+    where: and(eq(users.email, payload.email), ne(users.id, userId)),
+  });
+
+  if (isEmailAlreadyInUse) {
+    throw new Error('Email already in use');
+  }
+
+  const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+
+  if (!user) {
+    throw new Error("User doesn't exist");
+  }
+
+  if (user.email === payload.email) {
+    return;
+  }
+
+  const otpCode = generateRandomNumbers(4);
+
+  const updatedUser = (
+    await db
+      .update(users)
+      .set({ tempEmail: payload.email, updateOtp: otpCode })
+      .where(eq(users.id, userId))
+      .returning()
+      .execute()
+  )[0];
+
+  await SendOtpEmailQueue.add(String(updatedUser.id), {
+    email: payload.email,
+    otpCode: otpCode,
+    userName: updatedUser.firstName ?? 'N/A',
+  });
 };
 
 export const updateUser = async (

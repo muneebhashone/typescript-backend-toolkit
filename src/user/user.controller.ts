@@ -9,8 +9,11 @@ import {
   CreateUserSchemaType,
   GetUsersSchemaType,
   UpdateHostSchemaType,
+  UpdateUserEmailSchemaType,
+  UpdateUserPhoneSchemaType,
   UpdateUserSchemaType,
   UserIdSchemaType,
+  VerifyUpdateOtpSchemaType,
 } from './user.schema';
 import {
   activeToggle,
@@ -21,8 +24,64 @@ import {
   seedUsers,
   updateHost,
   updateUser,
+  updateUserPhone,
+  verifyUpdateOtp,
 } from './user.services';
 import { UserType } from '../types';
+import { updateUserEmail } from './user.services';
+
+export const handleVerifyUpdateOtp = async (
+  req: Request<never, never, VerifyUpdateOtpSchemaType>,
+  res: Response,
+) => {
+  try {
+    const currentUser = req.user as UserType;
+
+    await verifyUpdateOtp(req.body, currentUser.id);
+
+    return successResponse(res, `${req.body.for} has been updated`);
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleUpdateUserEmail = async (
+  req: Request<never, never, UpdateUserEmailSchemaType>,
+  res: Response,
+) => {
+  try {
+    const currentUser = req.user as UserType;
+
+    await updateUserEmail(req.body, currentUser.id);
+
+    return successResponse(
+      res,
+      `Verification code has been successfuly sent to ${req.body.email}`,
+    );
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleUpdateUserPhone = async (
+  req: Request<never, never, UpdateUserPhoneSchemaType>,
+  res: Response,
+) => {
+  try {
+    const currentUser = req.user as UserType;
+
+    await updateUserPhone(req.body, currentUser.id);
+
+    const phoneNo = `********${req.body.phoneNo.slice(-3)}`;
+
+    return successResponse(
+      res,
+      `Verification code has been successfuly sent to ${phoneNo}`,
+    );
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
 
 export const handleToggleActive = async (
   req: Request<UserIdSchemaType>,

@@ -3,6 +3,7 @@ import {
   handleCreateBusiness,
   handleDeleteBusiness,
   handleGetBusinesses,
+  handleSeedBusinesses,
   handleUpdateBusiness,
 } from './business.controller';
 import { canAccess } from '../middlewares/can-access.middleware';
@@ -15,6 +16,8 @@ import {
 export const BUSINESS_ROUTER_ROOT = '/business';
 
 const businessRouter = Router();
+
+businessRouter.post('/seed', handleSeedBusinesses);
 
 businessRouter.get('/', handleGetBusinesses);
 

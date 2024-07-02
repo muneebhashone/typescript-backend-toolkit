@@ -8,14 +8,20 @@ import {
   handleToggleActive,
   handleUpdateHost,
   handleUpdateUser,
+  handleUpdateUserEmail,
+  handleUpdateUserPhone,
   handleUserSeeder,
+  handleVerifyUpdateOtp,
 } from './user.controller';
 import {
   createUserSchema,
   getUsersSchema,
   updateHostSchema,
+  updateUserEmailSchema,
+  updateUserPhoneNoSchema,
   updateUserSchema,
   userIdSchema,
+  verifyUpdateOtpSchema,
 } from './user.schema';
 
 export const USER_ROUTER_ROOT = '/users';
@@ -60,5 +66,26 @@ userRouter.post(
 );
 
 userRouter.post('/_super-admin', handleCreateSuperAdmin);
+
+userRouter.post(
+  '/update/email',
+  canAccess(),
+  validateZodSchema({ body: updateUserEmailSchema }),
+  handleUpdateUserEmail,
+);
+
+userRouter.post(
+  '/update/phone',
+  canAccess(),
+  validateZodSchema({ body: updateUserPhoneNoSchema }),
+  handleUpdateUserPhone,
+);
+
+userRouter.post(
+  '/verify/update-code',
+  canAccess(),
+  validateZodSchema({ body: verifyUpdateOtpSchema }),
+  handleVerifyUpdateOtp,
+);
 
 export default userRouter;
