@@ -66,6 +66,10 @@ export type GetUsersReturnType = {
   paginatorInfo: GetPaginatorReturnType;
 };
 
+export const clearUsers = async () => {
+  await db.delete(users).execute();
+};
+
 export const deleteUser = async (userId: number) => {
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
 

@@ -17,6 +17,7 @@ import {
 } from './user.schema';
 import {
   activeToggle,
+  clearUsers,
   createUser,
   deleteBulkUsers,
   deleteUser,
@@ -130,6 +131,16 @@ export const handleDeleteUser = async (
     await deleteUser(req.params.id);
 
     return successResponse(res, 'User has been deleted');
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleClearUsers = async (req: Request, res: Response) => {
+  try {
+    await clearUsers();
+
+    return successResponse(res, 'Users table is cleared');
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }
