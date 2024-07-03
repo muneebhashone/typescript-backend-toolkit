@@ -1,5 +1,8 @@
 import config from '../config/config.service';
 import path from 'node:path';
+import { customAlphabet } from 'nanoid';
+
+export const customNanoId = customAlphabet('0123456789', 4);
 
 const transformableToBooleanTruthy = ['true', 'TRUE', 't', 'T', '1'];
 const transformableToBooleanFalsy = ['false', 'FALSE', 'f', 'F', '0'];
@@ -48,9 +51,7 @@ export const generateRandomNumbers = (length: number): string => {
   if (config.STATIC_OTP) {
     id = '1234';
   } else {
-    for (let i = 0; i < length; i++) {
-      id += String(Math.round(Math.random() * i) + 1)[0];
-    }
+    id = customNanoId(length);
   }
 
   return id;

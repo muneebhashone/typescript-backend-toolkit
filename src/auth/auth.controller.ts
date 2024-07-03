@@ -68,7 +68,7 @@ export const handleForgetPassword = async (
   try {
     await forgetPassword(req.body);
 
-    return successResponse(res, 'Email has been sent, Please check your email');
+    return successResponse(res, 'Code has been sent');
   } catch (err) {
     return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
   }
