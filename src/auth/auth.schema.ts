@@ -41,7 +41,11 @@ export const loginByPhoneAndPasswordSchema = z.object({
 
 export const setPasswordSchema = z
   .object({
-    token: z.string({ required_error: 'token is required' }).min(1),
+    code: z
+      .string({ required_error: 'code is required' })
+      .min(4)
+      .max(4)
+      .refine((value) => validator.isAlphanumeric(value), 'code must be valid'),
     password: passwordValidation('Password'),
     confirmPassword: passwordValidation('Confirm password'),
   })
@@ -51,7 +55,11 @@ export const setPasswordSchema = z
   );
 
 export const resetPasswordSchema = z.object({
-  token: z.string({ required_error: 'token is required' }).min(1),
+  code: z
+    .string({ required_error: 'code is required' })
+    .min(4)
+    .max(4)
+    .refine((value) => validator.isAlphanumeric(value), 'code must be valid'),
   password: passwordValidation('Password'),
   confirmPassword: passwordValidation('Confirm password'),
 });
@@ -62,9 +70,7 @@ export const changePasswordSchema = z.object({
 });
 
 export const forgetPasswordSchema = z.object({
-  email: z
-    .string({ required_error: 'Email is required' })
-    .email({ message: 'Email must be valid' }),
+  ...baseAuthSchemaPhone,
 });
 
 export const verifyOtpSchema = z.object({

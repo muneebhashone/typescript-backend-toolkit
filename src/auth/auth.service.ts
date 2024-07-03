@@ -28,7 +28,7 @@ import {
   signToken,
   verifyToken,
 } from '../utils/auth.utils';
-import { generateRandomNumbers } from '../utils/common.utils';
+import { customNanoId, generateRandomNumbers } from '../utils/common.utils';
 import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
@@ -47,16 +47,12 @@ export const checkEmailExist = async () => {};
 
 export const setPassword = async (payload: SetPasswordSchemaType) => {
   const user = await db.query.users.findFirst({
-    where: eq(users.setPasswordToken, payload.token),
+    where: eq(users.setPasswordCode, payload.code),
   });
 
   if (!user) {
     throw new Error('token is not valid or expired, please try again');
   }
-
-  const tokenPayload = await verifyToken<SetPasswordTokenPayload>(
-    payload.token,
-  );
 
   if (payload.confirmPassword !== payload.password) {
     throw new Error('Password and confirm password must be same');
@@ -67,22 +63,18 @@ export const setPassword = async (payload: SetPasswordSchemaType) => {
   await db
     .update(users)
     .set({ password: hashedPassword })
-    .where(eq(users.id, Number(tokenPayload.userId)))
+    .where(eq(users.id, user.id))
     .execute();
 };
 
 export const resetPassword = async (payload: ResetPasswordSchemaType) => {
   const user = await db.query.users.findFirst({
-    where: eq(users.passwordResetToken, payload.token),
+    where: eq(users.passwordResetCode, payload.code),
   });
 
   if (!user) {
     throw new Error('token is not valid or expired, please try again');
   }
-
-  const tokenPayload = await verifyToken<PasswordResetTokenPayload>(
-    payload.token,
-  );
 
   if (payload.confirmPassword !== payload.password) {
     throw new Error('Password and confirm password must be same');
@@ -93,70 +85,40 @@ export const resetPassword = async (payload: ResetPasswordSchemaType) => {
   await db
     .update(users)
     .set({ password: hashedPassword })
-    .where(eq(users.id, Number(tokenPayload.userId)))
+    .where(eq(users.id, user.id))
     .execute();
 };
 
 export const prepareSetPasswordAndSendEmail = async (
   user: UserType,
 ): Promise<void> => {
-  if (!user.email) {
-    throw new Error('Email is missing in the fields');
-  }
-
-  const token = await signSetPasswordToken({
-    email: user.email,
-    userId: String(user.id),
-  });
+  const code = customNanoId(4);
 
   await db
     .update(users)
-    .set({ setPasswordToken: token })
+    .set({ setPasswordCode: code })
     .where(eq(users.id, user.id))
     .execute();
-
-  await SetPasswordEmailQueue.add(String(user.id), {
-    email: String(user.email),
-    name: String(user.firstName),
-    passwordSetLink: generateSetPasswordLink(token),
-  });
 };
 
 export const forgetPassword = async (
   payload: ForgetPasswordSchemaType,
 ): Promise<void> => {
   const user = await db.query.users.findFirst({
-    where: eq(users.email, payload.email),
+    where: eq(users.phoneNo, payload.phoneNo),
   });
 
   if (!user) {
     throw new Error("user doesn't exists");
   }
 
-  if (!user.email) {
-    throw new Error('Email is missing in the fields');
-  }
-
-  if (!user.firstName) {
-    throw new Error('Firstname is missing in the fields');
-  }
-
-  const token = await signPasswordResetToken({
-    email: user.email,
-    userId: String(user.id),
-  });
+  const code = customNanoId(4);
 
   await db
     .update(users)
-    .set({ passwordResetToken: token })
+    .set({ passwordResetCode: code })
     .where(eq(users.id, user.id))
     .execute();
-
-  await ResetPasswordQueue.add(String(user.id), {
-    email: user.email,
-    userName: user.firstName,
-    resetLink: generateResetPasswordLink(token),
-  });
 };
 
 export const verifyOtp = async (
