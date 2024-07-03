@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { canAccess } from '../middlewares/can-access.middleware';
 import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
 import {
+  handleClearUsers,
   handleCreateSuperAdmin,
   handleCreateUser,
   handleGetUsers,
@@ -29,6 +30,8 @@ export const USER_ROUTER_ROOT = '/users';
 const userRouter = Router();
 
 userRouter.get('/seed', handleUserSeeder);
+
+userRouter.delete('/_clear', handleClearUsers);
 
 userRouter.get(
   '/:id/toggle-active',
