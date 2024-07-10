@@ -77,7 +77,7 @@ export const resetPassword = async (payload: ResetPasswordSchemaType) => {
 
   await db
     .update(users)
-    .set({ password: hashedPassword })
+    .set({ password: hashedPassword, passwordResetCode: null })
     .where(eq(users.id, payload.userId))
     .execute();
 };
