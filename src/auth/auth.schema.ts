@@ -94,6 +94,7 @@ export const verifyOtpSchema = z.object({
     .min(1)
     .refine((value) => validator.isAlphanumeric(value), 'Id must be valid')
     .transform(Number),
+  type: z.enum(['RESET_PASSWORD', 'DEFAULT']).default('DEFAULT').optional(),
 });
 
 export const registerHostByPhoneSchema = z

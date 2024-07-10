@@ -127,11 +127,27 @@ export const verifyOtp = async (
     throw new Error("User isn't registered");
   }
 
-  if (user.otp !== payload.otp) {
-    throw new Error('Invalid OTP');
-  }
+  if (payload.type) {
+    if (payload.type === 'RESET_PASSWORD') {
+      if (user.passwordResetCode !== payload.otp) {
+        throw new Error('Invalid password reset code');
+      }
+    }
 
-  await db.update(users).set({ otp: null }).where(eq(users.id, user.id));
+    if (payload.type === 'DEFAULT') {
+      if (user.otp !== payload.otp) {
+        throw new Error('Invalid OTP');
+      }
+
+      await db.update(users).set({ otp: null }).where(eq(users.id, user.id));
+    }
+  } else {
+    if (user.otp !== payload.otp) {
+      throw new Error('Invalid OTP');
+    }
+
+    await db.update(users).set({ otp: null }).where(eq(users.id, user.id));
+  }
 
   return user;
 };

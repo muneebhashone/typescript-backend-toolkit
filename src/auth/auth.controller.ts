@@ -94,16 +94,20 @@ export const handleVerifyOtp = async (
   try {
     const user = await verifyOtp(req.body);
 
-    const token = await signToken({
-      phoneNo: user?.phoneNo,
-      email: user?.email,
-      role: user.role,
-      sub: String(user.id),
-    });
+    if (req.body.type !== 'RESET_PASSWORD') {
+      const token = await signToken({
+        phoneNo: user?.phoneNo,
+        email: user?.email,
+        role: user.role,
+        sub: String(user.id),
+      });
 
-    res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
+      res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
 
-    res.json({ accessToken: token });
+      return res.json({ accessToken: token });
+    }
+
+    return successResponse(res, 'Code verified');
   } catch (err) {
     return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
   }
