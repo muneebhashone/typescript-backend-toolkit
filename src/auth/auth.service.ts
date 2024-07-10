@@ -15,7 +15,7 @@ import {
   hashPassword,
   signToken,
 } from '../utils/auth.utils';
-import { customNanoId, generateRandomNumbers } from '../utils/common.utils';
+import { generateRandomNumbers } from '../utils/common.utils';
 import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
@@ -34,7 +34,10 @@ export const checkEmailExist = async () => {};
 
 export const setPassword = async (payload: SetPasswordSchemaType) => {
   const user = await db.query.users.findFirst({
-    where: eq(users.setPasswordCode, payload.code),
+    where: and(
+      eq(users.setPasswordCode, payload.code),
+      eq(users.id, payload.userId),
+    ),
   });
 
   if (!user) {
@@ -50,7 +53,7 @@ export const setPassword = async (payload: SetPasswordSchemaType) => {
   await db
     .update(users)
     .set({ password: hashedPassword })
-    .where(eq(users.id, user.id))
+    .where(eq(users.id, payload.userId))
     .execute();
 };
 
@@ -82,7 +85,7 @@ export const resetPassword = async (payload: ResetPasswordSchemaType) => {
 export const prepareSetPasswordAndSendEmail = async (
   user: UserType,
 ): Promise<void> => {
-  const code = customNanoId(4);
+  const code = generateRandomNumbers(4);
 
   await db
     .update(users)
@@ -102,7 +105,7 @@ export const forgetPassword = async (
     throw new Error("user doesn't exists");
   }
 
-  const code = customNanoId(4);
+  const code = generateRandomNumbers(4);
 
   await db
     .update(users)

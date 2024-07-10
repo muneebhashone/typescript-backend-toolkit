@@ -41,6 +41,11 @@ export const loginByPhoneAndPasswordSchema = z.object({
 
 export const setPasswordSchema = z
   .object({
+    userId: z
+      .string({ required_error: 'userId is required' })
+      .min(1)
+      .refine((value) => validator.isNumeric(value), 'userId must be valid')
+      .transform(Number),
     code: z
       .string({ required_error: 'code is required' })
       .min(4)
