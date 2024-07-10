@@ -66,9 +66,9 @@ export const handleForgetPassword = async (
   res: Response,
 ) => {
   try {
-    await forgetPassword(req.body);
+    const user = await forgetPassword(req.body);
 
-    return successResponse(res, 'Code has been sent');
+    return successResponse(res, 'Code has been sent', { userId: user.id });
   } catch (err) {
     return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
   }
