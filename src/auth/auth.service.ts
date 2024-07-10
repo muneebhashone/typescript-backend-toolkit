@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '../drizzle/db';
 import { RoleType } from '../drizzle/enums';
 import { users } from '../drizzle/schema';
@@ -6,27 +6,14 @@ import {
   InvalidCredentialseError,
   NotFoundError,
 } from '../errors/errors.service';
-import {
-  ResetPasswordQueue,
-  SendOtpEmailQueue,
-  SetPasswordEmailQueue,
-} from '../queues/email.queue';
+import { SendOtpEmailQueue } from '../queues/email.queue';
 import { UserType } from '../types';
 import { createUser } from '../user/user.services';
 import {
-  generateResetPasswordLink,
-  generateSetPasswordLink,
-} from '../utils/api.utils';
-import {
   JwtPayload,
-  PasswordResetTokenPayload,
-  SetPasswordTokenPayload,
   compareHash,
   hashPassword,
-  signPasswordResetToken,
-  signSetPasswordToken,
   signToken,
-  verifyToken,
 } from '../utils/auth.utils';
 import { customNanoId, generateRandomNumbers } from '../utils/common.utils';
 import {
@@ -69,7 +56,10 @@ export const setPassword = async (payload: SetPasswordSchemaType) => {
 
 export const resetPassword = async (payload: ResetPasswordSchemaType) => {
   const user = await db.query.users.findFirst({
-    where: eq(users.passwordResetCode, payload.code),
+    where: and(
+      eq(users.passwordResetCode, payload.code),
+      eq(users.id, payload.userId),
+    ),
   });
 
   if (!user) {
@@ -85,7 +75,7 @@ export const resetPassword = async (payload: ResetPasswordSchemaType) => {
   await db
     .update(users)
     .set({ password: hashedPassword })
-    .where(eq(users.id, user.id))
+    .where(eq(users.id, payload.userId))
     .execute();
 };
 
@@ -103,7 +93,7 @@ export const prepareSetPasswordAndSendEmail = async (
 
 export const forgetPassword = async (
   payload: ForgetPasswordSchemaType,
-): Promise<void> => {
+): Promise<UserType> => {
   const user = await db.query.users.findFirst({
     where: eq(users.phoneNo, payload.phoneNo),
   });
@@ -119,6 +109,8 @@ export const forgetPassword = async (
     .set({ passwordResetCode: code })
     .where(eq(users.id, user.id))
     .execute();
+
+  return user;
 };
 
 export const verifyOtp = async (
