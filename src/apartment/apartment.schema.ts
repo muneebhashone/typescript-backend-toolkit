@@ -1,6 +1,5 @@
 import validator from 'validator';
 import z from 'zod';
-import { cancellationPoliciesEnums } from '../drizzle/enums';
 
 export const apartmentIdSchema = z.object({
   id: z
@@ -29,18 +28,12 @@ export const apartmentCreateOrUpdateSchema = z.object({
   petHosting: z.number().positive().nonnegative().transform(String),
   areaInSqft: z.number().int().positive().nonnegative(),
   bookingTypeId: z.number().int().positive().nonnegative(),
-  discountTypeId: z
-    .number()
-    .int()
-    .positive()
-    .nonnegative()
-    .nullable()
-    .optional(),
-  cancellationPolicies: z.array(z.enum(cancellationPoliciesEnums)).optional(),
-  amenities: z.object({}).passthrough(),
+  businessId: z.number().int().positive().nonnegative(),
   discountId: z.number().int().positive().nonnegative().nullable().optional(),
   updatedAt: z.string().optional(),
   createdAt: z.string().optional(),
+  cancellationPolicies: z.array(z.number()).min(1),
+  facilities: z.array(z.number()).min(1),
 });
 
 export type ApartmentIdSchemaType = z.infer<typeof apartmentIdSchema>;

@@ -12,6 +12,15 @@ import setupRouter, { SETUP_ROUTER_ROOT } from '../setup/setup.router';
 import apartmentRouter, {
   APARTMENT_ROUTER_ROOT,
 } from '../apartment/apartment.router';
+import bookingTypeRouter, {
+  BOOKING_TYPE_ROUTER_ROOT,
+} from '../booking-type/bookingType.router';
+import cancellationPolicyRouter, {
+  CANCELLATION_POLICY_ROUTER_ROOT,
+} from '../cancellation-policy/cancellation-policy.router';
+import facilityRouter, {
+  FACILITY_ROUTER_ROOT,
+} from '../facility/facility.router';
 
 const router = express.Router();
 
@@ -22,5 +31,8 @@ router.use(BUSINESS_ROUTER_ROOT, businessRouter);
 router.use(UPLOAD_ROUTER_ROOT, uploadRouter);
 router.use(SETUP_ROUTER_ROOT, setupRouter);
 router.use(APARTMENT_ROUTER_ROOT, apartmentRouter);
+router.use(BOOKING_TYPE_ROUTER_ROOT, bookingTypeRouter);
+router.use(CANCELLATION_POLICY_ROUTER_ROOT, cancellationPolicyRouter);
+router.use(FACILITY_ROUTER_ROOT, facilityRouter);
 
 export default router;
