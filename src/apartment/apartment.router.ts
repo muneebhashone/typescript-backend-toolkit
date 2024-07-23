@@ -20,14 +20,14 @@ apartmentRouter.get('/', handleGetApartments);
 
 apartmentRouter.post(
   '/',
-  canAccess('roles', ['VENDOR']),
+  canAccess('roles', ['VENDOR', 'SUPER_ADMIN']),
   validateZodSchema({ body: apartmentCreateOrUpdateSchema }),
   handleCreateApartment,
 );
 
 apartmentRouter.patch(
   '/:id',
-  canAccess('roles', ['VENDOR']),
+  canAccess('roles', ['VENDOR', 'SUPER_ADMIN']),
   validateZodSchema({
     body: apartmentCreateOrUpdateSchema,
     params: apartmentIdSchema,
@@ -37,7 +37,7 @@ apartmentRouter.patch(
 
 apartmentRouter.delete(
   '/:id',
-  canAccess('roles', ['VENDOR']),
+  canAccess('roles', ['VENDOR', 'SUPER_ADMIN']),
   validateZodSchema({
     params: apartmentIdSchema,
   }),

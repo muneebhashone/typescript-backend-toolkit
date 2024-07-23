@@ -1,1 +1,0 @@
-ALTER TABLE "users" ADD COLUMN "login_otp" varchar;
