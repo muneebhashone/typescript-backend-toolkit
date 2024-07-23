@@ -355,7 +355,7 @@ export const seedUsers = async (): Promise<SeedUsersReturn> => {
     lastName: 'Super Admin',
     password: password,
     isActive: true,
-    role: 'SUPER_ADMIN',
+    role: 'VENDOR',
     phoneNo: '123456789',
     dob: '1999-01-01',
   });

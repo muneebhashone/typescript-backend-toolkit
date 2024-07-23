@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { prepareSetPasswordAndSendEmail } from '../auth/auth.service';
 import { ConflictError } from '../errors/errors.service';
+import { UserType } from '../types';
 import { errorResponse, successResponse } from '../utils/api.utils';
 import { generateRandomPassword } from '../utils/auth.utils';
 import {
@@ -25,11 +26,10 @@ import {
   seedUsers,
   updateHost,
   updateUser,
+  updateUserEmail,
   updateUserPhone,
   verifyUpdateOtp,
 } from './user.services';
-import { UserType } from '../types';
-import { updateUserEmail } from './user.services';
 
 export const handleVerifyUpdateOtp = async (
   req: Request<never, never, VerifyUpdateOtpSchemaType>,
@@ -136,7 +136,7 @@ export const handleDeleteUser = async (
   }
 };
 
-export const handleClearUsers = async (req: Request, res: Response) => {
+export const handleClearUsers = async (_: Request, res: Response) => {
   try {
     await clearUsers();
 
