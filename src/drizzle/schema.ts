@@ -51,6 +51,7 @@ export const users = pgTable('users', {
   }),
 });
 
+// Apartments, Boat, Car, Jet
 export const businesses = pgTable('businesses', {
   id: serial('id').primaryKey(),
   thumbnail: varchar('thumbnail'),
@@ -129,7 +130,7 @@ export const discounts = pgTable('discounts', {
   value: integer('value').notNull(),
 });
 
-export const appartmentPhotos = pgTable('appartment_photos', {
+export const apartmentPhotos = pgTable('appartment_photos', {
   id: serial('id').primaryKey(),
   appartmentId: integer('appartment_id').references(() => apartments.id, {
     onDelete: 'cascade',
@@ -137,3 +138,25 @@ export const appartmentPhotos = pgTable('appartment_photos', {
   photoUrl: varchar('photo_url').notNull(),
   createdAt: date('created_at').$default(() => new Date().toISOString()),
 });
+
+export const apartmentPhotosRelation = relations(apartments, ({ many }) => ({
+  photos: many(apartmentPhotos),
+}));
+
+export const photosApartmentRelation = relations(
+  apartmentPhotos,
+  ({ one }) => ({
+    apartment: one(apartments, {
+      fields: [apartmentPhotos.appartmentId],
+      references: [apartments.id],
+    }),
+  }),
+);
+
+export const apartmentRulesRelation = relations(apartments, ({ many }) => ({
+  rules: many(houseRules),
+}));
+
+export const apartmentDiscountsRelation = relations(apartments, ({ many }) => ({
+  discounts: many(discounts),
+}));
