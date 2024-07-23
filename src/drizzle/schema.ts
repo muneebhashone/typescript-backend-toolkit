@@ -1,17 +1,16 @@
+import { relations } from 'drizzle-orm';
 import {
   boolean,
   date,
+  decimal,
+  integer,
   pgEnum,
   pgTable,
   serial,
+  text,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { cancellationPoliciesEnums, discountEnums, rolesEnums } from './enums';
-import { integer } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
-import { text } from 'drizzle-orm/pg-core';
-import { decimal } from 'drizzle-orm/pg-core';
-import { jsonb } from 'drizzle-orm/pg-core';
+import { discountEnums, rolesEnums } from './enums';
 
 export const roleEnum = pgEnum('ROLE', rolesEnums);
 
@@ -22,7 +21,7 @@ export const users = pgTable('users', {
   avatar: varchar('avatar'),
   firstName: varchar('first_name'),
   lastName: varchar('last_name'),
-  role: roleEnum('role').notNull().default('DEFAULT_USER'),
+  role: roleEnum('role').notNull().default(rolesEnums[0]),
   dob: date('dob'),
   phoneNo: varchar('phone_no'),
   tempPhoneNo: varchar('temp_phone_no'),
@@ -92,7 +91,7 @@ export const apartments = pgTable('apartments', {
   numberOfBedrooms: integer('number_of_bedrooms').notNull(),
   numberOfPets: integer('number_of_pets').notNull(),
   numberOfPersonsAllowed: integer('number_of_persons_allowed').notNull(),
-  petHosting: decimal('propertyPrice', {
+  petHosting: decimal('petHosting', {
     precision: 10,
     scale: 2,
   }).notNull(),
@@ -100,21 +99,59 @@ export const apartments = pgTable('apartments', {
   bookingTypeId: integer('booking_type_id')
     .notNull()
     .references(() => bookingTypes.id),
-  discountTypeId: integer('booking_type_id').references(() => discounts.id, {
+  discountId: integer('discount_id').references(() => discounts.id, {
     onDelete: 'set null',
   }),
-  cancellationPolicies: text('cancellation_policies', {
-    enum: cancellationPoliciesEnums,
-  })
-    .array()
-    .default([]),
-  amenities: jsonb('amenities').notNull(),
-  discountId: integer('discount').references(() => discounts.id, {
-    onDelete: 'set null',
+  businessId: integer('business_id').references(() => businesses.id, {
+    onDelete: 'cascade',
   }),
   updatedAt: date('updated_at').$onUpdate(() => new Date().toISOString()),
   createdAt: date('created_at').$default(() => new Date().toISOString()),
 });
+
+export const apartmentPhotos = pgTable('apartment_photos', {
+  id: serial('id').primaryKey(),
+  apartmentId: integer('apartment_id').references(() => apartments.id, {
+    onDelete: 'cascade',
+  }),
+  photoUrl: varchar('photo_url').notNull(),
+  createdAt: date('created_at').$default(() => new Date().toISOString()),
+});
+
+export const facilities = pgTable('facilities', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  icon: varchar('cover_photo_url'),
+  updatedAt: date('updated_at').$onUpdate(() => new Date().toISOString()),
+  createdAt: date('created_at').$default(() => new Date().toISOString()),
+});
+
+export const apartmentFacilities = pgTable('apartment_facilities', {
+  apartmentId: integer('apartment_id').references(() => apartments.id, {
+    onDelete: 'cascade',
+  }),
+  facilityId: integer('facility_id').references(() => facilities.id, {
+    onDelete: 'cascade',
+  }),
+});
+
+export const apartmentFacilitiesRelation = relations(
+  apartments,
+  ({ many }) => ({
+    facilities: many(apartmentFacilities),
+  }),
+);
+
+export const facilitiesApartmentsRelation = relations(
+  facilities,
+  ({ many }) => ({
+    apartments: many(apartmentFacilities),
+  }),
+);
+
+export const apartmentPhotosRelation = relations(apartments, ({ many }) => ({
+  photos: many(apartmentPhotos),
+}));
 
 export const houseRules = pgTable('house_rules', {
   id: serial('id').primaryKey(),
@@ -129,11 +166,37 @@ export const discounts = pgTable('discounts', {
   value: integer('value').notNull(),
 });
 
-export const appartmentPhotos = pgTable('appartment_photos', {
+export const cancellationPolicies = pgTable('cancellation_policies', {
   id: serial('id').primaryKey(),
-  appartmentId: integer('appartment_id').references(() => apartments.id, {
-    onDelete: 'cascade',
-  }),
-  photoUrl: varchar('photo_url').notNull(),
-  createdAt: date('created_at').$default(() => new Date().toISOString()),
+  policy: text('policy').notNull(),
+  description: text('description'),
 });
+
+export const apartmentCancellationPolicies = pgTable(
+  'apartment_cancellation_policies',
+  {
+    apartmentId: integer('apartment_id').references(() => apartments.id, {
+      onDelete: 'cascade',
+    }),
+    cancellationPolicyId: integer('cancellation_policy_id').references(
+      () => cancellationPolicies.id,
+      {
+        onDelete: 'cascade',
+      },
+    ),
+  },
+);
+
+export const apartmentCancellationPoliciesRelation = relations(
+  apartments,
+  ({ many }) => ({
+    cancellationPolicies: many(apartmentCancellationPolicies),
+  }),
+);
+
+export const cancellationPoliciesRelation = relations(
+  cancellationPolicies,
+  ({ many }) => ({
+    apartments: many(apartmentCancellationPolicies),
+  }),
+);

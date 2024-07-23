@@ -1,9 +1,379 @@
 {
-  "id": "d5ff3526-41c1-45cd-b2a9-ec8698ebfc72",
-  "prevId": "eb003b75-7371-46bd-b621-e9e3953afdea",
+  "id": "e5d23cce-cdf0-4a2c-b579-d3d3e5c80ea3",
+  "prevId": "d916c9cc-d117-4654-8cd9-c4ffa87df3b2",
   "version": "6",
   "dialect": "postgresql",
   "tables": {
+    "public.apartment_cancellation_policies": {
+      "name": "apartment_cancellation_policies",
+      "schema": "",
+      "columns": {
+        "apartment_id": {
+          "name": "apartment_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancellation_policy_id": {
+          "name": "cancellation_policy_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "apartment_cancellation_policies_apartment_id_apartments_id_fk": {
+          "name": "apartment_cancellation_policies_apartment_id_apartments_id_fk",
+          "tableFrom": "apartment_cancellation_policies",
+          "tableTo": "apartments",
+          "columnsFrom": [
+            "apartment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "apartment_cancellation_policies_cancellation_policy_id_cancellation_policies_id_fk": {
+          "name": "apartment_cancellation_policies_cancellation_policy_id_cancellation_policies_id_fk",
+          "tableFrom": "apartment_cancellation_policies",
+          "tableTo": "cancellation_policies",
+          "columnsFrom": [
+            "cancellation_policy_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.apartment_facilities": {
+      "name": "apartment_facilities",
+      "schema": "",
+      "columns": {
+        "apartment_id": {
+          "name": "apartment_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "facility_id": {
+          "name": "facility_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "apartment_facilities_apartment_id_apartments_id_fk": {
+          "name": "apartment_facilities_apartment_id_apartments_id_fk",
+          "tableFrom": "apartment_facilities",
+          "tableTo": "apartments",
+          "columnsFrom": [
+            "apartment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "apartment_facilities_facility_id_facilities_id_fk": {
+          "name": "apartment_facilities_facility_id_facilities_id_fk",
+          "tableFrom": "apartment_facilities",
+          "tableTo": "facilities",
+          "columnsFrom": [
+            "facility_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.apartment_photos": {
+      "name": "apartment_photos",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "apartment_id": {
+          "name": "apartment_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "photo_url": {
+          "name": "photo_url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "apartment_photos_apartment_id_apartments_id_fk": {
+          "name": "apartment_photos_apartment_id_apartments_id_fk",
+          "tableFrom": "apartment_photos",
+          "tableTo": "apartments",
+          "columnsFrom": [
+            "apartment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.apartments": {
+      "name": "apartments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cover_photo_url": {
+          "name": "cover_photo_url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "video_url": {
+          "name": "video_url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "address": {
+          "name": "address",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "city": {
+          "name": "city",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "zipcode": {
+          "name": "zipcode",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "country": {
+          "name": "country",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "propertyPrice": {
+          "name": "propertyPrice",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "number_of_rooms": {
+          "name": "number_of_rooms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "number_of_bathrooms": {
+          "name": "number_of_bathrooms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "number_of_bedrooms": {
+          "name": "number_of_bedrooms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "number_of_pets": {
+          "name": "number_of_pets",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "number_of_persons_allowed": {
+          "name": "number_of_persons_allowed",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "petHosting": {
+          "name": "petHosting",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "area_in_sqft": {
+          "name": "area_in_sqft",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "booking_type_id": {
+          "name": "booking_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "discount_id": {
+          "name": "discount_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "business_id": {
+          "name": "business_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "apartments_booking_type_id_booking_types_id_fk": {
+          "name": "apartments_booking_type_id_booking_types_id_fk",
+          "tableFrom": "apartments",
+          "tableTo": "booking_types",
+          "columnsFrom": [
+            "booking_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "apartments_discount_id_discounts_id_fk": {
+          "name": "apartments_discount_id_discounts_id_fk",
+          "tableFrom": "apartments",
+          "tableTo": "discounts",
+          "columnsFrom": [
+            "discount_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "apartments_business_id_businesses_id_fk": {
+          "name": "apartments_business_id_businesses_id_fk",
+          "tableFrom": "apartments",
+          "tableTo": "businesses",
+          "columnsFrom": [
+            "business_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.booking_types": {
+      "name": "booking_types",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "booking_types_name_unique": {
+          "name": "booking_types_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      }
+    },
     "public.businesses": {
       "name": "businesses",
       "schema": "",
@@ -51,6 +421,124 @@
           ]
         }
       }
+    },
+    "public.cancellation_policies": {
+      "name": "cancellation_policies",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "policy": {
+          "name": "policy",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.discounts": {
+      "name": "discounts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "discountType": {
+          "name": "discountType",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.facilities": {
+      "name": "facilities",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cover_photo_url": {
+          "name": "cover_photo_url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.house_rules": {
+      "name": "house_rules",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "rule": {
+          "name": "rule",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
     },
     "public.users": {
       "name": "users",
