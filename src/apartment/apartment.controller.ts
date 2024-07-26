@@ -11,9 +11,9 @@ import {
   ApartmentIdSchemaType,
 } from './apartment.schema';
 
-export const handleGetApartments = async (_: Request, res: Response) => {
+export const handleGetApartments = async (req: Request, res: Response) => {
   try {
-    const result = await getApartment();
+    const result = await getApartment(req.query);
 
     return successResponse(res, undefined, result);
   } catch (err) {
@@ -26,7 +26,7 @@ export const handleCreateApartment = async (
   res: Response,
 ) => {
   try {
-    const newApartment = await createApartment(req.body);
+    const newApartment = await createApartment(req.body, req.user);
 
     return successResponse(res, 'Apartment created successfully', newApartment);
   } catch (err) {
@@ -39,7 +39,7 @@ export const handleUpdateApartment = async (
   res: Response,
 ) => {
   try {
-    const udpatedApartment = await updateApartment(req.body, {
+    const udpatedApartment = await updateApartment(req.body, req.user, {
       id: req.params.id,
     });
 
