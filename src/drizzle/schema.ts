@@ -95,6 +95,8 @@ export const apartments = pgTable('apartments', {
     precision: 10,
     scale: 2,
   }).notNull(),
+  totalRating: integer('total_rating').default(0),
+  ratingCount: integer('rating_count').default(0),
   areaInSqft: integer('area_in_sqft').notNull(),
   bookingTypeId: integer('booking_type_id')
     .notNull()
@@ -105,9 +107,25 @@ export const apartments = pgTable('apartments', {
   businessId: integer('business_id').references(() => businesses.id, {
     onDelete: 'cascade',
   }),
+  userId: integer('user_id').references(() => users.id, {
+    onDelete: 'cascade',
+  }),
+  propertyType: integer('property_type').references(() => propertyTypes.id, {
+    onDelete: 'set null',
+  }),
+  typeOfPlace: integer('type_of_place').references(() => typeOfPlace.id, {
+    onDelete: 'set null',
+  }),
   updatedAt: date('updated_at').$onUpdate(() => new Date().toISOString()),
   createdAt: date('created_at').$default(() => new Date().toISOString()),
 });
+
+export const apartmentUserRelation = relations(apartments, ({ one }) => ({
+  user_id: one(users, {
+    fields: [apartments.userId],
+    references: [users.id],
+  }),
+}));
 
 export const apartmentPhotos = pgTable('apartment_photos', {
   id: serial('id').primaryKey(),
@@ -117,6 +135,10 @@ export const apartmentPhotos = pgTable('apartment_photos', {
   photoUrl: varchar('photo_url').notNull(),
   createdAt: date('created_at').$default(() => new Date().toISOString()),
 });
+
+export const apartmentPhotosRelation = relations(apartments, ({ many }) => ({
+  photos: many(apartmentPhotos),
+}));
 
 export const facilities = pgTable('facilities', {
   id: serial('id').primaryKey(),
@@ -148,10 +170,6 @@ export const facilitiesApartmentsRelation = relations(
     apartments: many(apartmentFacilities),
   }),
 );
-
-export const apartmentPhotosRelation = relations(apartments, ({ many }) => ({
-  photos: many(apartmentPhotos),
-}));
 
 export const houseRules = pgTable('house_rules', {
   id: serial('id').primaryKey(),
@@ -200,3 +218,41 @@ export const cancellationPoliciesRelation = relations(
     apartments: many(apartmentCancellationPolicies),
   }),
 );
+
+export const propertyTypes = pgTable('property_types', {
+  id: serial('id').primaryKey(),
+  type: varchar('type', {
+    length: 255,
+  }),
+});
+
+export const typeOfPlace = pgTable('type_of_place', {
+  id: serial('id').primaryKey(),
+  type: varchar('type', {
+    length: 255,
+  }),
+});
+
+export const propertyTypesApartmentsRelation = relations(
+  apartments,
+  ({ one }) => ({
+    property_type: one(propertyTypes, {
+      fields: [apartments.propertyType],
+      references: [propertyTypes.id],
+    }),
+  }),
+);
+
+export const typeOfPlaceApartmentsRelation = relations(
+  apartments,
+  ({ one }) => ({
+    property_type: one(typeOfPlace, {
+      fields: [apartments.typeOfPlace],
+      references: [typeOfPlace.id],
+    }),
+  }),
+);
+
+export const reviews = pgTable("reviews", {
+  
+})
