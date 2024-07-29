@@ -1,5 +1,6 @@
 import validator from 'validator';
 import z from 'zod';
+import { searchAndPaginationSchema } from '../lib/common.schemas';
 
 export const apartmentIdSchema = z.object({
   id: z
@@ -8,6 +9,16 @@ export const apartmentIdSchema = z.object({
     .refine((value) => validator.isAlphanumeric(value), 'ID must be valid')
     .transform(Number),
 });
+
+export const apartmentListQueryParamsSchema = z
+  .object({
+    rating: z.string().transform(Number).optional(),
+    numberOfBedrooms: z.string().transform(Number).optional(),
+    numberOfBathrooms: z.string().transform(Number).optional(),
+    minPrice: z.string().transform(Number).optional(),
+    maxPrice: z.string().transform(Number).optional(),
+  })
+  .merge(searchAndPaginationSchema);
 
 export const apartmentCreateOrUpdateSchema = z.object({
   name: z.string().max(255),
@@ -30,13 +41,26 @@ export const apartmentCreateOrUpdateSchema = z.object({
   bookingTypeId: z.number().int().positive().nonnegative(),
   businessId: z.number().int().positive().nonnegative(),
   discountId: z.number().int().positive().nonnegative().nullable().optional(),
+  propertyTypes: z
+    .number()
+    .int()
+    .positive()
+    .nonnegative()
+    .nullable()
+    .optional(),
+  typeOfPlace: z.number().int().positive().nonnegative().nullable().optional(),
   updatedAt: z.string().optional(),
   createdAt: z.string().optional(),
   cancellationPolicies: z.array(z.number()).min(1),
   facilities: z.array(z.number()).min(1),
+  totalRating: z.number().positive().nonnegative().optional(),
+  ratingCount: z.number().positive().nonnegative().optional(),
 });
 
 export type ApartmentIdSchemaType = z.infer<typeof apartmentIdSchema>;
 export type ApartmentCreateOrUpdateSchemaType = z.infer<
   typeof apartmentCreateOrUpdateSchema
+>;
+export type ApartmentListQueryParamsType = z.infer<
+  typeof apartmentListQueryParamsSchema
 >;

@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, avg, between, count, eq, ilike, or, sql, SQL } from 'drizzle-orm';
 import { db } from '../drizzle/db';
 import {
   apartmentCancellationPolicies,
@@ -9,16 +9,75 @@ import { ApartmentType } from '../types';
 import {
   ApartmentCreateOrUpdateSchemaType,
   ApartmentIdSchemaType,
+  ApartmentListQueryParamsType,
 } from './apartment.schema';
+import { JwtPayload } from '../utils/auth.utils';
+import _ from 'lodash';
+import { getPaginator } from '../utils/getPaginator';
 
-export const getApartment = async (): Promise<ApartmentType[]> => {
-  const apartment = await db.query.apartments.findMany();
+export const getApartment = async (
+  query: ApartmentListQueryParamsType,
+): Promise<ApartmentType[]> => {
+  let filter: SQL<unknown> | null = null;
+  const andConditions: (SQL<unknown> | undefined)[] = [];
 
-  return apartment;
+  if (query.search) {
+    andConditions.push(
+      or(
+        ilike(apartments.name, `%${query.search}%`),
+        ilike(apartments.description, `%${query.search}%`),
+      ),
+    );
+  }
+  if (query.rating) {
+    const ratingComparison = sql`ROUND(CAST((total_rating::float / NULLIF(rating_count, 0)) AS numeric), 1) = ${query.rating}
+    `;
+    andConditions.push(ratingComparison);
+  }
+  if (query.maxPrice && query.minPrice) {
+    andConditions.push(
+      between(
+        apartments.propertyPrice,
+        String(query.minPrice),
+        String(query.maxPrice),
+      ),
+    );
+  }
+  if (query.numberOfBathrooms) {
+    andConditions.push(
+      eq(apartments.numberOfBathrooms, query.numberOfBathrooms),
+    );
+  }
+  if (query.numberOfBedrooms) {
+    andConditions.push(eq(apartments.numberOfBedrooms, query.numberOfBedrooms));
+  }
+
+  filter = and(...andConditions) as SQL<unknown>;
+
+  const totalRecords = await db
+    .select({ count: count(apartments.id) })
+    .from(apartments)
+    .where(filter)
+    .execute();
+
+  const paginatorInfo = getPaginator(
+    query.limit as number,
+    query.page as number,
+    totalRecords[0].count,
+  );
+
+  const results = await db.query.apartments.findMany({
+    where: filter,
+    limit: paginatorInfo.limit,
+    offset: paginatorInfo.skip,
+  });
+
+  return results;
 };
 
 export const createApartment = async (
   body: ApartmentCreateOrUpdateSchemaType,
+  user: JwtPayload,
 ): Promise<ApartmentType | Error> => {
   const { cancellationPolicies, facilities, ...apartmentDataWithoutRelations } =
     body;
@@ -27,7 +86,7 @@ export const createApartment = async (
     const apartment = await db.transaction(async (tx) => {
       const [apartment] = await tx
         .insert(apartments)
-        .values(apartmentDataWithoutRelations)
+        .values({ ...apartmentDataWithoutRelations, userId: Number(user.sub) })
         .returning()
         .execute();
 
@@ -58,6 +117,7 @@ export const createApartment = async (
 
 export const updateApartment = async (
   payload: ApartmentCreateOrUpdateSchemaType,
+  user: JwtPayload,
   apartmentId: ApartmentIdSchemaType,
 ): Promise<ApartmentType> => {
   const { id } = apartmentId;
@@ -68,7 +128,7 @@ export const updateApartment = async (
     const apartment = await db.transaction(async (tx) => {
       const [updatedApartment] = await tx
         .update(apartments)
-        .set(apartmentDataWithoutRelations)
+        .set({ ...apartmentDataWithoutRelations, userId: Number(user.sub) })
         .where(eq(apartments.id, id))
         .returning()
         .execute();
