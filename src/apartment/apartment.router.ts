@@ -10,13 +10,18 @@ import {
 import {
   apartmentCreateOrUpdateSchema,
   apartmentIdSchema,
+  apartmentListQueryParamsSchema,
 } from './apartment.schema';
 
 export const APARTMENT_ROUTER_ROOT = '/apartment';
 
 const apartmentRouter = Router();
 
-apartmentRouter.get('/', handleGetApartments);
+apartmentRouter.get(
+  '/',
+  validateZodSchema({ query: apartmentListQueryParamsSchema }),
+  handleGetApartments,
+);
 
 apartmentRouter.post(
   '/',

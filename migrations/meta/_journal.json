@@ -43,6 +43,13 @@
       "when": 1721766456189,
       "tag": "0005_gorgeous_green_goblin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1722030045274,
+      "tag": "0006_glorious_kabuki",
+      "breakpoints": true
     }
   ]
 }
