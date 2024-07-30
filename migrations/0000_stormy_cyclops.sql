@@ -4,26 +4,6 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "apartment_cancellation_policies" (
-	"apartment_id" integer,
-	"cancellation_policy_id" integer
-);
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "apartment_discounts" (
-	"apartment_id" integer,
-	"discount_id" integer
-);
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "apartment_facilities" (
-	"apartment_id" integer,
-	"facility_id" integer
-);
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "apartment_house_rules" (
-	"apartment_id" integer,
-	"house_rule_id" integer
-);
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "apartment_photos" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"apartment_id" integer,
@@ -57,6 +37,10 @@ CREATE TABLE IF NOT EXISTS "apartments" (
 	"user_id" integer,
 	"property_type" integer,
 	"type_of_place" integer,
+	"cancellation_policies" integer[] DEFAULT '{}',
+	"facilities" integer[] DEFAULT '{}',
+	"house_rules" integer[] DEFAULT '{}',
+	"discounts" integer[] DEFAULT '{}',
 	"updated_at" date,
 	"created_at" date
 );
@@ -109,7 +93,7 @@ CREATE TABLE IF NOT EXISTS "property_types" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "reviews" (
-
+	"id" serial PRIMARY KEY NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "type_of_place" (
@@ -124,7 +108,7 @@ CREATE TABLE IF NOT EXISTS "users" (
 	"avatar" varchar,
 	"first_name" varchar,
 	"last_name" varchar,
-	"role" "ROLE" DEFAULT 'DEFAULT_USER' NOT NULL,
+	"role" "public"."ROLE" DEFAULT 'DEFAULT_USER' NOT NULL,
 	"dob" date,
 	"phone_no" varchar,
 	"temp_phone_no" varchar,
@@ -148,54 +132,6 @@ CREATE TABLE IF NOT EXISTS "users" (
 	"account_number" varchar,
 	"interest" integer
 );
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "apartment_cancellation_policies" ADD CONSTRAINT "apartment_cancellation_policies_apartment_id_apartments_id_fk" FOREIGN KEY ("apartment_id") REFERENCES "public"."apartments"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "apartment_cancellation_policies" ADD CONSTRAINT "apartment_cancellation_policies_cancellation_policy_id_cancellation_policies_id_fk" FOREIGN KEY ("cancellation_policy_id") REFERENCES "public"."cancellation_policies"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "apartment_discounts" ADD CONSTRAINT "apartment_discounts_apartment_id_apartments_id_fk" FOREIGN KEY ("apartment_id") REFERENCES "public"."apartments"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "apartment_discounts" ADD CONSTRAINT "apartment_discounts_discount_id_discounts_id_fk" FOREIGN KEY ("discount_id") REFERENCES "public"."discounts"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "apartment_facilities" ADD CONSTRAINT "apartment_facilities_apartment_id_apartments_id_fk" FOREIGN KEY ("apartment_id") REFERENCES "public"."apartments"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "apartment_facilities" ADD CONSTRAINT "apartment_facilities_facility_id_facilities_id_fk" FOREIGN KEY ("facility_id") REFERENCES "public"."facilities"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "apartment_house_rules" ADD CONSTRAINT "apartment_house_rules_apartment_id_apartments_id_fk" FOREIGN KEY ("apartment_id") REFERENCES "public"."apartments"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "apartment_house_rules" ADD CONSTRAINT "apartment_house_rules_house_rule_id_house_rules_id_fk" FOREIGN KEY ("house_rule_id") REFERENCES "public"."house_rules"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "apartment_photos" ADD CONSTRAINT "apartment_photos_apartment_id_apartments_id_fk" FOREIGN KEY ("apartment_id") REFERENCES "public"."apartments"("id") ON DELETE cascade ON UPDATE no action;

@@ -1,17 +1,8 @@
 import { Router } from 'express';
-import { canAccess } from '../middlewares/can-access.middleware';
-import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
 import {
-  handleCreateHouseRule,
-  handleDeleteHouseRule,
   handleGetHouseRules,
   handleSeedHouseRules,
-  handleUpdateHouseRule,
 } from './house-rule.controller';
-import {
-  houseRuleCreateOrUpdateSchema,
-  houseRuleIdSchema,
-} from './house-rule.schema';
 
 export const HOUSE_RULE_ROUTER_ROOT = '/house-rule';
 
@@ -25,30 +16,30 @@ houseRuleRouter.get(
   handleSeedHouseRules,
 );
 
-houseRuleRouter.post(
-  '/',
-  canAccess('roles', ['SUPER_ADMIN']),
-  validateZodSchema({ body: houseRuleCreateOrUpdateSchema }),
-  handleCreateHouseRule,
-);
+// houseRuleRouter.post(
+//   '/',
+//   canAccess('roles', ['SUPER_ADMIN']),
+//   validateZodSchema({ body: houseRuleCreateOrUpdateSchema }),
+//   handleCreateHouseRule,
+// );
 
-houseRuleRouter.patch(
-  '/:id',
-  canAccess('roles', ['SUPER_ADMIN']),
-  validateZodSchema({
-    body: houseRuleCreateOrUpdateSchema,
-    params: houseRuleIdSchema,
-  }),
-  handleUpdateHouseRule,
-);
+// houseRuleRouter.patch(
+//   '/:id',
+//   canAccess('roles', ['SUPER_ADMIN']),
+//   validateZodSchema({
+//     body: houseRuleCreateOrUpdateSchema,
+//     params: houseRuleIdSchema,
+//   }),
+//   handleUpdateHouseRule,
+// );
 
-houseRuleRouter.delete(
-  '/:id',
-  canAccess('roles', ['SUPER_ADMIN']),
-  validateZodSchema({
-    params: houseRuleIdSchema,
-  }),
-  handleDeleteHouseRule,
-);
+// houseRuleRouter.delete(
+//   '/:id',
+//   canAccess('roles', ['SUPER_ADMIN']),
+//   validateZodSchema({
+//     params: houseRuleIdSchema,
+//   }),
+//   handleDeleteHouseRule,
+// );
 
 export default houseRuleRouter;
