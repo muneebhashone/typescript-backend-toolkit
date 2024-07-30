@@ -4,6 +4,7 @@ import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware
 import {
   handleCreateApartment,
   handleDeleteApartment,
+  handleDeleteApartments,
   handleGetApartments,
   handleUpdateApartment,
 } from './apartment.controller';
@@ -28,6 +29,12 @@ apartmentRouter.post(
   canAccess('roles', ['VENDOR', 'SUPER_ADMIN']),
   validateZodSchema({ body: apartmentCreateOrUpdateSchema }),
   handleCreateApartment,
+);
+
+apartmentRouter.delete(
+  '/',
+  canAccess('roles', ['VENDOR', 'SUPER_ADMIN']),
+  handleDeleteApartments,
 );
 
 apartmentRouter.patch(

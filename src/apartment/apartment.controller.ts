@@ -3,6 +3,7 @@ import { errorResponse, successResponse } from '../utils/api.utils';
 import {
   createApartment,
   deleteApartment,
+  deleteApartments,
   getApartments,
   updateApartment,
 } from './apartment.service';
@@ -61,6 +62,19 @@ export const handleDeleteApartment = async (
     await deleteApartment(req.params.id);
 
     return successResponse(res, 'Apartment deleted successfully');
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleDeleteApartments = async (
+  req: Request<ApartmentIdSchemaType, never, never>,
+  res: Response,
+) => {
+  try {
+    await deleteApartments();
+
+    return successResponse(res, 'Apartments deleted successfully');
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

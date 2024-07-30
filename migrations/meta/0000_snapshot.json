@@ -1,205 +1,9 @@
 {
-  "id": "74348c4a-31f4-4d5b-a234-9c52158e4844",
+  "id": "76beb9f9-6e6e-4ddc-88a7-cdaffb5e4c04",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "6",
   "dialect": "postgresql",
   "tables": {
-    "public.apartment_cancellation_policies": {
-      "name": "apartment_cancellation_policies",
-      "schema": "",
-      "columns": {
-        "apartment_id": {
-          "name": "apartment_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cancellation_policy_id": {
-          "name": "cancellation_policy_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "apartment_cancellation_policies_apartment_id_apartments_id_fk": {
-          "name": "apartment_cancellation_policies_apartment_id_apartments_id_fk",
-          "tableFrom": "apartment_cancellation_policies",
-          "tableTo": "apartments",
-          "columnsFrom": [
-            "apartment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "apartment_cancellation_policies_cancellation_policy_id_cancellation_policies_id_fk": {
-          "name": "apartment_cancellation_policies_cancellation_policy_id_cancellation_policies_id_fk",
-          "tableFrom": "apartment_cancellation_policies",
-          "tableTo": "cancellation_policies",
-          "columnsFrom": [
-            "cancellation_policy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.apartment_discounts": {
-      "name": "apartment_discounts",
-      "schema": "",
-      "columns": {
-        "apartment_id": {
-          "name": "apartment_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "discount_id": {
-          "name": "discount_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "apartment_discounts_apartment_id_apartments_id_fk": {
-          "name": "apartment_discounts_apartment_id_apartments_id_fk",
-          "tableFrom": "apartment_discounts",
-          "tableTo": "apartments",
-          "columnsFrom": [
-            "apartment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "apartment_discounts_discount_id_discounts_id_fk": {
-          "name": "apartment_discounts_discount_id_discounts_id_fk",
-          "tableFrom": "apartment_discounts",
-          "tableTo": "discounts",
-          "columnsFrom": [
-            "discount_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.apartment_facilities": {
-      "name": "apartment_facilities",
-      "schema": "",
-      "columns": {
-        "apartment_id": {
-          "name": "apartment_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "facility_id": {
-          "name": "facility_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "apartment_facilities_apartment_id_apartments_id_fk": {
-          "name": "apartment_facilities_apartment_id_apartments_id_fk",
-          "tableFrom": "apartment_facilities",
-          "tableTo": "apartments",
-          "columnsFrom": [
-            "apartment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "apartment_facilities_facility_id_facilities_id_fk": {
-          "name": "apartment_facilities_facility_id_facilities_id_fk",
-          "tableFrom": "apartment_facilities",
-          "tableTo": "facilities",
-          "columnsFrom": [
-            "facility_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.apartment_house_rules": {
-      "name": "apartment_house_rules",
-      "schema": "",
-      "columns": {
-        "apartment_id": {
-          "name": "apartment_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "house_rule_id": {
-          "name": "house_rule_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "apartment_house_rules_apartment_id_apartments_id_fk": {
-          "name": "apartment_house_rules_apartment_id_apartments_id_fk",
-          "tableFrom": "apartment_house_rules",
-          "tableTo": "apartments",
-          "columnsFrom": [
-            "apartment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "apartment_house_rules_house_rule_id_house_rules_id_fk": {
-          "name": "apartment_house_rules_house_rule_id_house_rules_id_fk",
-          "tableFrom": "apartment_house_rules",
-          "tableTo": "house_rules",
-          "columnsFrom": [
-            "house_rule_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
     "public.apartment_photos": {
       "name": "apartment_photos",
       "schema": "",
@@ -403,6 +207,34 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false
+        },
+        "cancellation_policies": {
+          "name": "cancellation_policies",
+          "type": "integer[]",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'ARRAY[]'::integer[]"
+        },
+        "facilities": {
+          "name": "facilities",
+          "type": "integer[]",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'ARRAY[]'::integer[]"
+        },
+        "house_rules": {
+          "name": "house_rules",
+          "type": "integer[]",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'ARRAY[]'::integer[]"
+        },
+        "discounts": {
+          "name": "discounts",
+          "type": "integer[]",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'ARRAY[]'::integer[]"
         },
         "updated_at": {
           "name": "updated_at",
