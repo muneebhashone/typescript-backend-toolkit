@@ -1,4 +1,4 @@
-import { inArray, relations, sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   boolean,
   date,
@@ -113,6 +113,30 @@ export const apartments = pgTable('apartments', {
   typeOfPlace: integer('type_of_place').references(() => typeOfPlace.id, {
     onDelete: 'set null',
   }),
+  cancellationPolicies: integer('cancellation_policies')
+    .references(() => cancellationPolicies.id, {
+      onDelete: 'set null',
+    })
+    .array()
+    .default(sql`'ARRAY[]'::integer[]`),
+  facilities: integer('facilities')
+    .references(() => facilities.id, {
+      onDelete: 'set null',
+    })
+    .array()
+    .default(sql`'ARRAY[]'::integer[]`),
+  houseRules: integer('house_rules')
+    .references(() => houseRules.id, {
+      onDelete: 'set null',
+    })
+    .array()
+    .default(sql`'ARRAY[]'::integer[]`),
+  discounts: integer('discounts')
+    .references(() => discounts.id, {
+      onDelete: 'set null',
+    })
+    .array()
+    .default(sql`'ARRAY[]'::integer[]`),
   updatedAt: date('updated_at').$onUpdate(() => new Date().toISOString()),
   createdAt: date('created_at').$default(() => new Date().toISOString()),
 });
@@ -166,31 +190,6 @@ export const typeOfPlace = pgTable('type_of_place', {
   }),
 });
 
-export const apartmentFacilities = pgTable('apartment_facilities', {
-  apartmentId: integer('apartment_id').references(() => apartments.id),
-  facilityId: integer('facility_id').references(() => facilities.id),
-});
-
-export const apartmentHouseRules = pgTable('apartment_house_rules', {
-  apartmentId: integer('apartment_id').references(() => apartments.id),
-  houseRuleId: integer('house_rule_id').references(() => houseRules.id),
-});
-
-export const apartmentDiscounts = pgTable('apartment_discounts', {
-  apartmentId: integer('apartment_id').references(() => apartments.id),
-  discountId: integer('discount_id').references(() => discounts.id),
-});
-
-export const apartmentCancellationPolicies = pgTable(
-  'apartment_cancellation_policies',
-  {
-    apartmentId: integer('apartment_id').references(() => apartments.id),
-    cancellationPolicyId: integer('cancellation_policy_id').references(
-      () => cancellationPolicies.id,
-    ),
-  },
-);
-
 export const apartmentRelations = relations(apartments, ({ one, many }) => ({
   user_id: one(users, {
     fields: [apartments.userId],
@@ -205,10 +204,10 @@ export const apartmentRelations = relations(apartments, ({ one, many }) => ({
     references: [typeOfPlace.id],
   }),
   cancellationPolicies: many(cancellationPolicies),
-  facilities: many(apartmentFacilities),
-  houseRules: many(apartmentHouseRules),
-  discounts: many(apartmentDiscounts),
-  photos: many(apartmentCancellationPolicies),
+  facilities: many(facilities, { relationName: 'facilities' }),
+  houseRules: many(houseRules),
+  discounts: many(discounts),
+  photos: many(apartmentPhotos),
 }));
 
 export const reviews = pgTable('reviews', {});

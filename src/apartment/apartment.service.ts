@@ -1,25 +1,33 @@
-import { and, avg, between, count, eq, ilike, or, sql, SQL } from 'drizzle-orm';
+import {
+  and,
+  between,
+  count,
+  eq,
+  ilike,
+  inArray,
+  or,
+  sql,
+  SQL,
+} from 'drizzle-orm';
 import { db } from '../drizzle/db';
 import {
-  apartmentCancellationPolicies,
-  apartmentDiscounts,
-  apartmentFacilities,
-  apartmentHouseRules,
   apartments,
+  cancellationPolicies,
+  facilities,
 } from '../drizzle/schema';
 import { ApartmentType } from '../types';
+import { JwtPayload } from '../utils/auth.utils';
+import { getPaginator } from '../utils/getPaginator';
 import {
   ApartmentCreateOrUpdateSchemaType,
   ApartmentIdSchemaType,
   ApartmentListQueryParamsType,
 } from './apartment.schema';
-import { JwtPayload } from '../utils/auth.utils';
-import _ from 'lodash';
-import { getPaginator } from '../utils/getPaginator';
+import logger from '../lib/logger.service';
 
 export const getApartments = async (
   query: ApartmentListQueryParamsType,
-): Promise<ApartmentType[]> => {
+): Promise<any[]> => {
   let filter: SQL<unknown> | null = null;
   const andConditions: (SQL<unknown> | undefined)[] = [];
 
@@ -72,9 +80,10 @@ export const getApartments = async (
     where: filter,
     limit: paginatorInfo.limit,
     offset: paginatorInfo.skip,
-    // with: {
-    //   cancellationPolicies: true,
-    // },
+    with: {
+      propertyType: true,
+      typeOfPlace: true,
+    },
   });
 
   return results;
@@ -84,50 +93,11 @@ export const createApartment = async (
   body: ApartmentCreateOrUpdateSchemaType,
   user: JwtPayload,
 ): Promise<ApartmentType | Error> => {
-  const {
-    cancellationPolicies,
-    facilities,
-    houseRules,
-    discounts,
-    ...apartmentDataWithoutRelations
-  } = body;
-
-  const apartment = await db.transaction(async (tx) => {
-    const [apartment] = await tx
-      .insert(apartments)
-      .values({ ...apartmentDataWithoutRelations, userId: Number(user.sub) })
-      .returning()
-      .execute();
-
-    const cancellationPoliciesData = cancellationPolicies.map((policyId) => ({
-      apartmentId: apartment.id,
-      cancellationPolicyId: policyId,
-    }));
-    await tx
-      .insert(apartmentCancellationPolicies)
-      .values(cancellationPoliciesData)
-      .execute();
-
-    const facilitiesData = facilities.map((facilityId) => ({
-      apartmentId: apartment.id,
-      facilityId: facilityId,
-    }));
-    await tx.insert(apartmentFacilities).values(facilitiesData).execute();
-
-    const houseRulesData = houseRules.map((ruleId) => ({
-      apartmentId: apartment.id,
-      houseRuleId: ruleId,
-    }));
-    await tx.insert(apartmentHouseRules).values(houseRulesData).execute();
-
-    const discountsData = discounts.map((discountId) => ({
-      apartmentId: apartment.id,
-      discountId: discountId,
-    }));
-    await tx.insert(apartmentDiscounts).values(discountsData).execute();
-
-    return apartment;
-  });
+  const [apartment] = await db
+    .insert(apartments)
+    .values({ ...body, userId: Number(user.sub) })
+    .returning()
+    .execute();
 
   return apartment;
 };
@@ -138,78 +108,15 @@ export const updateApartment = async (
   apartmentId: ApartmentIdSchemaType,
 ): Promise<ApartmentType> => {
   const { id } = apartmentId;
-  const {
-    cancellationPolicies,
-    facilities,
-    houseRules,
-    discounts,
-    ...apartmentDataWithoutRelations
-  } = payload;
 
-  try {
-    const apartment = await db.transaction(async (tx) => {
-      const [updatedApartment] = await tx
-        .update(apartments)
-        .set({ ...apartmentDataWithoutRelations, userId: Number(user.sub) })
-        .where(eq(apartments.id, id))
-        .returning()
-        .execute();
+  const [updatedApartment] = await db
+    .update(apartments)
+    .set({ ...payload, userId: Number(user.sub) })
+    .where(eq(apartments.id, id))
+    .returning()
+    .execute();
 
-      if (cancellationPolicies) {
-        await tx
-          .delete(apartmentCancellationPolicies)
-          .where(eq(apartmentCancellationPolicies.apartmentId, id))
-          .execute();
-
-        const cancellationPoliciesData = cancellationPolicies.map(
-          (policyId) => ({
-            apartmentId: id,
-            cancellationPolicyId: policyId,
-          }),
-        );
-        await tx
-          .insert(apartmentCancellationPolicies)
-          .values(cancellationPoliciesData)
-          .execute();
-      }
-
-      if (facilities) {
-        await tx
-          .delete(apartmentFacilities)
-          .where(eq(apartmentFacilities.apartmentId, id))
-          .execute();
-
-        const facilitiesData = facilities.map((facilityId) => ({
-          apartmentId: id,
-          facilityId: facilityId,
-        }));
-        await tx.insert(apartmentFacilities).values(facilitiesData).execute();
-      }
-
-      if (houseRules) {
-        const houseRulesData = houseRules.map((ruleId) => ({
-          apartmentId: apartment.id,
-          houseRuleId: ruleId,
-        }));
-        await tx.insert(apartmentHouseRules).values(houseRulesData).execute();
-      }
-
-      if (discounts) {
-        const discountsData = discounts.map((discountId) => ({
-          apartmentId: apartment.id,
-          discountId: discountId,
-        }));
-        await tx.insert(apartmentDiscounts).values(discountsData).execute();
-      }
-
-      return updatedApartment;
-    });
-
-    return apartment;
-  } catch (error) {
-    console.error('Error updating apartment:', error);
-    throw new Error('Apartment Updation failed, rolled back.');
-  }
+  return updatedApartment;
 };
 
 export const deleteApartment = async (apartmentId: number): Promise<void> => {
@@ -222,4 +129,8 @@ export const deleteApartment = async (apartmentId: number): Promise<void> => {
   }
 
   await db.delete(apartments).where(eq(apartments.id, apartmentId));
+};
+
+export const deleteApartments = async (): Promise<void> => {
+  await db.delete(apartments);
 };
