@@ -1,17 +1,5 @@
 import { Router } from 'express';
-import { canAccess } from '../middlewares/can-access.middleware';
-import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
-import {
-  handleCreateDiscount,
-  handleDeleteDiscount,
-  handleGetDiscounts,
-  handleSeedDiscounts,
-  handleUpdateDiscount,
-} from './discount.controller';
-import {
-  discountCreateOrUpdateSchema,
-  discountIdSchema,
-} from './discount.schema';
+import { handleGetDiscounts, handleSeedDiscounts } from './discount.controller';
 
 export const DISCOUNT_ROUTER_ROOT = '/discount';
 
@@ -25,30 +13,30 @@ discountRouter.get(
   handleSeedDiscounts,
 );
 
-discountRouter.post(
-  '/',
-  canAccess('roles', ['SUPER_ADMIN']),
-  validateZodSchema({ body: discountCreateOrUpdateSchema }),
-  handleCreateDiscount,
-);
+// discountRouter.post(
+//   '/',
+//   canAccess('roles', ['SUPER_ADMIN']),
+//   validateZodSchema({ body: discountCreateOrUpdateSchema }),
+//   handleCreateDiscount,
+// );
 
-discountRouter.patch(
-  '/:id',
-  canAccess('roles', ['SUPER_ADMIN']),
-  validateZodSchema({
-    body: discountCreateOrUpdateSchema,
-    params: discountIdSchema,
-  }),
-  handleUpdateDiscount,
-);
+// discountRouter.patch(
+//   '/:id',
+//   canAccess('roles', ['SUPER_ADMIN']),
+//   validateZodSchema({
+//     body: discountCreateOrUpdateSchema,
+//     params: discountIdSchema,
+//   }),
+//   handleUpdateDiscount,
+// );
 
-discountRouter.delete(
-  '/:id',
-  canAccess('roles', ['SUPER_ADMIN']),
-  validateZodSchema({
-    params: discountIdSchema,
-  }),
-  handleDeleteDiscount,
-);
+// discountRouter.delete(
+//   '/:id',
+//   canAccess('roles', ['SUPER_ADMIN']),
+//   validateZodSchema({
+//     params: discountIdSchema,
+//   }),
+//   handleDeleteDiscount,
+// );
 
 export default discountRouter;

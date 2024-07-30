@@ -1,16 +1,10 @@
-import { InferInsertModel, eq } from 'drizzle-orm';
-import { db } from '../drizzle/db';
-import { typeOfPlace } from '../drizzle/schema';
+import { TypeOfPlace } from '../models/apartment';
 import { TypesOfPlaceType } from '../types';
-import {
-  TypeOfPlaceCreateOrUpdateSchemaType,
-  TypeOfPlaceIdSchemaType,
-} from './type-of-place.schema';
 
 export const seedTypesOfPlace = async (): Promise<TypesOfPlaceType[]> => {
-  await db.delete(typeOfPlace).execute();
+  await TypeOfPlace.deleteMany({});
 
-  const typesOfPlaceData: InferInsertModel<typeof typeOfPlace>[] = [
+  const data = [
     {
       type: 'Entire Place',
     },
@@ -43,62 +37,58 @@ export const seedTypesOfPlace = async (): Promise<TypesOfPlaceType[]> => {
     },
   ];
 
-  const insertedData = await db
-    .insert(typeOfPlace)
-    .values(typesOfPlaceData)
-    .returning()
-    .execute();
+  const insertedData = await TypeOfPlace.insertMany(data);
 
   return insertedData;
 };
 
 export const getTypeOfPlace = async (): Promise<TypesOfPlaceType[]> => {
-  const typeOfPlace = await db.query.typeOfPlace.findMany();
+  const typeOfPlace = await TypeOfPlace.find({});
 
   return typeOfPlace;
 };
 
-export const createTypeOfPlace = async (
-  body: TypeOfPlaceCreateOrUpdateSchemaType,
-): Promise<TypesOfPlaceType | Error> => {
-  try {
-    const newTypeOfPlace = await db
-      .insert(typeOfPlace)
-      .values({ ...body })
-      .returning()
-      .execute();
+// export const createTypeOfPlace = async (
+//   body: TypeOfPlaceCreateOrUpdateSchemaType,
+// ): Promise<TypesOfPlaceType | Error> => {
+//   try {
+//     const newTypeOfPlace = await db
+//       .insert(typeOfPlace)
+//       .values({ ...body })
+//       .returning()
+//       .execute();
 
-    return newTypeOfPlace[0];
-  } catch (_) {
-    return new Error('Error creating type of place');
-  }
-};
+//     return newTypeOfPlace[0];
+//   } catch (_) {
+//     return new Error('Error creating type of place');
+//   }
+// };
 
-export const updateTypeOfPlace = async (
-  payload: TypeOfPlaceCreateOrUpdateSchemaType,
-  typeOfPlaceId: TypeOfPlaceIdSchemaType,
-): Promise<TypesOfPlaceType> => {
-  const { id } = typeOfPlaceId;
-  const typeOfPlaceData = await db.query.typeOfPlace.findFirst({
-    where: eq(typeOfPlace.id, id),
-  });
+// export const updateTypeOfPlace = async (
+//   payload: TypeOfPlaceCreateOrUpdateSchemaType,
+//   typeOfPlaceId: TypeOfPlaceIdSchemaType,
+// ): Promise<TypesOfPlaceType> => {
+//   const { id } = typeOfPlaceId;
+//   const typeOfPlaceData = await db.query.typeOfPlace.findFirst({
+//     where: eq(typeOfPlace.id, id),
+//   });
 
-  if (!typeOfPlaceData) {
-    throw new Error('Type of place not found');
-  }
+//   if (!typeOfPlaceData) {
+//     throw new Error('Type of place not found');
+//   }
 
-  const updatedTypeOfPlace = await db
-    .update(typeOfPlace)
-    .set({ ...payload })
-    .where(eq(typeOfPlace.id, id))
-    .returning()
-    .execute();
+//   const updatedTypeOfPlace = await db
+//     .update(typeOfPlace)
+//     .set({ ...payload })
+//     .where(eq(typeOfPlace.id, id))
+//     .returning()
+//     .execute();
 
-  return updatedTypeOfPlace[0];
-};
+//   return updatedTypeOfPlace[0];
+// };
 
-export const deleteTypeOfPlace = async (
-  typeOfPlaceId: number,
-): Promise<void> => {
-  await db.delete(typeOfPlace).where(eq(typeOfPlace.id, typeOfPlaceId));
-};
+// export const deleteTypeOfPlace = async (
+//   typeOfPlaceId: number,
+// ): Promise<void> => {
+//   await db.delete(typeOfPlace).where(eq(typeOfPlace.id, typeOfPlaceId));
+// };
