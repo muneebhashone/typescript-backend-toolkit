@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { inArray, relations, sql } from 'drizzle-orm';
 import {
   boolean,
   date,
@@ -10,7 +10,7 @@ import {
   text,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { discountEnums, rolesEnums } from './enums';
+import { rolesEnums } from './enums';
 
 export const roleEnum = pgEnum('ROLE', rolesEnums);
 
@@ -101,9 +101,6 @@ export const apartments = pgTable('apartments', {
   bookingTypeId: integer('booking_type_id')
     .notNull()
     .references(() => bookingTypes.id),
-  discountId: integer('discount_id').references(() => discounts.id, {
-    onDelete: 'set null',
-  }),
   businessId: integer('business_id').references(() => businesses.id, {
     onDelete: 'cascade',
   }),
@@ -120,13 +117,6 @@ export const apartments = pgTable('apartments', {
   createdAt: date('created_at').$default(() => new Date().toISOString()),
 });
 
-export const apartmentUserRelation = relations(apartments, ({ one }) => ({
-  user_id: one(users, {
-    fields: [apartments.userId],
-    references: [users.id],
-  }),
-}));
-
 export const apartmentPhotos = pgTable('apartment_photos', {
   id: serial('id').primaryKey(),
   apartmentId: integer('apartment_id').references(() => apartments.id, {
@@ -136,10 +126,6 @@ export const apartmentPhotos = pgTable('apartment_photos', {
   createdAt: date('created_at').$default(() => new Date().toISOString()),
 });
 
-export const apartmentPhotosRelation = relations(apartments, ({ many }) => ({
-  photos: many(apartmentPhotos),
-}));
-
 export const facilities = pgTable('facilities', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
@@ -148,29 +134,6 @@ export const facilities = pgTable('facilities', {
   createdAt: date('created_at').$default(() => new Date().toISOString()),
 });
 
-export const apartmentFacilities = pgTable('apartment_facilities', {
-  apartmentId: integer('apartment_id').references(() => apartments.id, {
-    onDelete: 'cascade',
-  }),
-  facilityId: integer('facility_id').references(() => facilities.id, {
-    onDelete: 'cascade',
-  }),
-});
-
-export const apartmentFacilitiesRelation = relations(
-  apartments,
-  ({ many }) => ({
-    facilities: many(apartmentFacilities),
-  }),
-);
-
-export const facilitiesApartmentsRelation = relations(
-  facilities,
-  ({ many }) => ({
-    apartments: many(apartmentFacilities),
-  }),
-);
-
 export const houseRules = pgTable('house_rules', {
   id: serial('id').primaryKey(),
   rule: text('rule').notNull(),
@@ -178,9 +141,8 @@ export const houseRules = pgTable('house_rules', {
 
 export const discounts = pgTable('discounts', {
   id: serial('id').primaryKey(),
-  discountType: text('discountType', {
-    enum: discountEnums,
-  }).notNull(),
+  title: varchar('title', { length: 100 }).notNull(),
+  description: varchar('description', { length: 255 }),
   value: integer('value').notNull(),
 });
 
@@ -189,35 +151,6 @@ export const cancellationPolicies = pgTable('cancellation_policies', {
   policy: text('policy').notNull(),
   description: text('description'),
 });
-
-export const apartmentCancellationPolicies = pgTable(
-  'apartment_cancellation_policies',
-  {
-    apartmentId: integer('apartment_id').references(() => apartments.id, {
-      onDelete: 'cascade',
-    }),
-    cancellationPolicyId: integer('cancellation_policy_id').references(
-      () => cancellationPolicies.id,
-      {
-        onDelete: 'cascade',
-      },
-    ),
-  },
-);
-
-export const apartmentCancellationPoliciesRelation = relations(
-  apartments,
-  ({ many }) => ({
-    cancellationPolicies: many(apartmentCancellationPolicies),
-  }),
-);
-
-export const cancellationPoliciesRelation = relations(
-  cancellationPolicies,
-  ({ many }) => ({
-    apartments: many(apartmentCancellationPolicies),
-  }),
-);
 
 export const propertyTypes = pgTable('property_types', {
   id: serial('id').primaryKey(),
@@ -233,26 +166,49 @@ export const typeOfPlace = pgTable('type_of_place', {
   }),
 });
 
-export const propertyTypesApartmentsRelation = relations(
-  apartments,
-  ({ one }) => ({
-    property_type: one(propertyTypes, {
-      fields: [apartments.propertyType],
-      references: [propertyTypes.id],
-    }),
-  }),
+export const apartmentFacilities = pgTable('apartment_facilities', {
+  apartmentId: integer('apartment_id').references(() => apartments.id),
+  facilityId: integer('facility_id').references(() => facilities.id),
+});
+
+export const apartmentHouseRules = pgTable('apartment_house_rules', {
+  apartmentId: integer('apartment_id').references(() => apartments.id),
+  houseRuleId: integer('house_rule_id').references(() => houseRules.id),
+});
+
+export const apartmentDiscounts = pgTable('apartment_discounts', {
+  apartmentId: integer('apartment_id').references(() => apartments.id),
+  discountId: integer('discount_id').references(() => discounts.id),
+});
+
+export const apartmentCancellationPolicies = pgTable(
+  'apartment_cancellation_policies',
+  {
+    apartmentId: integer('apartment_id').references(() => apartments.id),
+    cancellationPolicyId: integer('cancellation_policy_id').references(
+      () => cancellationPolicies.id,
+    ),
+  },
 );
 
-export const typeOfPlaceApartmentsRelation = relations(
-  apartments,
-  ({ one }) => ({
-    property_type: one(typeOfPlace, {
-      fields: [apartments.typeOfPlace],
-      references: [typeOfPlace.id],
-    }),
+export const apartmentRelations = relations(apartments, ({ one, many }) => ({
+  user_id: one(users, {
+    fields: [apartments.userId],
+    references: [users.id],
   }),
-);
+  propertyType: one(propertyTypes, {
+    fields: [apartments.propertyType],
+    references: [propertyTypes.id],
+  }),
+  typeOfPlace: one(typeOfPlace, {
+    fields: [apartments.typeOfPlace],
+    references: [typeOfPlace.id],
+  }),
+  cancellationPolicies: many(cancellationPolicies),
+  facilities: many(apartmentFacilities),
+  houseRules: many(apartmentHouseRules),
+  discounts: many(apartmentDiscounts),
+  photos: many(apartmentCancellationPolicies),
+}));
 
-export const reviews = pgTable("reviews", {
-  
-})
+export const reviews = pgTable('reviews', {});

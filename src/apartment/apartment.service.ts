@@ -2,7 +2,9 @@ import { and, avg, between, count, eq, ilike, or, sql, SQL } from 'drizzle-orm';
 import { db } from '../drizzle/db';
 import {
   apartmentCancellationPolicies,
+  apartmentDiscounts,
   apartmentFacilities,
+  apartmentHouseRules,
   apartments,
 } from '../drizzle/schema';
 import { ApartmentType } from '../types';
@@ -15,7 +17,7 @@ import { JwtPayload } from '../utils/auth.utils';
 import _ from 'lodash';
 import { getPaginator } from '../utils/getPaginator';
 
-export const getApartment = async (
+export const getApartments = async (
   query: ApartmentListQueryParamsType,
 ): Promise<ApartmentType[]> => {
   let filter: SQL<unknown> | null = null;
@@ -70,6 +72,9 @@ export const getApartment = async (
     where: filter,
     limit: paginatorInfo.limit,
     offset: paginatorInfo.skip,
+    // with: {
+    //   cancellationPolicies: true,
+    // },
   });
 
   return results;
@@ -79,40 +84,52 @@ export const createApartment = async (
   body: ApartmentCreateOrUpdateSchemaType,
   user: JwtPayload,
 ): Promise<ApartmentType | Error> => {
-  const { cancellationPolicies, facilities, ...apartmentDataWithoutRelations } =
-    body;
+  const {
+    cancellationPolicies,
+    facilities,
+    houseRules,
+    discounts,
+    ...apartmentDataWithoutRelations
+  } = body;
 
-  try {
-    const apartment = await db.transaction(async (tx) => {
-      const [apartment] = await tx
-        .insert(apartments)
-        .values({ ...apartmentDataWithoutRelations, userId: Number(user.sub) })
-        .returning()
-        .execute();
+  const apartment = await db.transaction(async (tx) => {
+    const [apartment] = await tx
+      .insert(apartments)
+      .values({ ...apartmentDataWithoutRelations, userId: Number(user.sub) })
+      .returning()
+      .execute();
 
-      const cancellationPoliciesData = cancellationPolicies.map((policyId) => ({
-        apartmentId: apartment.id,
-        cancellationPolicyId: policyId,
-      }));
-      await tx
-        .insert(apartmentCancellationPolicies)
-        .values(cancellationPoliciesData)
-        .execute();
+    const cancellationPoliciesData = cancellationPolicies.map((policyId) => ({
+      apartmentId: apartment.id,
+      cancellationPolicyId: policyId,
+    }));
+    await tx
+      .insert(apartmentCancellationPolicies)
+      .values(cancellationPoliciesData)
+      .execute();
 
-      const facilitiesData = facilities.map((facilityId) => ({
-        apartmentId: apartment.id,
-        facilityId: facilityId,
-      }));
-      await tx.insert(apartmentFacilities).values(facilitiesData).execute();
+    const facilitiesData = facilities.map((facilityId) => ({
+      apartmentId: apartment.id,
+      facilityId: facilityId,
+    }));
+    await tx.insert(apartmentFacilities).values(facilitiesData).execute();
 
-      return apartment;
-    });
+    const houseRulesData = houseRules.map((ruleId) => ({
+      apartmentId: apartment.id,
+      houseRuleId: ruleId,
+    }));
+    await tx.insert(apartmentHouseRules).values(houseRulesData).execute();
+
+    const discountsData = discounts.map((discountId) => ({
+      apartmentId: apartment.id,
+      discountId: discountId,
+    }));
+    await tx.insert(apartmentDiscounts).values(discountsData).execute();
 
     return apartment;
-  } catch (error) {
-    console.error('Error creating apartment:', error);
-    throw new Error('Apartment creation failed, rolled back.');
-  }
+  });
+
+  return apartment;
 };
 
 export const updateApartment = async (
@@ -121,8 +138,13 @@ export const updateApartment = async (
   apartmentId: ApartmentIdSchemaType,
 ): Promise<ApartmentType> => {
   const { id } = apartmentId;
-  const { cancellationPolicies, facilities, ...apartmentDataWithoutRelations } =
-    payload;
+  const {
+    cancellationPolicies,
+    facilities,
+    houseRules,
+    discounts,
+    ...apartmentDataWithoutRelations
+  } = payload;
 
   try {
     const apartment = await db.transaction(async (tx) => {
@@ -162,6 +184,22 @@ export const updateApartment = async (
           facilityId: facilityId,
         }));
         await tx.insert(apartmentFacilities).values(facilitiesData).execute();
+      }
+
+      if (houseRules) {
+        const houseRulesData = houseRules.map((ruleId) => ({
+          apartmentId: apartment.id,
+          houseRuleId: ruleId,
+        }));
+        await tx.insert(apartmentHouseRules).values(houseRulesData).execute();
+      }
+
+      if (discounts) {
+        const discountsData = discounts.map((discountId) => ({
+          apartmentId: apartment.id,
+          discountId: discountId,
+        }));
+        await tx.insert(apartmentDiscounts).values(discountsData).execute();
       }
 
       return updatedApartment;

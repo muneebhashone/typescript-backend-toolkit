@@ -40,19 +40,14 @@ export const apartmentCreateOrUpdateSchema = z.object({
   areaInSqft: z.number().int().positive().nonnegative(),
   bookingTypeId: z.number().int().positive().nonnegative(),
   businessId: z.number().int().positive().nonnegative(),
-  discountId: z.number().int().positive().nonnegative().nullable().optional(),
-  propertyTypes: z
-    .number()
-    .int()
-    .positive()
-    .nonnegative()
-    .nullable()
-    .optional(),
-  typeOfPlace: z.number().int().positive().nonnegative().nullable().optional(),
+  propertyType: z.number().int().positive().nonnegative(),
+  typeOfPlace: z.number().int().positive().nonnegative(),
   updatedAt: z.string().optional(),
   createdAt: z.string().optional(),
   cancellationPolicies: z.array(z.number()).min(1),
   facilities: z.array(z.number()).min(1),
+  houseRules: z.array(z.number()).min(1),
+  discounts: z.array(z.number()).min(1),
   totalRating: z.number().positive().nonnegative().optional(),
   ratingCount: z.number().positive().nonnegative().optional(),
 });

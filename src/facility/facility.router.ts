@@ -19,7 +19,11 @@ const facilityRouter = Router();
 
 facilityRouter.get('/', handleGetFacilities);
 
-facilityRouter.get('/seed', handleSeedFacilities);
+facilityRouter.get(
+  '/seed',
+  // canAccess('roles', ['SUPER_ADMIN']),
+  handleSeedFacilities,
+);
 
 facilityRouter.post(
   '/',

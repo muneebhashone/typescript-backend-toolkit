@@ -19,7 +19,11 @@ const bookingTypeRouter = Router();
 
 bookingTypeRouter.get('/', handleGetBookingTypes);
 
-bookingTypeRouter.get('/seed', handleSeedBookingTypes);
+bookingTypeRouter.get(
+  '/seed',
+  // canAccess('roles', ['SUPER_ADMIN']),
+  handleSeedBookingTypes,
+);
 
 bookingTypeRouter.post(
   '/',

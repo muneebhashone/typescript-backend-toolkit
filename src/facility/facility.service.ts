@@ -10,7 +10,7 @@ import {
 export const seedFacilities = async (): Promise<FacilitiesType[]> => {
   await db.delete(facilities).execute();
 
-  const bookingsData: InferInsertModel<typeof facilities>[] = [
+  const facilitiesData: InferInsertModel<typeof facilities>[] = [
     {
       name: 'Car Parking',
     },
@@ -39,7 +39,7 @@ export const seedFacilities = async (): Promise<FacilitiesType[]> => {
 
   const insertedData = await db
     .insert(facilities)
-    .values(bookingsData)
+    .values(facilitiesData)
     .returning()
     .execute();
 
