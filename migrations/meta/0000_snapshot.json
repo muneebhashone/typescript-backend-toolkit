@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "id": "76beb9f9-6e6e-4ddc-88a7-cdaffb5e4c04",
+=======
+  "id": "5210961c-5c64-4a42-9a89-26e354ba4475",
+>>>>>>> e1cf2fbfd85c3da3b08670c33cc405ae9ce2aab2
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "6",
   "dialect": "postgresql",
@@ -213,28 +217,44 @@
           "type": "integer[]",
           "primaryKey": false,
           "notNull": false,
+<<<<<<< HEAD
           "default": "'ARRAY[]'::integer[]"
+=======
+          "default": []
+>>>>>>> e1cf2fbfd85c3da3b08670c33cc405ae9ce2aab2
         },
         "facilities": {
           "name": "facilities",
           "type": "integer[]",
           "primaryKey": false,
           "notNull": false,
+<<<<<<< HEAD
           "default": "'ARRAY[]'::integer[]"
+=======
+          "default": []
+>>>>>>> e1cf2fbfd85c3da3b08670c33cc405ae9ce2aab2
         },
         "house_rules": {
           "name": "house_rules",
           "type": "integer[]",
           "primaryKey": false,
           "notNull": false,
+<<<<<<< HEAD
           "default": "'ARRAY[]'::integer[]"
+=======
+          "default": []
+>>>>>>> e1cf2fbfd85c3da3b08670c33cc405ae9ce2aab2
         },
         "discounts": {
           "name": "discounts",
           "type": "integer[]",
           "primaryKey": false,
           "notNull": false,
+<<<<<<< HEAD
           "default": "'ARRAY[]'::integer[]"
+=======
+          "default": []
+>>>>>>> e1cf2fbfd85c3da3b08670c33cc405ae9ce2aab2
         },
         "updated_at": {
           "name": "updated_at",

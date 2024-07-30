@@ -11,6 +11,17 @@ services:
     volumes:
       - .database/postgres:/var/lib/postgresql/data
 
+  mongo:
+    image: mongo:5.0.2
+    restart: 'unless-stopped'
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - mongodb_city_link:/data/db
+
   redis:
     image: redis:latest
     ports:
@@ -23,3 +34,6 @@ services:
     restart: always
     ports:
       - 3024:8080
+
+volumes:
+  mongodb_city_link:
