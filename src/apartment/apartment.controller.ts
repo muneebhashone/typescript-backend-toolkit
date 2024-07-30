@@ -3,7 +3,7 @@ import { errorResponse, successResponse } from '../utils/api.utils';
 import {
   createApartment,
   deleteApartment,
-  getApartment,
+  getApartments,
   updateApartment,
 } from './apartment.service';
 import {
@@ -13,7 +13,7 @@ import {
 
 export const handleGetApartments = async (req: Request, res: Response) => {
   try {
-    const result = await getApartment(req.query);
+    const result = await getApartments(req.query);
 
     return successResponse(res, undefined, result);
   } catch (err) {

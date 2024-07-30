@@ -19,7 +19,11 @@ const cancellationPolicyRouter = Router();
 
 cancellationPolicyRouter.get('/', handleGetCancellationPolicies);
 
-cancellationPolicyRouter.get('/seed', handleSeedCancellationPolicies);
+cancellationPolicyRouter.get(
+  '/seed',
+  // canAccess('roles', ['SUPER_ADMIN']),
+  handleSeedCancellationPolicies,
+);
 
 cancellationPolicyRouter.post(
   '/',
