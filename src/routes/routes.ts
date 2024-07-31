@@ -33,6 +33,10 @@ import propertyTypeRouter, {
 import typeOfPlaceRouter, {
   TYPE_OF_PLACE_ROUTER_ROOT,
 } from '../type-of-place/type-of-place.router';
+import carRouter, {
+  CAR_ROUTER_ROOT,
+} from '../car/car-listing/car-listing.router';
+import reviewRouter, { REVIEW_ROUTER_ROOT } from '../review/review.router';
 
 const router = express.Router();
 
@@ -50,5 +54,7 @@ router.use(HOUSE_RULE_ROUTER_ROOT, houseRuleRouter);
 router.use(DISCOUNT_ROUTER_ROOT, discountRouter);
 router.use(PROPERTY_TYPE_ROUTER_ROOT, propertyTypeRouter);
 router.use(TYPE_OF_PLACE_ROUTER_ROOT, typeOfPlaceRouter);
+router.use(CAR_ROUTER_ROOT, carRouter);
+router.use(REVIEW_ROUTER_ROOT, reviewRouter);
 
 export default router;

@@ -53,9 +53,7 @@ export const handleUpdateCar = async (
       req.body,
     );
 
-    if (updatedCar) {
-      return successResponse(res, 'Car updated successfully', updatedCar);
-    }
+    return successResponse(res, 'Car updated successfully', updatedCar);
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

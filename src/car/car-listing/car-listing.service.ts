@@ -1,4 +1,4 @@
-import { Car } from '../car';
+import { Car } from '../car.model';
 import { CarType } from '../../types';
 import { JwtPayload } from '../../utils/auth.utils';
 import {

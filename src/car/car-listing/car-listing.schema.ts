@@ -83,7 +83,9 @@ export const carCreateSchema = z.object({
     .optional(),
 });
 
-export const carUpdateSchema = carCreateSchema.partial();
+export const carUpdateSchema = carCreateSchema
+  .extend({ underReview: z.boolean() })
+  .partial();
 
 export type CarIdSchemaType = z.infer<typeof carIdSchema>;
 export type CarCreateSchemaType = z.infer<typeof carCreateSchema>;
