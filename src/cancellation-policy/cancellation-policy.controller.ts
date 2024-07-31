@@ -83,7 +83,7 @@ export const handleDeleteCancellationPolicy = async (
   res: Response,
 ) => {
   try {
-    await deleteCancellationPolicy(req.params.id);
+    await deleteCancellationPolicy({ id: req.params.id });
 
     return successResponse(res, 'CancellationPolicy deleted successfully');
   } catch (err) {

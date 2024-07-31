@@ -69,7 +69,7 @@ export const handleDeleteFacility = async (
   res: Response,
 ) => {
   try {
-    await deleteFacility(req.params.id);
+    await deleteFacility({ id: req.params.id });
 
     return successResponse(res, 'Facility deleted successfully');
   } catch (err) {

@@ -22,6 +22,8 @@ export const canAccess =
     try {
       const requestUser = req?.user as JwtPayload;
 
+      console.log({ requestUser });
+
       if (!requestUser) {
         return errorResponse(
           res,

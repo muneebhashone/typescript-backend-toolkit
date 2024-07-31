@@ -17,7 +17,11 @@ export const BUSINESS_ROUTER_ROOT = '/business';
 
 const businessRouter = Router();
 
-businessRouter.post('/seed', handleSeedBusinesses);
+businessRouter.post(
+  '/seed',
+  // canAccess('roles', ['SUPER_ADMIN']),
+  handleSeedBusinesses,
+);
 
 businessRouter.get('/', handleGetBusinesses);
 

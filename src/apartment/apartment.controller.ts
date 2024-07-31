@@ -3,7 +3,8 @@ import { errorResponse, successResponse } from '../utils/api.utils';
 import {
   createApartment,
   deleteApartment,
-  getApartment,
+  deleteApartments,
+  getApartments,
   updateApartment,
 } from './apartment.service';
 import {
@@ -13,7 +14,7 @@ import {
 
 export const handleGetApartments = async (req: Request, res: Response) => {
   try {
-    const result = await getApartment(req.query);
+    const result = await getApartments(req.query);
 
     return successResponse(res, undefined, result);
   } catch (err) {
@@ -39,15 +40,20 @@ export const handleUpdateApartment = async (
   res: Response,
 ) => {
   try {
-    const udpatedApartment = await updateApartment(req.body, req.user, {
-      id: req.params.id,
-    });
-
-    return successResponse(
-      res,
-      'Apartment updated successfully',
-      udpatedApartment,
+    const updatedApartment = await updateApartment(
+      {
+        id: req.params.id,
+      },
+      req.body,
     );
+
+    if (updatedApartment) {
+      return successResponse(
+        res,
+        'Apartment updated successfully',
+        updatedApartment,
+      );
+    }
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }
@@ -58,9 +64,22 @@ export const handleDeleteApartment = async (
   res: Response,
 ) => {
   try {
-    await deleteApartment(req.params.id);
+    await deleteApartment({ id: req.params.id });
 
     return successResponse(res, 'Apartment deleted successfully');
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleDeleteApartments = async (
+  req: Request<ApartmentIdSchemaType, never, never>,
+  res: Response,
+) => {
+  try {
+    await deleteApartments();
+
+    return successResponse(res, 'Apartments deleted successfully');
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

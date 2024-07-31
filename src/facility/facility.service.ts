@@ -1,6 +1,4 @@
-import { InferInsertModel, eq } from 'drizzle-orm';
-import { db } from '../drizzle/db';
-import { facilities } from '../drizzle/schema';
+import { Facility } from '../models/apartment';
 import { FacilitiesType } from '../types';
 import {
   FacilityCreateOrUpdateSchemaType,
@@ -8,9 +6,9 @@ import {
 } from './facility.schema';
 
 export const seedFacilities = async (): Promise<FacilitiesType[]> => {
-  await db.delete(facilities).execute();
+  await Facility.deleteMany({});
 
-  const bookingsData: InferInsertModel<typeof facilities>[] = [
+  const data = [
     {
       name: 'Car Parking',
     },
@@ -37,17 +35,13 @@ export const seedFacilities = async (): Promise<FacilitiesType[]> => {
     },
   ];
 
-  const insertedData = await db
-    .insert(facilities)
-    .values(bookingsData)
-    .returning()
-    .execute();
+  const insertedData = await Facility.insertMany(data);
 
   return insertedData;
 };
 
 export const getFacility = async (): Promise<FacilitiesType[]> => {
-  const facility = await db.query.facilities.findMany();
+  const facility = await Facility.find({});
 
   return facility;
 };
@@ -55,17 +49,8 @@ export const getFacility = async (): Promise<FacilitiesType[]> => {
 export const createFacility = async (
   body: FacilityCreateOrUpdateSchemaType,
 ): Promise<FacilitiesType | Error> => {
-  try {
-    const newFacility = await db
-      .insert(facilities)
-      .values({ ...body })
-      .returning()
-      .execute();
-
-    return newFacility[0];
-  } catch (_) {
-    return new Error('Error creating facility');
-  }
+  const newFacility = await Facility.create({ ...body });
+  return newFacility;
 };
 
 export const updateFacility = async (
@@ -73,24 +58,31 @@ export const updateFacility = async (
   facilityId: FacilityIdSchemaType,
 ): Promise<FacilitiesType> => {
   const { id } = facilityId;
-  const facility = await db.query.facilities.findFirst({
-    where: eq(facilities.id, id),
-  });
+  const facility = await Facility.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        ...payload,
+      },
+    },
+    {
+      new: true,
+    },
+  );
 
   if (!facility) {
     throw new Error('Facility not found');
   }
 
-  const updatedFacility = await db
-    .update(facilities)
-    .set({ ...payload })
-    .where(eq(facilities.id, id))
-    .returning()
-    .execute();
-
-  return updatedFacility[0];
+  return facility;
 };
 
-export const deleteFacility = async (facilityId: number): Promise<void> => {
-  await db.delete(facilities).where(eq(facilities.id, facilityId));
+export const deleteFacility = async (
+  facilityId: FacilityIdSchemaType,
+): Promise<void> => {
+  const { id } = facilityId;
+  const deleted = await Facility.deleteOne({ _id: id });
+  if (deleted.deletedCount < 1) {
+    throw new Error('Facility does not Exist');
+  }
 };

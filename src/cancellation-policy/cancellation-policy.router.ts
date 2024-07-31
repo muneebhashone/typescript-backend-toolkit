@@ -1,6 +1,4 @@
 import { Router } from 'express';
-import { canAccess } from '../middlewares/can-access.middleware';
-import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
 import {
   handleCreateCancellationPolicy,
   handleDeleteCancellationPolicy,
@@ -8,6 +6,8 @@ import {
   handleSeedCancellationPolicies,
   handleUpdateCancellationPolicy,
 } from './cancellation-policy.controller';
+import { canAccess } from '../middlewares/can-access.middleware';
+import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
 import {
   cancellationPolicyCreateOrUpdateSchema,
   cancellationPolicyIdSchema,
@@ -19,7 +19,11 @@ const cancellationPolicyRouter = Router();
 
 cancellationPolicyRouter.get('/', handleGetCancellationPolicies);
 
-cancellationPolicyRouter.get('/seed', handleSeedCancellationPolicies);
+cancellationPolicyRouter.get(
+  '/seed',
+  // canAccess('roles', ['SUPER_ADMIN']),
+  handleSeedCancellationPolicies,
+);
 
 cancellationPolicyRouter.post(
   '/',

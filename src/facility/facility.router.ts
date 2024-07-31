@@ -1,6 +1,4 @@
 import { Router } from 'express';
-import { canAccess } from '../middlewares/can-access.middleware';
-import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
 import {
   handleCreateFacility,
   handleDeleteFacility,
@@ -8,6 +6,8 @@ import {
   handleSeedFacilities,
   handleUpdateFacility,
 } from './facility.controller';
+import { canAccess } from '../middlewares/can-access.middleware';
+import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
 import {
   facilityCreateOrUpdateSchema,
   facilityIdSchema,
@@ -19,7 +19,11 @@ const facilityRouter = Router();
 
 facilityRouter.get('/', handleGetFacilities);
 
-facilityRouter.get('/seed', handleSeedFacilities);
+facilityRouter.get(
+  '/seed',
+  // canAccess('roles', ['SUPER_ADMIN']),
+  handleSeedFacilities,
+);
 
 facilityRouter.post(
   '/',

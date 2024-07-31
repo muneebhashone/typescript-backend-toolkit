@@ -1,6 +1,4 @@
-import { InferInsertModel, eq } from 'drizzle-orm';
-import { db } from '../drizzle/db';
-import { bookingTypes } from '../drizzle/schema';
+import { BookingType } from '../models/apartment';
 import { BookingTypesType } from '../types';
 import {
   BookingTypeCreateOrUpdateSchemaType,
@@ -8,9 +6,9 @@ import {
 } from './bookingType.schema';
 
 export const seedBookingTypes = async (): Promise<BookingTypesType[]> => {
-  await db.delete(bookingTypes).execute();
+  await BookingType.deleteMany({});
 
-  const bookingsData: InferInsertModel<typeof bookingTypes>[] = [
+  const data = [
     {
       name: 'Daily',
       description: 'Daily Booking Type',
@@ -29,35 +27,25 @@ export const seedBookingTypes = async (): Promise<BookingTypesType[]> => {
     },
   ];
 
-  const insertedData = await db
-    .insert(bookingTypes)
-    .values(bookingsData)
-    .returning()
-    .execute();
+  const insertedData = await BookingType.insertMany(data);
 
   return insertedData;
 };
 
 export const getBookingType = async (): Promise<BookingTypesType[]> => {
-  const bookingType = await db.query.bookingTypes.findMany();
+  const cancellationPolicy = await BookingType.find({});
 
-  return bookingType;
+  return cancellationPolicy;
 };
 
 export const createBookingType = async (
   body: BookingTypeCreateOrUpdateSchemaType,
 ): Promise<BookingTypesType | Error> => {
-  try {
-    const newBookingType = await db
-      .insert(bookingTypes)
-      .values({ ...body })
-      .returning()
-      .execute();
+  const newBookingType = await BookingType.create({
+    ...body,
+  });
 
-    return newBookingType[0];
-  } catch (_) {
-    return new Error('Error creating booking type');
-  }
+  return newBookingType;
 };
 
 export const updateBookingType = async (
@@ -65,26 +53,31 @@ export const updateBookingType = async (
   bookingTypeId: BookingTypeIdSchemaType,
 ): Promise<BookingTypesType> => {
   const { id } = bookingTypeId;
-  const bookingType = await db.query.bookingTypes.findFirst({
-    where: eq(bookingTypes.id, id),
-  });
+  const bookingType = await BookingType.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        ...payload,
+      },
+    },
+    {
+      new: true,
+    },
+  );
 
   if (!bookingType) {
     throw new Error('BookingType not found');
   }
 
-  const updatedBookingType = await db
-    .update(bookingTypes)
-    .set({ ...payload })
-    .where(eq(bookingTypes.id, id))
-    .returning()
-    .execute();
-
-  return updatedBookingType[0];
+  return bookingType;
 };
 
 export const deleteBookingType = async (
-  bookingTypeId: number,
+  bookingTypeId: BookingTypeIdSchemaType,
 ): Promise<void> => {
-  await db.delete(bookingTypes).where(eq(bookingTypes.id, bookingTypeId));
+  const { id } = bookingTypeId;
+  const deleted = await BookingType.deleteOne({ _id: id });
+  if (deleted.deletedCount < 1) {
+    throw new Error('Booking Type does not Exist');
+  }
 };

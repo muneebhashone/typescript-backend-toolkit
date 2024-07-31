@@ -6,8 +6,7 @@ export const apartmentIdSchema = z.object({
   id: z
     .string({ required_error: 'ID is required' })
     .min(1)
-    .refine((value) => validator.isAlphanumeric(value), 'ID must be valid')
-    .transform(Number),
+    .refine((value) => validator.isAlphanumeric(value), 'ID must be valid'),
 });
 
 export const apartmentListQueryParamsSchema = z
@@ -30,31 +29,26 @@ export const apartmentCreateOrUpdateSchema = z.object({
   state: z.string().max(100),
   zipCode: z.string().max(20),
   country: z.string().max(100),
-  propertyPrice: z.number().positive().nonnegative().transform(String),
-  numberOfRooms: z.number().int().positive().nonnegative(),
-  numberOfBathrooms: z.number().int().positive().nonnegative(),
-  numberOfBedrooms: z.number().int().positive().nonnegative(),
-  numberOfPets: z.number().int().positive().nonnegative(),
-  numberOfPersonsAllowed: z.number().int().positive().nonnegative(),
-  petHosting: z.number().positive().nonnegative().transform(String),
-  areaInSqft: z.number().int().positive().nonnegative(),
-  bookingTypeId: z.number().int().positive().nonnegative(),
-  businessId: z.number().int().positive().nonnegative(),
-  discountId: z.number().int().positive().nonnegative().nullable().optional(),
-  propertyTypes: z
-    .number()
-    .int()
-    .positive()
-    .nonnegative()
-    .nullable()
-    .optional(),
-  typeOfPlace: z.number().int().positive().nonnegative().nullable().optional(),
+  propertyPrice: z.number().nonnegative().transform(String),
+  numberOfRooms: z.number().int().nonnegative(),
+  numberOfBathrooms: z.number().int().nonnegative(),
+  numberOfBedrooms: z.number().int().nonnegative(),
+  numberOfPets: z.number().int().nonnegative(),
+  numberOfPersonsAllowed: z.number().int().nonnegative(),
+  petHosting: z.number().nonnegative().transform(String),
+  areaInSqft: z.number().int().nonnegative(),
+  bookingType: z.string().min(1),
+  businessId: z.number().int().nonnegative(),
+  propertyType: z.string().min(1),
+  typeOfPlace: z.string().min(1),
   updatedAt: z.string().optional(),
   createdAt: z.string().optional(),
-  cancellationPolicies: z.array(z.number()).min(1),
-  facilities: z.array(z.number()).min(1),
-  totalRating: z.number().positive().nonnegative().optional(),
-  ratingCount: z.number().positive().nonnegative().optional(),
+  cancellationPolicies: z.array(z.string().min(1)).min(1),
+  facilities: z.array(z.string().min(1)).min(1),
+  houseRules: z.array(z.string().min(1)).min(1),
+  discounts: z.array(z.string().min(1)).min(1),
+  totalRating: z.number().nonnegative().optional(),
+  ratingCount: z.number().nonnegative().optional(),
 });
 
 export type ApartmentIdSchemaType = z.infer<typeof apartmentIdSchema>;

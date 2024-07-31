@@ -1,1 +1,0 @@
-ALTER TABLE "apartments" ADD COLUMN "amenities" jsonb NOT NULL;

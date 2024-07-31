@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1721752229540,
-      "tag": "0000_colossal_karnak",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1721752730927,
-      "tag": "0001_tranquil_proemial_gods",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1721752949171,
-      "tag": "0002_many_guardsmen",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1721763169110,
-      "tag": "0003_blushing_the_stranger",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1721763274876,
-      "tag": "0004_nervous_layla_miller",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1721766456189,
-      "tag": "0005_gorgeous_green_goblin",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "6",
-      "when": 1722030045274,
-      "tag": "0006_glorious_kabuki",
+      "when": 1722367282278,
+      "tag": "0000_ambitious_the_executioner",
       "breakpoints": true
     }
   ]
