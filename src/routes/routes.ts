@@ -36,6 +36,10 @@ import typeOfPlaceRouter, {
 import apartmentBookingRouter, {
   APARTMENT_BOOKING_ROUTER_ROOT,
 } from '../apartment/apartment-booking/apartment-booking.router';
+import carRouter, {
+  CAR_ROUTER_ROOT,
+} from '../car/car-listing/car-listing.router';
+import reviewRouter, { REVIEW_ROUTER_ROOT } from '../review/review.router';
 
 const router = express.Router();
 
@@ -54,5 +58,7 @@ router.use(DISCOUNT_ROUTER_ROOT, discountRouter);
 router.use(PROPERTY_TYPE_ROUTER_ROOT, propertyTypeRouter);
 router.use(TYPE_OF_PLACE_ROUTER_ROOT, typeOfPlaceRouter);
 router.use(APARTMENT_BOOKING_ROUTER_ROOT, apartmentBookingRouter);
+router.use(CAR_ROUTER_ROOT, carRouter);
+router.use(REVIEW_ROUTER_ROOT, reviewRouter);
 
 export default router;
