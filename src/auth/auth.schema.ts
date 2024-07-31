@@ -44,8 +44,7 @@ export const setPasswordSchema = z
     userId: z
       .string({ required_error: 'userId is required' })
       .min(1)
-      .refine((value) => validator.isNumeric(value), 'userId must be valid')
-      .transform(Number),
+      .refine((value) => validator.isMongoId(value), 'userId must be valid'),
     code: z
       .string({ required_error: 'code is required' })
       .min(4)
@@ -63,8 +62,7 @@ export const resetPasswordSchema = z.object({
   userId: z
     .string({ required_error: 'userId is required' })
     .min(1)
-    .refine((value) => validator.isNumeric(value), 'userId must be valid')
-    .transform(Number),
+    .refine((value) => validator.isMongoId(value), 'userId must be valid'),
   code: z
     .string({ required_error: 'code is required' })
     .min(4)
@@ -84,16 +82,12 @@ export const forgetPasswordSchema = z.object({
 });
 
 export const verifyOtpSchema = z.object({
-  otp: z
-    .string({ required_error: 'OTP is required' })
-    .min(4)
-    .max(4)
-    .refine((value) => validator.isAlphanumeric(value), 'otp must be valid'),
+  otp: z.string({ required_error: 'OTP is required' }).min(4).max(4),
   userId: z
     .string()
     .min(1)
-    .refine((value) => validator.isAlphanumeric(value), 'Id must be valid')
-    .transform(Number),
+    .refine((value) => validator.isMongoId(value), 'Id must be valid'),
+
   type: z.enum(['RESET_PASSWORD', 'DEFAULT']).default('DEFAULT').optional(),
 });
 
@@ -145,8 +139,7 @@ export const loginUserByPhoneSchema = z.object({
 export const validateLoginOtpSchema = z.object({
   userId: z
     .string({ required_error: 'userId is required' })
-    .refine((value) => validator.isAlphanumeric(value), 'Id must be valid')
-    .transform(Number),
+    .refine((value) => validator.isMongoId(value), 'Id must be valid'),
   code: z
     .string()
     .min(4)

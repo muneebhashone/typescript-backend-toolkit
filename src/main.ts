@@ -15,7 +15,7 @@ import logger, { httpLogger } from './lib/logger.service';
 import redisStore from './lib/session.store';
 import { extractJwt } from './middlewares/extract-jwt-schema.middleware';
 import apiRoutes from './routes/routes';
-import { connectDatabase } from './drizzle/mongoDb';
+import { connectDatabase } from './lib/database';
 
 const boostrapServer = async () => {
   const app = express();

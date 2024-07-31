@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { RoleType } from '../drizzle/enums';
+import { RoleType } from '../enums';
 import { getUserById } from '../user/user.services';
 import { errorResponse } from '../utils/api.utils';
 import { JwtPayload } from '../utils/auth.utils';
@@ -31,7 +31,7 @@ export const canAccess =
       }
 
       const currentUser = await getUserById(
-        Number(requestUser.sub),
+        { id: requestUser.sub },
         requestUser.role,
       );
 
@@ -60,7 +60,9 @@ export const canAccess =
       const accessorsToScanFor = access;
 
       if (by === 'roles' && accessorsToScanFor) {
-        can = (accessorsToScanFor as RoleType[]).includes(currentUser.role);
+        can = (accessorsToScanFor as RoleType[]).includes(
+          currentUser.role as RoleType,
+        );
       }
 
       if (!accessorsToScanFor) {
@@ -90,7 +92,7 @@ export const canAccess =
       }
 
       if (currentUser) {
-        req['user'] = { ...currentUser, sub: currentUser.id };
+        req['user'] = { ...currentUser, sub: currentUser._id };
       }
     } catch (err) {
       return errorResponse(

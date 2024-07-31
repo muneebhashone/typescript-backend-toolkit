@@ -1,16 +1,6 @@
 version: '3.9'
 
 services:
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: admin
-    ports:
-      - 5432:5432
-    volumes:
-      - .database/postgres:/var/lib/postgresql/data
-
   mongo:
     image: mongo:5.0.2
     restart: 'unless-stopped'
@@ -27,13 +17,8 @@ services:
     ports:
       - 6379:6379
     volumes:
-      - .database/redis:/data
-
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 3024:8080
+      - redis:/data
 
 volumes:
   mongodb_city_link:
+  redis:

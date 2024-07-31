@@ -2,11 +2,9 @@ import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { prepareSetPasswordAndSendEmail } from '../auth/auth.service';
 import { ConflictError } from '../errors/errors.service';
-import { UserType } from '../types';
 import { errorResponse, successResponse } from '../utils/api.utils';
-import { generateRandomPassword } from '../utils/auth.utils';
+import { generateRandomPassword, JwtPayload } from '../utils/auth.utils';
 import {
-  BulkUserIdSchemaType,
   CreateUserSchemaType,
   GetUsersSchemaType,
   UpdateHostSchemaType,
@@ -20,7 +18,6 @@ import {
   activeToggle,
   clearUsers,
   createUser,
-  deleteBulkUsers,
   deleteUser,
   getUsers,
   seedUsers,
@@ -36,9 +33,9 @@ export const handleVerifyUpdateOtp = async (
   res: Response,
 ) => {
   try {
-    const currentUser = req.user as UserType;
+    const currentUser = req.user;
 
-    await verifyUpdateOtp(req.body, currentUser.id);
+    await verifyUpdateOtp(req.body, { id: currentUser.sub });
 
     return successResponse(res, `${req.body.for} has been updated`);
   } catch (err) {
@@ -51,9 +48,9 @@ export const handleUpdateUserEmail = async (
   res: Response,
 ) => {
   try {
-    const currentUser = req.user as UserType;
+    const currentUser = req.user as JwtPayload;
 
-    await updateUserEmail(req.body, currentUser.id);
+    await updateUserEmail(req.body, { id: currentUser.sub });
 
     return successResponse(
       res,
@@ -69,9 +66,9 @@ export const handleUpdateUserPhone = async (
   res: Response,
 ) => {
   try {
-    const currentUser = req.user as UserType;
+    const currentUser = req.user as JwtPayload;
 
-    await updateUserPhone(req.body, currentUser.id);
+    await updateUserPhone(req.body, { id: currentUser.sub });
 
     const phoneNo = `********${req.body.phoneNo.slice(-3)}`;
 
@@ -89,7 +86,7 @@ export const handleToggleActive = async (
   res: Response,
 ) => {
   try {
-    const status = await activeToggle(req.params.id);
+    const status = await activeToggle({ id: req.params.id });
 
     return successResponse(
       res,
@@ -110,25 +107,25 @@ export const handleUserSeeder = async (_: Request, res: Response) => {
   }
 };
 
-export const handleDeleteBulkUsers = async (
-  req: Request<never, never, never, BulkUserIdSchemaType>,
-  res: Response,
-) => {
-  try {
-    await deleteBulkUsers(req.query.ids);
+// export const handleDeleteBulkUsers = async (
+//   req: Request<never, never, never, BulkUserIdSchemaType>,
+//   res: Response,
+// ) => {
+//   try {
+//     await deleteBulkUsers(req.query.ids);
 
-    return successResponse(res, 'Users are deleted');
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
-};
+//     return successResponse(res, 'Users are deleted');
+//   } catch (err) {
+//     return errorResponse(res, (err as Error).message);
+//   }
+// };
 
 export const handleDeleteUser = async (
   req: Request<UserIdSchemaType, never>,
   res: Response,
 ) => {
   try {
-    await deleteUser(req.params.id);
+    await deleteUser({ id: req.params.id });
 
     return successResponse(res, 'User has been deleted');
   } catch (err) {
@@ -151,9 +148,9 @@ export const handleUpdateUser = async (
   res: Response,
 ) => {
   try {
-    const currentUser = req.user as UserType;
-
-    const updatedUser = await updateUser(req.body, currentUser.id);
+    const currentUser = req.user as JwtPayload;
+    const body = { ...req.body, dob: new Date(req.body.dob as string) };
+    const updatedUser = await updateUser(body, { id: currentUser.sub });
 
     return successResponse(res, 'Profile has been updated', updatedUser);
   } catch (err) {
@@ -166,9 +163,9 @@ export const handleUpdateHost = async (
   res: Response,
 ) => {
   try {
-    const currentUser = req.user as UserType;
+    const currentUser = req.user as JwtPayload;
 
-    const updatedHost = await updateHost(req.body, currentUser.id);
+    const updatedHost = await updateHost(req.body, { id: currentUser.sub });
 
     return successResponse(res, 'Profile has been updated', updatedHost);
   } catch (err) {
@@ -188,6 +185,7 @@ export const handleCreateUser = async (
       password: generateRandomPassword(),
       isActive: true,
       role: 'DEFAULT_USER',
+      dob: new Date(req.body.dob),
     });
 
     await prepareSetPasswordAndSendEmail(user);
@@ -223,7 +221,7 @@ export const handleCreateSuperAdmin = async (
       isActive: true,
       role: 'SUPER_ADMIN',
       phoneNo: '123456789',
-      dob: '1999-02-19',
+      dob: new Date(),
     });
 
     return res.status(StatusCodes.CREATED).json({
@@ -249,7 +247,9 @@ export const handleGetUsers = async (
 ) => {
   try {
     const { results, paginatorInfo } = await getUsers(
-      Number(req.user.sub),
+      {
+        id: req.user.sub,
+      },
       req.query,
     );
 

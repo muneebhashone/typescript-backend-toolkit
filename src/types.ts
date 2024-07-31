@@ -1,5 +1,5 @@
-import { InferSelectModel } from 'drizzle-orm';
-import { businesses, users } from './drizzle/schema';
+import { IApartmentBooking } from './apartment/apartment-booking/apartment-booking.model';
+import { IApartmentBookingSummaryType } from './apartment/apartment-booking/apartment-booking.types';
 import {
   IApartment,
   IBookingType,
@@ -10,12 +10,12 @@ import {
   IPropertyType,
   ITypeOfPlace,
 } from './apartment/apartment.model';
-import { IApartmentBooking } from './apartment/apartment-booking/apartment-booking.model';
-import { IApartmentBookingSummaryType } from './apartment/apartment-booking/apartment-booking.types';
 import { ICar } from './car/car-types';
+import { IBusiness } from './models/business';
+import { IUser } from './models/users';
 
-export type UserType = InferSelectModel<typeof users>;
-export type BusinessType = InferSelectModel<typeof businesses>;
+export type UserType = IUser & { _id?: string };
+export type BusinessType = IBusiness;
 export type ApartmentType = IApartment;
 export type BookingTypesType = IBookingType;
 export type CancellationPoliciesType = ICancellationPolicy;

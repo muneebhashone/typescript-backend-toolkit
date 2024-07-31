@@ -16,7 +16,7 @@ export const handleProfileUpload = async (req: Request, res: Response) => {
 
     const user = await updateUser(
       { avatar: String(file.location) },
-      currentUser.id,
+      { id: String(currentUser._id) },
     );
 
     return successResponse(res, 'Profile picture has been uploaded', user);
@@ -38,7 +38,7 @@ export const handleBusinessThumbnailUpload = async (
 
     const business = await updateBusiness(
       { thumbnail: String(file.location) },
-      req.params.id,
+      { id: req.params.id },
     );
 
     return successResponse(

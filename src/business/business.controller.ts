@@ -52,7 +52,7 @@ export const handleUpdateBusiness = async (
   try {
     const udpatedBusiness = await updateBusiness(
       { name: req.body.name },
-      req.params.id,
+      { id: String(req.params.id) },
     );
 
     return successResponse(
@@ -70,7 +70,7 @@ export const handleDeleteBusiness = async (
   res: Response,
 ) => {
   try {
-    await deleteBusiness(req.params.id);
+    await deleteBusiness({ id: req.params.id });
 
     return successResponse(res, 'Business deleted successfully');
   } catch (err) {

@@ -1,11 +1,9 @@
-import { and, eq } from 'drizzle-orm';
-import { db } from '../drizzle/db';
-import { RoleType } from '../drizzle/enums';
-import { users } from '../drizzle/schema';
+import { RoleType } from '../enums';
 import {
   InvalidCredentialseError,
   NotFoundError,
 } from '../errors/errors.service';
+import User from '../models/users';
 import { SendOtpEmailQueue } from '../queues/email.queue';
 import { UserType } from '../types';
 import { createUser } from '../user/user.services';
@@ -33,13 +31,16 @@ import {
 export const checkEmailExist = async () => {};
 
 export const setPassword = async (payload: SetPasswordSchemaType) => {
-  const user = await db.query.users.findFirst({
-    where: and(
-      eq(users.setPasswordCode, payload.code),
-      eq(users.id, payload.userId),
-    ),
+  // const user = await db.query.users.findFirst({
+  //   where: and(
+  //     eq(users.setPasswordCode, payload.code),
+  //     eq(users.id, payload.userId),
+  //   ),
+  // });
+  const user = User.findOne({
+    _id: payload.userId,
+    setPasswordCode: payload.code,
   });
-
   if (!user) {
     throw new Error('token is not valid or expired, please try again');
   }
@@ -50,21 +51,30 @@ export const setPassword = async (payload: SetPasswordSchemaType) => {
 
   const hashedPassword = await hashPassword(payload.password);
 
-  await db
-    .update(users)
-    .set({ password: hashedPassword })
-    .where(eq(users.id, payload.userId))
-    .execute();
+  // await db
+  //   .update(users)
+  //   .set({ password: hashedPassword })
+  //   .where(eq(users.id, payload.userId))
+  //   .execute();
+  await User.updateOne(
+    {
+      _id: payload.userId,
+    },
+    { $set: { password: hashedPassword } },
+  );
 };
 
 export const resetPassword = async (payload: ResetPasswordSchemaType) => {
-  const user = await db.query.users.findFirst({
-    where: and(
-      eq(users.passwordResetCode, payload.code),
-      eq(users.id, payload.userId),
-    ),
+  // const user = await db.query.users.findFirst({
+  //   where: and(
+  //     eq(users.passwordResetCode, payload.code),
+  //     eq(users.id, payload.userId),
+  //   ),
+  // });
+  const user = User.findOne({
+    _id: payload.userId,
+    passwordResetCode: payload.code,
   });
-
   if (!user) {
     throw new Error('token is not valid or expired, please try again');
   }
@@ -75,11 +85,22 @@ export const resetPassword = async (payload: ResetPasswordSchemaType) => {
 
   const hashedPassword = await hashPassword(payload.password);
 
-  await db
-    .update(users)
-    .set({ password: hashedPassword, passwordResetCode: null })
-    .where(eq(users.id, payload.userId))
-    .execute();
+  // await db
+  //   .update(users)
+  //   .set({ password: hashedPassword, passwordResetCode: null })
+  //   .where(eq(users.id, payload.userId))
+  //   .execute();
+  await User.updateOne(
+    {
+      _id: payload.userId,
+    },
+    {
+      $set: {
+        password: hashedPassword,
+        passwordResetCode: null,
+      },
+    },
+  );
 };
 
 export const prepareSetPasswordAndSendEmail = async (
@@ -87,41 +108,57 @@ export const prepareSetPasswordAndSendEmail = async (
 ): Promise<void> => {
   const code = generateRandomNumbers(4);
 
-  await db
-    .update(users)
-    .set({ setPasswordCode: code })
-    .where(eq(users.id, user.id))
-    .execute();
+  await User.updateOne(
+    {
+      _id: user._id,
+    },
+    {
+      $set: {
+        setPasswordCode: code,
+      },
+    },
+  );
 };
 
 export const forgetPassword = async (
   payload: ForgetPasswordSchemaType,
 ): Promise<UserType> => {
-  const user = await db.query.users.findFirst({
-    where: eq(users.phoneNo, payload.phoneNo),
+  // const user = await db.query.users.findFirst({
+  //   where: eq(users.phoneNo, payload.phoneNo),
+  // });
+  const user = await User.findOne({
+    phoneNo: payload.phoneNo,
   });
-
   if (!user) {
     throw new Error("user doesn't exists");
   }
 
   const code = generateRandomNumbers(4);
 
-  await db
-    .update(users)
-    .set({ passwordResetCode: code })
-    .where(eq(users.id, user.id))
-    .execute();
+  // await db
+  //   .update(users)
+  //   .set({ passwordResetCode: code })
+  //   .where(eq(users.id, user.id))
+  //   .execute();
+  await User.updateOne(
+    {
+      _id: user._id,
+    },
+    {
+      $set: { setPasswordCode: code },
+    },
+  );
 
-  return user;
+  return user.toObject();
 };
 
-export const verifyOtp = async (
-  payload: VerifyOtpSchemaType,
-): Promise<UserType> => {
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, payload.userId),
-  });
+export const verifyOtp = async (payload: VerifyOtpSchemaType) => {
+  // const user = await db.query.users.findFirst({
+  //   where: eq(users.id, payload.userId),
+  // });
+  const user = await User.findOne({
+    _id: payload.userId,
+  }).select('+otp');
 
   if (!user) {
     throw new Error("User isn't registered");
@@ -139,24 +176,28 @@ export const verifyOtp = async (
         throw new Error('Invalid OTP');
       }
 
-      await db.update(users).set({ otp: null }).where(eq(users.id, user.id));
+      // await db.update(users).set({ otp: null }).where(eq(users.id, user.id));
+      await User.updateOne({ _id: user._id }, { $set: { otp: null } });
     }
   } else {
     if (user.otp !== payload.otp) {
       throw new Error('Invalid OTP');
     }
 
-    await db.update(users).set({ otp: null }).where(eq(users.id, user.id));
+    await User.updateOne({ _id: user._id }, { $set: { otp: null } });
   }
 
   return user;
 };
 
 export const changePassword = async (
-  userId: number,
+  userId: string,
   payload: ChangePasswordSchemaType,
 ): Promise<void> => {
-  const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+  // const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+  const user = await User.findOne({
+    _id: userId,
+  }).select('+password');
 
   if (!user || !user.password) {
     throw new NotFoundError('User is not found');
@@ -173,26 +214,33 @@ export const changePassword = async (
 
   const hashedPassword = await hashPassword(payload.newPassword);
 
-  await db
-    .update(users)
-    .set({ password: hashedPassword })
-    .where(eq(users.id, userId))
-    .execute();
+  // await db
+  //   .update(users)
+  //   .set({ password: hashedPassword })
+  //   .where(eq(users.id, userId))
+  //   .execute();
+  await User.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
 };
 
 export const registerUserByEmail = async (
   payload: RegisterUserByEmailSchemaType,
 ): Promise<{ user: UserType; otpSendTo: string[] }> => {
-  const userExistByEmail = await db.query.users.findFirst({
-    where: eq(users.email, payload.email),
+  // const userExistByEmail = await db.query.users.findFirst({
+  //   where: eq(users.email, payload.email),
+  // });
+  const userExistByEmail = await User.findOne({
+    email: payload.email,
   });
 
   if (userExistByEmail && userExistByEmail.otp === null) {
     throw new Error('Account already exist with same email address');
   }
 
-  const userExistByPhone = await db.query.users.findFirst({
-    where: eq(users.phoneNo, payload.phoneNo),
+  // const userExistByPhone = await db.query.users.findFirst({
+  //   where: eq(users.phoneNo, payload.phoneNo),
+  // });
+  const userExistByPhone = await User.findOne({
+    phoneNo: payload.phoneNo,
   });
 
   if (userExistByPhone && userExistByPhone.otp === null) {
@@ -205,11 +253,12 @@ export const registerUserByEmail = async (
 
   // It means user is registered already but didn't perform otp verification
   if (userExistByEmail) {
-    await db.delete(users).where(eq(users.id, userExistByEmail.id)).execute();
+    // await db.delete(users).where(eq(users.id, userExistByEmail.id)).execute();
+    await User.deleteOne({ _id: userExistByEmail._id });
   }
 
   if (userExistByPhone) {
-    await db.delete(users).where(eq(users.id, userExistByPhone.id)).execute();
+    await User.deleteOne({ _id: userExistByPhone._id });
   }
 
   const user = await createUser(
@@ -218,7 +267,7 @@ export const registerUserByEmail = async (
       firstName: payload.email,
       lastName: payload.lastName,
       password: payload.password,
-      dob: payload.dob,
+      dob: new Date(payload.dob),
       phoneNo: payload.phoneNo,
       role: 'DEFAULT_USER',
       isActive: true,
@@ -245,10 +294,12 @@ export const registerUserByEmail = async (
 export const registerHostByPhone = async (
   payload: RegisterHostByPhoneSchemaType,
 ): Promise<{ user: UserType; otpSendTo: string[] }> => {
-  const userExist = await db.query.users.findFirst({
-    where: eq(users.phoneNo, payload.phoneNo),
-  });
-
+  // const userExist = await db.query.users.findFirst({
+  //   where: eq(users.phoneNo, payload.phoneNo),
+  // });
+  const userExist = await User.findOne({
+    phoneNo: payload.phoneNo,
+  }).select('+otp');
   // User exist and have perform otp verification
   if (userExist && userExist.otp === null) {
     throw new Error('Account already exist');
@@ -260,7 +311,10 @@ export const registerHostByPhone = async (
 
   // It means user is registered already but didn't perform otp verification
   if (userExist) {
-    await db.delete(users).where(eq(users.id, userExist.id));
+    // await db.delete(users).where(eq(users.id, userExist.id));
+    await User.deleteOne({
+      _id: userExist._id,
+    });
   }
 
   const user = await createUser(
@@ -294,15 +348,18 @@ export const canUserAuthorize = (user: UserType) => {
 export const loginUserByEmail = async (
   payload: LoginUserByEmailSchemaType,
 ): Promise<string> => {
-  const user = await db.query.users.findFirst({
-    where: eq(users.email, payload.email),
-  });
+  // const user = await db.query.users.findFirst({
+  //   where: eq(users.email, payload.email),
+  // });
+  const user = await User.findOne({ email: payload.email }).select(
+    '+password +otp',
+  );
 
   if (!user || !(await compareHash(String(user.password), payload.password))) {
     throw new InvalidCredentialseError('Invalid email or password');
   }
 
-  await canUserAuthorize(user);
+  canUserAuthorize(user.toObject());
 
   const jwtPayload: JwtPayload = {
     sub: String(user.id),
@@ -319,15 +376,18 @@ export const loginUserByEmail = async (
 export const loginUserByPhoneAndPassword = async (
   payload: LoginUserByPhoneAndPasswordSchemaType,
 ): Promise<string> => {
-  const user = await db.query.users.findFirst({
-    where: eq(users.phoneNo, payload.phoneNo),
-  });
+  // const user = await db.query.users.findFirst({
+  //   where: eq(users.phoneNo, payload.phoneNo),
+  // });
+  const user = await User.findOne({
+    phoneNo: payload.phoneNo,
+  }).select('+password  +otp');
 
   if (!user || !(await compareHash(String(user.password), payload.password))) {
     throw new InvalidCredentialseError('Invalid phone no. or password');
   }
 
-  await canUserAuthorize(user);
+  await canUserAuthorize(user.toObject());
 
   const jwtPayload: JwtPayload = {
     sub: String(user.id),
@@ -344,31 +404,42 @@ export const loginUserByPhoneAndPassword = async (
 export const loginUserByPhone = async (
   payload: LoginUserByPhoneSchemaType,
 ): Promise<UserType> => {
-  const user = await db.query.users.findFirst({
-    where: eq(users.phoneNo, payload.phoneNo),
-  });
+  // const user = await db.query.users.findFirst({
+  //   where: eq(users.phoneNo, payload.phoneNo),
+  // });
+  const user = await User.findOne({
+    phoneNo: payload.phoneNo,
+  }).select('+otp');
 
   if (!user) {
     throw new Error('User not found');
   }
 
-  await canUserAuthorize(user);
+  await canUserAuthorize(user.toObject());
 
+  // const loginOtp = '1234';
   const loginOtp = generateRandomNumbers(4);
 
-  await db
-    .update(users)
-    .set({ loginOtp: loginOtp })
-    .where(eq(users.id, user.id))
-    .execute();
-
-  return user;
+  // await db
+  //   .update(users)
+  //   .set({ loginOtp: loginOtp })
+  //   .where(eq(users.id, user.id))
+  //   .execute();
+  await User.updateOne(
+    {
+      _id: user._id,
+    },
+    {
+      $set: { loginOtp },
+    },
+  );
+  return user.toObject();
 };
 
 export const validateLoginOtp = async (payload: ValidateLoginOtpSchemaType) => {
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, payload.userId),
-  });
+  const user = await User.findById({
+    _id: payload.userId,
+  }).select('+loginOtp +password +otp');
 
   if (!user) {
     throw new Error('User not found');
@@ -378,14 +449,16 @@ export const validateLoginOtp = async (payload: ValidateLoginOtpSchemaType) => {
     throw new Error('Code is invalid');
   }
 
-  await canUserAuthorize(user);
+  canUserAuthorize(user.toObject());
 
-  await db
-    .update(users)
-    .set({ loginOtp: null })
-    .where(eq(users.id, user.id))
-    .execute();
-
+  await User.updateOne(
+    {
+      _id: user._id,
+    },
+    {
+      $set: { otp: null },
+    },
+  );
   const jwtPayload: JwtPayload = {
     sub: String(user.id),
     email: user?.email,
