@@ -29,6 +29,8 @@ export const apartmentCreateOrUpdateSchema = z.object({
   state: z.string().max(100),
   zipCode: z.string().max(20),
   country: z.string().max(100),
+  checkIn: z.string().time(),
+  checkOut: z.string().time(),
   propertyPrice: z.number().nonnegative().transform(String),
   numberOfRooms: z.number().int().nonnegative(),
   numberOfBathrooms: z.number().int().nonnegative(),

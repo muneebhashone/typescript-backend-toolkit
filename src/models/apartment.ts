@@ -11,6 +11,8 @@ export interface IApartment {
   zipCode: string;
   country: string;
   photos: string[];
+  checkIn: string;
+  checkOut: string;
   propertyPrice: mongoose.Types.Decimal128;
   numberOfRooms: number;
   numberOfBathrooms: number;
@@ -149,6 +151,8 @@ const ApartmentSchema = new Schema<IApartment>(
     state: { type: String, required: true },
     zipCode: { type: String, required: true },
     country: { type: String, required: true },
+    checkIn: { type: String, required: true },
+    checkOut: { type: String, required: true },
     propertyPrice: { type: Schema.Types.Decimal128, required: true },
     numberOfRooms: { type: Number, required: true },
     numberOfBathrooms: { type: Number, required: true },
