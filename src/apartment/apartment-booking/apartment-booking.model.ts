@@ -1,4 +1,10 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import {
+  BookingPaymentStatus,
+  BookingPaymentStatusUnion,
+  BookingStatus,
+  BookingStatusUnion,
+} from '../../types';
 
 export interface IApartmentBooking {
   checkIn: Date;
@@ -14,6 +20,8 @@ export interface IApartmentBooking {
   apartmentOwner: mongoose.Schema.Types.ObjectId;
   confirmed: boolean;
   termsAccepted: boolean;
+  status: BookingStatusUnion;
+  paymentStatus: BookingPaymentStatusUnion;
 }
 
 export interface IApartmentBookingDocument
@@ -80,6 +88,16 @@ const ApartmentBookingSchema = new Schema<IApartmentBooking>(
       type: Boolean,
       required: false,
       default: false,
+    },
+    status: {
+      type: String,
+      enum: Object.keys(BookingStatus) as BookingStatusUnion[],
+      required: true,
+    },
+    paymentStatus: {
+      type: String,
+      enum: Object.keys(BookingPaymentStatus) as BookingPaymentStatusUnion[],
+      required: true,
     },
   },
   { timestamps: true },

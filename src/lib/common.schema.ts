@@ -1,4 +1,4 @@
-import { HttpStatusCode } from 'axios';
+import { StatusCodes } from 'http-status-codes';
 import z from 'zod';
 
 export const searchAndPaginationSchema = z.object({
@@ -10,8 +10,8 @@ export const searchAndPaginationSchema = z.object({
 export const returnMessageSchema = z.object({
   status: z
     .number()
-    .refine((value) => Object.values(HttpStatusCode).includes(value)),
+    .refine((value) => Object.values(StatusCodes).includes(value)),
   message: z.string(),
 });
 
-export type ReturnMessageSchema = z.infer<typeof returnMessageSchema>;
+export type ReturnMessageSchemaType = z.infer<typeof returnMessageSchema>;

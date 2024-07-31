@@ -1,4 +1,4 @@
-import { ReturnMessageSchema } from '../../lib/common.schema';
+import { ReturnMessageSchemaType } from '../../lib/common.schema';
 import { Apartment, Discount } from '../apartment.model';
 import { ApartmentBooking } from './apartment-booking.model';
 import {
@@ -10,7 +10,10 @@ import {
   ApartmentBookingCreateOrUpdateSchemaType,
   ApartmentBookingIdSchemaType,
   ConfirmApartmentBookingSchema,
+  MyApartmentBookingsSchema,
 } from './apartment-booking.schema';
+import { JwtPayload } from '../../utils/auth.utils';
+import { StatusCodes } from 'http-status-codes';
 
 export const getApartmentBooking = async (): Promise<
   ApartmentBookingsType[]
@@ -20,15 +23,31 @@ export const getApartmentBooking = async (): Promise<
   return apartmentBooking;
 };
 
+export const getMyApartmentBooking = async (
+  payload: MyApartmentBookingsSchema,
+  user: JwtPayload,
+): Promise<ApartmentBookingsType[]> => {
+  const { status } = payload;
+
+  const myBookings = await ApartmentBooking.find({
+    status,
+    user: user.sub,
+  });
+
+  return myBookings;
+};
+
 export const createApartmentBooking = async (
   body: ConfirmApartmentBookingSchema,
-): Promise<ReturnMessageSchema | Error> => {
+): Promise<ReturnMessageSchemaType | Error> => {
   const apartmentBookingConfirmed = await ApartmentBooking.findByIdAndUpdate(
     body.id,
     {
       $set: {
         confirmed: true,
         termsAccepted: body.termsAccepted,
+        status: 'completed',
+        paymentStatus: 'paid',
       },
     },
     {
@@ -59,6 +78,34 @@ export const deleteApartmentBooking = async (
   }
 };
 
+export const refundApartmentBooking = async (
+  apartmentBookingId: ApartmentBookingIdSchemaType,
+): Promise<ReturnMessageSchemaType> => {
+  const { id } = apartmentBookingId;
+  const updatedBooking = ApartmentBooking.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        status: 'cancelled',
+        paymentStatus: 'refund',
+      },
+    },
+    { new: true },
+  );
+
+  if (!updatedBooking) {
+    return {
+      status: StatusCodes.BAD_REQUEST,
+      message: 'Booking Refund failed or not found',
+    };
+  }
+
+  return {
+    status: StatusCodes.OK,
+    message: 'Payment Refunded',
+  };
+};
+
 export const getApartmentBookingSummary = async (
   payload: ApartmentBookingCreateOrUpdateSchemaType,
 ): Promise<ApartmentBookingsSummaryType> => {
@@ -78,6 +125,8 @@ export const getApartmentBookingSummary = async (
     ...payload,
     confirmed: false,
     apartmentOwner: apartment.userId,
+    status: 'pending',
+    paymentStatus: 'unpaid',
   });
 
   const bookingDetails = getApartmentBookingPaymentDetails(
