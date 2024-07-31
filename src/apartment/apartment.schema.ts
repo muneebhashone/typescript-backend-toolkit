@@ -1,6 +1,6 @@
 import validator from 'validator';
 import z from 'zod';
-import { searchAndPaginationSchema } from '../lib/common.schemas';
+import { searchAndPaginationSchema } from '../lib/common.schema';
 
 export const apartmentIdSchema = z.object({
   id: z
