@@ -1,14 +1,11 @@
-import { inArray } from 'drizzle-orm';
-import { db } from '../drizzle/db';
-import { Apartment } from '../models/apartment';
 import { ApartmentType } from '../types';
 import { JwtPayload } from '../utils/auth.utils';
+import { Apartment } from './apartment.model';
 import {
   ApartmentCreateOrUpdateSchemaType,
   ApartmentIdSchemaType,
   ApartmentListQueryParamsType,
 } from './apartment.schema';
-import { businesses, users } from '../drizzle/schema';
 
 export const getApartments = async (
   _: ApartmentListQueryParamsType,

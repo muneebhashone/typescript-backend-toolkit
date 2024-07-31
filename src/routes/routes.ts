@@ -14,25 +14,28 @@ import apartmentRouter, {
 } from '../apartment/apartment.router';
 import bookingTypeRouter, {
   BOOKING_TYPE_ROUTER_ROOT,
-} from '../booking-type/bookingType.router';
+} from '../apartment/booking-type/bookingType.router';
 import cancellationPolicyRouter, {
   CANCELLATION_POLICY_ROUTER_ROOT,
-} from '../cancellation-policy/cancellation-policy.router';
+} from '../apartment/cancellation-policy/cancellation-policy.router';
 import facilityRouter, {
   FACILITY_ROUTER_ROOT,
-} from '../facility/facility.router';
+} from '../apartment/facility/facility.router';
 import houseRuleRouter, {
   HOUSE_RULE_ROUTER_ROOT,
-} from '../house-rule/house-rule.router';
+} from '../apartment/house-rule/house-rule.router';
 import discountRouter, {
   DISCOUNT_ROUTER_ROOT,
-} from '../discount/discount.router';
+} from '../apartment/discount/discount.router';
 import propertyTypeRouter, {
   PROPERTY_TYPE_ROUTER_ROOT,
-} from '../property-type/property-type.router';
+} from '../apartment/property-type/property-type.router';
 import typeOfPlaceRouter, {
   TYPE_OF_PLACE_ROUTER_ROOT,
-} from '../type-of-place/type-of-place.router';
+} from '../apartment/type-of-place/type-of-place.router';
+import apartmentBookingRouter, {
+  APARTMENT_BOOKING_ROUTER_ROOT,
+} from '../apartment/apartment-booking/apartment-booking.router';
 
 const router = express.Router();
 
@@ -50,5 +53,6 @@ router.use(HOUSE_RULE_ROUTER_ROOT, houseRuleRouter);
 router.use(DISCOUNT_ROUTER_ROOT, discountRouter);
 router.use(PROPERTY_TYPE_ROUTER_ROOT, propertyTypeRouter);
 router.use(TYPE_OF_PLACE_ROUTER_ROOT, typeOfPlaceRouter);
+router.use(APARTMENT_BOOKING_ROUTER_ROOT, apartmentBookingRouter);
 
 export default router;

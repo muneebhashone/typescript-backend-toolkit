@@ -62,7 +62,7 @@ export const handleUpdateApartment = async (
 
 export const handleGetApartment = async (req: Request, res: Response) => {
   try {
-    const result = await getApartment({id: req.params.id});
+    const result = await getApartment({ id: req.params.id });
 
     return successResponse(res, undefined, result);
   } catch (err) {
@@ -84,7 +84,7 @@ export const handleDeleteApartment = async (
 };
 
 export const handleDeleteApartments = async (
-  req: Request<ApartmentIdSchemaType, never, never>,
+  _: Request<ApartmentIdSchemaType, never, never>,
   res: Response,
 ) => {
   try {
