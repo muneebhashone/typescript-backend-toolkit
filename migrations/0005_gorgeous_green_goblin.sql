@@ -1,1 +1,0 @@
-ALTER TABLE "cancellation_policies" ADD COLUMN "description" text;

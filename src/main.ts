@@ -15,9 +15,12 @@ import logger, { httpLogger } from './lib/logger.service';
 import redisStore from './lib/session.store';
 import { extractJwt } from './middlewares/extract-jwt-schema.middleware';
 import apiRoutes from './routes/routes';
+import { connectDatabase } from './drizzle/mongoDb';
 
 const boostrapServer = async () => {
   const app = express();
+
+  await connectDatabase();
 
   app.set('trust proxy', true);
 

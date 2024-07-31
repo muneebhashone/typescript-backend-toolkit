@@ -7,6 +7,7 @@ const configSchema = z.object({
   REDIS_URL: z.string().url(),
   PORT: z.string().regex(/^\d+$/).transform(Number),
   DATABASE_URL: z.string().url(),
+  MONGO_DATABASE_URL: z.string().url(),
   SMTP_HOST: z.string().min(1),
   SMTP_PORT: z.string().regex(/^\d+$/).transform(Number),
   SMTP_USERNAME: z.string().email(),

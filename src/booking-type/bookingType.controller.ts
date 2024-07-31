@@ -77,7 +77,7 @@ export const handleDeleteBookingType = async (
   res: Response,
 ) => {
   try {
-    await deleteBookingType(req.params.id);
+    await deleteBookingType({id: req.params.id});
 
     return successResponse(res, 'BookingType deleted successfully');
   } catch (err) {

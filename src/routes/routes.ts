@@ -21,6 +21,18 @@ import cancellationPolicyRouter, {
 import facilityRouter, {
   FACILITY_ROUTER_ROOT,
 } from '../facility/facility.router';
+import houseRuleRouter, {
+  HOUSE_RULE_ROUTER_ROOT,
+} from '../house-rule/house-rule.router';
+import discountRouter, {
+  DISCOUNT_ROUTER_ROOT,
+} from '../discount/discount.router';
+import propertyTypeRouter, {
+  PROPERTY_TYPE_ROUTER_ROOT,
+} from '../property-type/property-type.router';
+import typeOfPlaceRouter, {
+  TYPE_OF_PLACE_ROUTER_ROOT,
+} from '../type-of-place/type-of-place.router';
 
 const router = express.Router();
 
@@ -34,5 +46,9 @@ router.use(APARTMENT_ROUTER_ROOT, apartmentRouter);
 router.use(BOOKING_TYPE_ROUTER_ROOT, bookingTypeRouter);
 router.use(CANCELLATION_POLICY_ROUTER_ROOT, cancellationPolicyRouter);
 router.use(FACILITY_ROUTER_ROOT, facilityRouter);
+router.use(HOUSE_RULE_ROUTER_ROOT, houseRuleRouter);
+router.use(DISCOUNT_ROUTER_ROOT, discountRouter);
+router.use(PROPERTY_TYPE_ROUTER_ROOT, propertyTypeRouter);
+router.use(TYPE_OF_PLACE_ROUTER_ROOT, typeOfPlaceRouter);
 
 export default router;

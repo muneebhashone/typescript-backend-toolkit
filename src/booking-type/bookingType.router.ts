@@ -1,6 +1,4 @@
 import { Router } from 'express';
-import { canAccess } from '../middlewares/can-access.middleware';
-import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
 import {
   handleCreateBookingType,
   handleDeleteBookingType,
@@ -8,6 +6,8 @@ import {
   handleSeedBookingTypes,
   handleUpdateBookingType,
 } from './bookingType.controller';
+import { canAccess } from '../middlewares/can-access.middleware';
+import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
 import {
   bookingTypeCreateOrUpdateSchema,
   bookingTypeIdSchema,
@@ -19,7 +19,11 @@ const bookingTypeRouter = Router();
 
 bookingTypeRouter.get('/', handleGetBookingTypes);
 
-bookingTypeRouter.get('/seed', handleSeedBookingTypes);
+bookingTypeRouter.get(
+  '/seed',
+  // canAccess('roles', ['SUPER_ADMIN']),
+  handleSeedBookingTypes,
+);
 
 bookingTypeRouter.post(
   '/',
