@@ -1,11 +1,11 @@
+import validator, { isMongoId } from 'validator';
 import * as z from 'zod';
-import { rolesEnums } from '../drizzle/enums';
+import { rolesEnums } from '../enums';
 import {
   isTransformableToBoolean,
   stringToBoolean,
   transformableToBooleanError,
 } from '../utils/common.utils';
-import validator from 'validator';
 
 const baseCreateUser = {
   email: z
@@ -24,7 +24,7 @@ export const createUserSchema = z.object({
     .max(15, 'Phone number should not be greater than 15 characters'),
   dob: z
     .string({ required_error: 'Birthday is required' })
-    .date("Date must be formated as 'YYYY-MM-DD'"),
+    .datetime("Date must be formated as 'YYYY-MM-DD'"),
 });
 
 export const updateUserEmailSchema = z.object({
@@ -44,49 +44,47 @@ export const updateUserPhoneNoSchema = z.object({
 
 export const updateUserSchema = z
   .object({
-    firstName: z.string().min(1).nullable().optional(),
-    lastName: z.string().min(1).nullable().optional(),
-    dob: z
-      .string()
-      .date("Date must be formated as 'YYYY-MM-DD'")
-      .nullable()
-      .optional(),
+    firstName: z.string().min(1).optional(),
+    lastName: z.string().min(1).optional(),
+    dob: z.string().date("Date must be formated as 'YYYY-MM-DD'").optional(),
     name: z.string().min(1).nullable().optional(),
     country: z
       .string({ required_error: 'Country is required' })
       .min(1)
-      .nullable()
+
       .optional(),
     city: z
       .string({ required_error: 'City is required' })
       .min(1)
-      .nullable()
+
       .optional(),
     state: z
       .string({ required_error: 'State is required' })
       .min(1)
-      .nullable()
+
       .optional(),
     streetAddress: z
       .string({ required_error: 'Street Address is required' })
       .min(1)
-      .nullable()
+
       .optional(),
     postalCode: z
       .string()
       .refine((value) => validator.isPostalCode(value, 'any'))
-      .nullable()
+
       .optional(),
-    interest: z.number().min(1).optional(),
+    interest: z
+      .string()
+      .refine((value) => validator.isMongoId(value))
+      .optional(),
   })
   .strict();
 
 export const updateHostSchema = updateUserSchema
   .extend({
-    businessId: z
+    business: z
       .string()
-      .refine((value) => validator.isAlphanumeric(value))
-      .transform(Number)
+      .refine((value) => validator.isMongoId(value))
       .optional(),
     accountNumber: z
       .string()
@@ -112,7 +110,7 @@ export const setUserLocationSchema = z.object({
 });
 
 export const userIdSchema = z.object({
-  id: z.string().transform(Number),
+  id: z.string({ required_error: 'ID is required' }).min(1),
 });
 
 export const bulkUserIdsSchema = z.object({
@@ -120,10 +118,9 @@ export const bulkUserIdsSchema = z.object({
     .string()
     .array()
     .refine(
-      (values) => values.every((value) => !isNaN(Number(value))),
+      (values) => values.every((value) => isMongoId(value)),
       'Ids must be string-integer',
-    )
-    .transform((values) => values.map(Number)),
+    ),
 });
 
 export const verifyUpdateOtpSchema = z.object({
@@ -157,7 +154,7 @@ export const getUsersSchema = z.object({
     .transform(Number),
   filterByActive: z
     .string()
-    .default('false')
+    .default('true')
     .refine(isTransformableToBoolean, transformableToBooleanError)
     .transform(stringToBoolean),
   filterByRole: z.enum(rolesEnums).optional(),

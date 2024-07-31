@@ -6,9 +6,6 @@
   "scripts": {
     "dev": "dotenv -e .env -- ts-node-dev --transpile-only ./src/main.ts",
     "seeder": "ts-node --transpile-only ./src/seeder.ts",
-    "migration:generate": "pnpm drizzle-kit generate",
-    "migration:run": "dotenv -e .env -- pnpm dlx tsx migrate.ts",
-    "migration:fresh": "rimraf migrations && pnpm run migration:generate && pnpm run migration:run",
     "build": "tsup --config build.ts",
     "start:prod": "dotenv -e .env -- node ./dist/main.js",
     "start:local": "dotenv -e .env -- node ./dist/main.js",
@@ -23,6 +20,7 @@
     "@types/express": "^4.17.15",
     "@types/express-session": "^1.17.5",
     "@types/helmet": "^4.0.0",
+    "@types/http-status-codes": "^1.2.0",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/lodash": "^4.14.191",
     "@types/memory-cache": "^0.2.2",

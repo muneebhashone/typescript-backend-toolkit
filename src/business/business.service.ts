@@ -1,62 +1,56 @@
-import { InferInsertModel, eq } from 'drizzle-orm';
-import { db } from '../drizzle/db';
-import { businesses } from '../drizzle/schema';
-import { BusinessType } from '../types';
+import Business from '../models/business';
+import { BusinessType } from '../types'; // Define your type structure for TypeScript compatibility
+import { BusinessIdSchemaType } from './business.schema';
 
+// Get all businesses
 export const getBusiness = async (): Promise<BusinessType[]> => {
-  const business = await db.query.businesses.findMany();
-
-  return business;
+  const businesses = await Business.find().lean().exec();
+  return businesses;
 };
 
+// Create a new business
 export const createBusiness = async (name: string): Promise<BusinessType> => {
-  const exist = await db.query.businesses.findFirst({
-    where: eq(businesses.name, name),
-  });
+  // Check if the business already exists
+  const exist = await Business.findOne({ name });
 
   if (exist) {
-    throw new Error('Business is already exist with same name');
+    throw new Error('Business already exists with the same name');
   }
 
-  const newBusiness = await db
-    .insert(businesses)
-    .values({ name: name })
-    .returning()
-    .execute();
-
-  return newBusiness[0];
+  // Create a new business
+  const newBusiness = new Business({ name });
+  await newBusiness.save();
+  return newBusiness.toObject();
 };
 
 export const updateBusiness = async (
   payload: { name?: string; thumbnail?: string },
-  businessId: number,
+  businessId: BusinessIdSchemaType,
 ): Promise<BusinessType> => {
-  const business = await db.query.businesses.findFirst({
-    where: eq(businesses.id, businessId),
-  });
+  const business = await Business.findById({ _id: businessId.id });
 
   if (!business) {
     throw new Error('Business not found');
   }
 
-  const updatedBusiness = await db
-    .update(businesses)
-    .set({ ...payload })
-    .where(eq(businesses.id, businessId))
-    .returning()
-    .execute();
+  if (payload.name) business.name = payload.name;
+  if (payload.thumbnail) business.thumbnail = payload.thumbnail;
 
-  return updatedBusiness[0];
+  await business.save();
+  return business.toObject();
 };
 
-export const deleteBusiness = async (businessId: number): Promise<void> => {
-  await db.delete(businesses).where(eq(businesses.id, businessId));
+export const deleteBusiness = async (
+  businessId: BusinessIdSchemaType,
+): Promise<void> => {
+  await Business.findByIdAndDelete({ _id: businessId.id });
 };
 
+// Seed initial business data
 export const seedBusinesses = async (): Promise<BusinessType[]> => {
-  await db.delete(businesses).execute();
+  await Business.deleteMany(); // Clear all existing documents
 
-  const businessesData: InferInsertModel<typeof businesses>[] = [
+  const businessesData: BusinessType[] = [
     {
       name: 'Appartment Booking',
       thumbnail:
@@ -79,11 +73,6 @@ export const seedBusinesses = async (): Promise<BusinessType[]> => {
     },
   ];
 
-  const insertedData = await db
-    .insert(businesses)
-    .values(businessesData)
-    .returning()
-    .execute();
-
+  const insertedData = await Business.insertMany(businessesData);
   return insertedData;
 };

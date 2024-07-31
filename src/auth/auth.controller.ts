@@ -34,6 +34,7 @@ import {
   validateLoginOtp,
   verifyOtp,
 } from './auth.service';
+import { RoleType } from '../enums';
 
 export const handleSetPassword = async (
   req: Request<never, never, SetPasswordSchemaType>,
@@ -68,7 +69,7 @@ export const handleForgetPassword = async (
   try {
     const user = await forgetPassword(req.body);
 
-    return successResponse(res, 'Code has been sent', { userId: user.id });
+    return successResponse(res, 'Code has been sent', { userId: user._id });
   } catch (err) {
     return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
   }
@@ -79,7 +80,7 @@ export const handleChangePassword = async (
   res: Response,
 ) => {
   try {
-    await changePassword(Number((req.user as JwtPayload).sub), req.body);
+    await changePassword((req.user as JwtPayload).sub, req.body);
 
     return successResponse(res, 'Password successfully changed');
   } catch (err) {
@@ -98,8 +99,8 @@ export const handleVerifyOtp = async (
       const token = await signToken({
         phoneNo: user?.phoneNo,
         email: user?.email,
-        role: user.role,
-        sub: String(user.id),
+        role: user.role as RoleType,
+        sub: String(user._id),
       });
 
       res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
@@ -124,7 +125,7 @@ export const handleRegisterHost = async (
       res,
       `Please check your ${otpSendTo.join(' or ')}, OTP has been sent`,
       {
-        userId: user.id,
+        userId: user._id,
       },
     );
   } catch (err) {
@@ -147,7 +148,7 @@ export const handleRegisterUser = async (
       res,
       `Please check your ${otpSendTo.join(' or ')}, OTP has been sent`,
       {
-        userId: user.id,
+        userId: user._id,
       },
     );
   } catch (err) {
@@ -215,7 +216,7 @@ export const handleLoginByPhone = async (
     const phone = `*******${user.phoneNo?.slice(-3)}`;
 
     return successResponse(res, `Code has been sent to ${phone}`, {
-      userId: user.id,
+      userId: user._id,
     });
   } catch (err) {
     if (err instanceof InvalidCredentialseError) {
