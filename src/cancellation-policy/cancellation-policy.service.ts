@@ -1,5 +1,9 @@
 import { CancellationPolicy } from '../models/apartment';
 import { CancellationPoliciesType } from '../types';
+import {
+  CancellationPolicyCreateOrUpdateSchemaType,
+  CancellationPolicyIdSchemaType,
+} from './cancellation-policy.schema';
 
 export const seedCancellationPolicies = async (): Promise<
   CancellationPoliciesType[]
@@ -39,49 +43,46 @@ export const getCancellationPolicy = async (): Promise<
   return cancellationPolicy;
 };
 
-// export const createCancellationPolicy = async (
-//   body: CancellationPolicyCreateOrUpdateSchemaType,
-// ): Promise<CancellationPoliciesType | Error> => {
-//   try {
-//     const newCancellationPolicy = await db
-//       .insert(cancellationPolicies)
-//       .values({ ...body })
-//       .returning()
-//       .execute();
+export const createCancellationPolicy = async (
+  body: CancellationPolicyCreateOrUpdateSchemaType,
+): Promise<CancellationPoliciesType | Error> => {
+  const newCancellationPolicy = await CancellationPolicy.create({
+    ...body,
+  });
 
-//     return newCancellationPolicy[0];
-//   } catch (_) {
-//     return new Error('Error creating Cancellation Policy');
-//   }
-// };
+  return newCancellationPolicy;
+};
 
-// export const updateCancellationPolicy = async (
-//   payload: CancellationPolicyCreateOrUpdateSchemaType,
-//   cancellationPolicyId: CancellationPolicyIdSchemaType,
-// ): Promise<CancellationPoliciesType> => {
-//   const { id } = cancellationPolicyId;
-//   const cancellationPolicy = await db.query.cancellationPolicies.findFirst({
-//     where: eq(cancellationPolicies.id, id),
-//   });
+export const updateCancellationPolicy = async (
+  payload: CancellationPolicyCreateOrUpdateSchemaType,
+  cancellationPolicyId: CancellationPolicyIdSchemaType,
+): Promise<CancellationPoliciesType> => {
+  const { id } = cancellationPolicyId;
+  const cancellationPolicy = await CancellationPolicy.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        ...payload,
+      },
+    },
+    {
+      new: true,
+    },
+  );
 
-//   if (!cancellationPolicy) {
-//     throw new Error('CancellationPolicy not found');
-//   }
+  if (!cancellationPolicy) {
+    throw new Error('CancellationPolicy not found');
+  }
 
-//   const updatedCancellationPolicy = await db
-//     .update(cancellationPolicies)
-//     .set({ ...payload })
-//     .where(eq(cancellationPolicies.id, id))
-//     .returning()
-//     .execute();
+  return cancellationPolicy;
+};
 
-//   return updatedCancellationPolicy[0];
-// };
-
-// export const deleteCancellationPolicy = async (
-//   cancellationPolicyId: number,
-// ): Promise<void> => {
-//   await db
-//     .delete(cancellationPolicies)
-//     .where(eq(cancellationPolicies.id, cancellationPolicyId));
-// };
+export const deleteCancellationPolicy = async (
+  cancellationPolicyId: CancellationPolicyIdSchemaType,
+): Promise<void> => {
+  const { id } = cancellationPolicyId;
+  const deleted = await CancellationPolicy.deleteOne({ _id: id });
+  if (deleted.deletedCount < 1) {
+    throw new Error('Cancellation Policy does not Exist');
+  }
+};

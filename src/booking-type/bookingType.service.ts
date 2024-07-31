@@ -1,5 +1,9 @@
 import { BookingType } from '../models/apartment';
 import { BookingTypesType } from '../types';
+import {
+  BookingTypeCreateOrUpdateSchemaType,
+  BookingTypeIdSchemaType,
+} from './bookingType.schema';
 
 export const seedBookingTypes = async (): Promise<BookingTypesType[]> => {
   await BookingType.deleteMany({});
@@ -34,47 +38,46 @@ export const getBookingType = async (): Promise<BookingTypesType[]> => {
   return cancellationPolicy;
 };
 
-// export const createBookingType = async (
-//   body: BookingTypeCreateOrUpdateSchemaType,
-// ): Promise<BookingTypesType | Error> => {
-//   try {
-//     const newBookingType = await db
-//       .insert(bookingTypes)
-//       .values({ ...body })
-//       .returning()
-//       .execute();
+export const createBookingType = async (
+  body: BookingTypeCreateOrUpdateSchemaType,
+): Promise<BookingTypesType | Error> => {
+  const newBookingType = await BookingType.create({
+    ...body,
+  });
 
-//     return newBookingType[0];
-//   } catch (_) {
-//     return new Error('Error creating booking type');
-//   }
-// };
+  return newBookingType;
+};
 
-// export const updateBookingType = async (
-//   payload: BookingTypeCreateOrUpdateSchemaType,
-//   bookingTypeId: BookingTypeIdSchemaType,
-// ): Promise<BookingTypesType> => {
-//   const { id } = bookingTypeId;
-//   const bookingType = await db.query.bookingTypes.findFirst({
-//     where: eq(bookingTypes.id, id),
-//   });
+export const updateBookingType = async (
+  payload: BookingTypeCreateOrUpdateSchemaType,
+  bookingTypeId: BookingTypeIdSchemaType,
+): Promise<BookingTypesType> => {
+  const { id } = bookingTypeId;
+  const bookingType = await BookingType.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        ...payload,
+      },
+    },
+    {
+      new: true,
+    },
+  );
 
-//   if (!bookingType) {
-//     throw new Error('BookingType not found');
-//   }
+  if (!bookingType) {
+    throw new Error('BookingType not found');
+  }
 
-//   const updatedBookingType = await db
-//     .update(bookingTypes)
-//     .set({ ...payload })
-//     .where(eq(bookingTypes.id, id))
-//     .returning()
-//     .execute();
+  return bookingType;
+};
 
-//   return updatedBookingType[0];
-// };
-
-// export const deleteBookingType = async (
-//   bookingTypeId: number,
-// ): Promise<void> => {
-//   await db.delete(bookingTypes).where(eq(bookingTypes.id, bookingTypeId));
-// };
+export const deleteBookingType = async (
+  bookingTypeId: BookingTypeIdSchemaType,
+): Promise<void> => {
+  const { id } = bookingTypeId;
+  const deleted = await BookingType.deleteOne({ _id: id });
+  if (deleted.deletedCount < 1) {
+    throw new Error('Booking Type does not Exist');
+  }
+};

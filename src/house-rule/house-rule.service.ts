@@ -1,5 +1,9 @@
 import { HouseRule } from '../models/apartment';
 import { HouseRulesType } from '../types';
+import {
+  HouseRuleCreateOrUpdateSchemaType,
+  HouseRuleIdSchemaType,
+} from './house-rule.schema';
 
 export const seedHouseRules = async (): Promise<HouseRulesType[]> => {
   await HouseRule.deleteMany({});
@@ -51,45 +55,43 @@ export const getHouseRule = async (): Promise<HouseRulesType[]> => {
   return houseRule;
 };
 
-// export const createHouseRule = async (
-//   body: HouseRuleCreateOrUpdateSchemaType,
-// ): Promise<HouseRulesType | Error> => {
-//   try {
-//     const newHouseRule = await db
-//       .insert(houseRules)
-//       .values({ ...body })
-//       .returning()
-//       .execute();
+export const createHouseRule = async (
+  body: HouseRuleCreateOrUpdateSchemaType,
+): Promise<HouseRulesType | Error> => {
+  const newHouseRule = await HouseRule.create({ ...body });
+  return newHouseRule;
+};
 
-//     return newHouseRule[0];
-//   } catch (_) {
-//     return new Error('Error creating house rule');
-//   }
-// };
+export const updateHouseRule = async (
+  payload: HouseRuleCreateOrUpdateSchemaType,
+  houseRuleId: HouseRuleIdSchemaType,
+): Promise<HouseRulesType> => {
+  const { id } = houseRuleId;
+  const houseRule = await HouseRule.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        ...payload,
+      },
+    },
+    {
+      new: true,
+    },
+  );
 
-// export const updateHouseRule = async (
-//   payload: HouseRuleCreateOrUpdateSchemaType,
-//   houseRuleId: HouseRuleIdSchemaType,
-// ): Promise<HouseRulesType> => {
-//   const { id } = houseRuleId;
-//   const houseRule = await db.query.houseRules.findFirst({
-//     where: eq(houseRules.id, id),
-//   });
+  if (!houseRule) {
+    throw new Error('HouseRule not found');
+  }
 
-//   if (!houseRule) {
-//     throw new Error('house rule not found');
-//   }
+  return houseRule;
+};
 
-//   const updatedHouseRule = await db
-//     .update(houseRules)
-//     .set({ ...payload })
-//     .where(eq(houseRules.id, id))
-//     .returning()
-//     .execute();
-
-//   return updatedHouseRule[0];
-// };
-
-// export const deleteHouseRule = async (houseRuleId: number): Promise<void> => {
-//   await db.delete(houseRules).where(eq(houseRules.id, houseRuleId));
-// };
+export const deleteHouseRule = async (
+  houseRuleId: HouseRuleIdSchemaType,
+): Promise<void> => {
+  const { id } = houseRuleId;
+  const deleted = await HouseRule.deleteOne({ _id: id });
+  if (deleted.deletedCount < 1) {
+    throw new Error('HouseRule does not Exist');
+  }
+};

@@ -1,8 +1,17 @@
 import { Router } from 'express';
 import {
+  handleCreateFacility,
+  handleDeleteFacility,
   handleGetFacilities,
   handleSeedFacilities,
+  handleUpdateFacility,
 } from './facility.controller';
+import { canAccess } from '../middlewares/can-access.middleware';
+import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
+import {
+  facilityCreateOrUpdateSchema,
+  facilityIdSchema,
+} from './facility.schema';
 
 export const FACILITY_ROUTER_ROOT = '/facility';
 
@@ -16,30 +25,30 @@ facilityRouter.get(
   handleSeedFacilities,
 );
 
-// facilityRouter.post(
-//   '/',
-//   canAccess('roles', ['SUPER_ADMIN']),
-//   validateZodSchema({ body: facilityCreateOrUpdateSchema }),
-//   handleCreateFacility,
-// );
+facilityRouter.post(
+  '/',
+  canAccess('roles', ['SUPER_ADMIN']),
+  validateZodSchema({ body: facilityCreateOrUpdateSchema }),
+  handleCreateFacility,
+);
 
-// facilityRouter.patch(
-//   '/:id',
-//   canAccess('roles', ['SUPER_ADMIN']),
-//   validateZodSchema({
-//     body: facilityCreateOrUpdateSchema,
-//     params: facilityIdSchema,
-//   }),
-//   handleUpdateFacility,
-// );
+facilityRouter.patch(
+  '/:id',
+  canAccess('roles', ['SUPER_ADMIN']),
+  validateZodSchema({
+    body: facilityCreateOrUpdateSchema,
+    params: facilityIdSchema,
+  }),
+  handleUpdateFacility,
+);
 
-// facilityRouter.delete(
-//   '/:id',
-//   canAccess('roles', ['SUPER_ADMIN']),
-//   validateZodSchema({
-//     params: facilityIdSchema,
-//   }),
-//   handleDeleteFacility,
-// );
+facilityRouter.delete(
+  '/:id',
+  canAccess('roles', ['SUPER_ADMIN']),
+  validateZodSchema({
+    params: facilityIdSchema,
+  }),
+  handleDeleteFacility,
+);
 
 export default facilityRouter;

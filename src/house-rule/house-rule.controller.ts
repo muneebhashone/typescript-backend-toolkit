@@ -1,6 +1,16 @@
 import { Request, Response } from 'express';
 import { errorResponse, successResponse } from '../utils/api.utils';
-import { getHouseRule, seedHouseRules } from './house-rule.service';
+import {
+  createHouseRule,
+  deleteHouseRule,
+  getHouseRule,
+  seedHouseRules,
+  updateHouseRule,
+} from './house-rule.service';
+import {
+  HouseRuleCreateOrUpdateSchemaType,
+  HouseRuleIdSchemaType,
+} from './house-rule.schema';
 
 export const handleSeedHouseRules = async (_: Request, res: Response) => {
   try {
@@ -22,47 +32,47 @@ export const handleGetHouseRules = async (_: Request, res: Response) => {
   }
 };
 
-// export const handleCreateHouseRule = async (
-//   req: Request<never, never, HouseRuleCreateOrUpdateSchemaType>,
-//   res: Response,
-// ) => {
-//   try {
-//     const newHouseRule = await createHouseRule(req.body);
+export const handleCreateHouseRule = async (
+  req: Request<never, never, HouseRuleCreateOrUpdateSchemaType>,
+  res: Response,
+) => {
+  try {
+    const newHouseRule = await createHouseRule(req.body);
 
-//     return successResponse(res, 'HouseRule created successfully', newHouseRule);
-//   } catch (err) {
-//     return errorResponse(res, (err as Error).message);
-//   }
-// };
+    return successResponse(res, 'HouseRule created successfully', newHouseRule);
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
 
-// export const handleUpdateHouseRule = async (
-//   req: Request<HouseRuleIdSchemaType, never, HouseRuleCreateOrUpdateSchemaType>,
-//   res: Response,
-// ) => {
-//   try {
-//     const udpatedHouseRule = await updateHouseRule(req.body, {
-//       id: req.params.id,
-//     });
+export const handleUpdateHouseRule = async (
+  req: Request<HouseRuleIdSchemaType, never, HouseRuleCreateOrUpdateSchemaType>,
+  res: Response,
+) => {
+  try {
+    const updatedHouseRule = await updateHouseRule(req.body, {
+      id: req.params.id,
+    });
 
-//     return successResponse(
-//       res,
-//       'HouseRule updated successfully',
-//       udpatedHouseRule,
-//     );
-//   } catch (err) {
-//     return errorResponse(res, (err as Error).message);
-//   }
-// };
+    return successResponse(
+      res,
+      'HouseRule updated successfully',
+      updatedHouseRule,
+    );
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
 
-// export const handleDeleteHouseRule = async (
-//   req: Request<HouseRuleIdSchemaType, never, never>,
-//   res: Response,
-// ) => {
-//   try {
-//     await deleteHouseRule(req.params.id);
+export const handleDeleteHouseRule = async (
+  req: Request<HouseRuleIdSchemaType, never, never>,
+  res: Response,
+) => {
+  try {
+    await deleteHouseRule({ id: req.params.id });
 
-//     return successResponse(res, 'HouseRule deleted successfully');
-//   } catch (err) {
-//     return errorResponse(res, (err as Error).message);
-//   }
-// };
+    return successResponse(res, 'HouseRule deleted successfully');
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};

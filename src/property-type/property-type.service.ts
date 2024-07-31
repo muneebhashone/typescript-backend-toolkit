@@ -1,5 +1,9 @@
 import { PropertyType } from '../models/apartment';
 import { PropertyTypesType } from '../types';
+import {
+  PropertyTypeCreateOrUpdateSchemaType,
+  PropertyTypeIdSchemaType,
+} from './property-type.schema';
 
 export const seedPropertyTypes = async (): Promise<PropertyTypesType[]> => {
   await PropertyType.deleteMany({});
@@ -48,47 +52,43 @@ export const getPropertyType = async (): Promise<PropertyTypesType[]> => {
   return propertyType;
 };
 
-// export const createPropertyType = async (
-//   body: PropertyTypeCreateOrUpdateSchemaType,
-// ): Promise<PropertyTypesType | Error> => {
-//   try {
-//     const newPropertyType = await db
-//       .insert(propertyTypes)
-//       .values({ ...body })
-//       .returning()
-//       .execute();
+export const createPropertyType = async (
+  body: PropertyTypeCreateOrUpdateSchemaType,
+): Promise<PropertyTypesType | Error> => {
+  const newPropertyType = await PropertyType.create({ ...body });
+  return newPropertyType;
+};
 
-//     return newPropertyType[0];
-//   } catch (_) {
-//     return new Error('Error creating property type');
-//   }
-// };
+export const updatePropertyType = async (
+  payload: PropertyTypeCreateOrUpdateSchemaType,
+  propertyTypeId: PropertyTypeIdSchemaType,
+): Promise<PropertyTypesType> => {
+  const { id } = propertyTypeId;
+  const propertyType = await PropertyType.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        ...payload,
+      },
+    },
+    {
+      new: true,
+    },
+  );
 
-// export const updatePropertyType = async (
-//   payload: PropertyTypeCreateOrUpdateSchemaType,
-//   propertyTypeId: PropertyTypeIdSchemaType,
-// ): Promise<PropertyTypesType> => {
-//   const { id } = propertyTypeId;
-//   const propertyType = await db.query.propertyTypes.findFirst({
-//     where: eq(propertyTypes.id, id),
-//   });
+  if (!propertyType) {
+    throw new Error('PropertyType not found');
+  }
 
-//   if (!propertyType) {
-//     throw new Error('Property type not found');
-//   }
+  return propertyType;
+};
 
-//   const updatedPropertyType = await db
-//     .update(propertyTypes)
-//     .set({ ...payload })
-//     .where(eq(propertyTypes.id, id))
-//     .returning()
-//     .execute();
-
-//   return updatedPropertyType[0];
-// };
-
-// export const deletePropertyType = async (
-//   propertyTypeId: number,
-// ): Promise<void> => {
-//   await db.delete(propertyTypes).where(eq(propertyTypes.id, propertyTypeId));
-// };
+export const deletePropertyType = async (
+  propertyTypeId: PropertyTypeIdSchemaType,
+): Promise<void> => {
+  const { id } = propertyTypeId;
+  const deleted = await PropertyType.deleteOne({ _id: id });
+  if (deleted.deletedCount < 1) {
+    throw new Error('PropertyType does not Exist');
+  }
+};
