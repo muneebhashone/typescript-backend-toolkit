@@ -1,8 +1,17 @@
 import { Router } from 'express';
 import {
+  handleCreateBookingType,
+  handleDeleteBookingType,
   handleGetBookingTypes,
   handleSeedBookingTypes,
+  handleUpdateBookingType,
 } from './bookingType.controller';
+import { canAccess } from '../middlewares/can-access.middleware';
+import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
+import {
+  bookingTypeCreateOrUpdateSchema,
+  bookingTypeIdSchema,
+} from './bookingType.schema';
 
 export const BOOKING_TYPE_ROUTER_ROOT = '/booking-type';
 
@@ -16,30 +25,30 @@ bookingTypeRouter.get(
   handleSeedBookingTypes,
 );
 
-// bookingTypeRouter.post(
-//   '/',
-//   canAccess('roles', ['SUPER_ADMIN']),
-//   validateZodSchema({ body: bookingTypeCreateOrUpdateSchema }),
-//   handleCreateBookingType,
-// );
+bookingTypeRouter.post(
+  '/',
+  canAccess('roles', ['SUPER_ADMIN']),
+  validateZodSchema({ body: bookingTypeCreateOrUpdateSchema }),
+  handleCreateBookingType,
+);
 
-// bookingTypeRouter.patch(
-//   '/:id',
-//   canAccess('roles', ['SUPER_ADMIN']),
-//   validateZodSchema({
-//     body: bookingTypeCreateOrUpdateSchema,
-//     params: bookingTypeIdSchema,
-//   }),
-//   handleUpdateBookingType,
-// );
+bookingTypeRouter.patch(
+  '/:id',
+  canAccess('roles', ['SUPER_ADMIN']),
+  validateZodSchema({
+    body: bookingTypeCreateOrUpdateSchema,
+    params: bookingTypeIdSchema,
+  }),
+  handleUpdateBookingType,
+);
 
-// bookingTypeRouter.delete(
-//   '/:id',
-//   canAccess('roles', ['SUPER_ADMIN']),
-//   validateZodSchema({
-//     params: bookingTypeIdSchema,
-//   }),
-//   handleDeleteBookingType,
-// );
+bookingTypeRouter.delete(
+  '/:id',
+  canAccess('roles', ['SUPER_ADMIN']),
+  validateZodSchema({
+    params: bookingTypeIdSchema,
+  }),
+  handleDeleteBookingType,
+);
 
 export default bookingTypeRouter;

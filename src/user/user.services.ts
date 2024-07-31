@@ -49,6 +49,7 @@ export const getUserById = async (
   userId: number,
   role: RoleType = 'DEFAULT_USER',
 ): Promise<InferSelectModel<typeof users>> => {
+  console.log({ userId, role });
   const user = await db.query.users.findFirst({
     where: eq(users.id, userId),
     ...(role === 'VENDOR' ? { with: { business: true } } : {}),
@@ -355,7 +356,7 @@ export const seedUsers = async (): Promise<SeedUsersReturn> => {
     lastName: 'Super Admin',
     password: password,
     isActive: true,
-    role: 'VENDOR',
+    role: 'SUPER_ADMIN',
     phoneNo: '123456789',
     dob: '1999-01-01',
   });

@@ -1,5 +1,9 @@
 import { TypeOfPlace } from '../models/apartment';
 import { TypesOfPlaceType } from '../types';
+import {
+  TypeOfPlaceCreateOrUpdateSchemaType,
+  TypeOfPlaceIdSchemaType,
+} from './type-of-place.schema';
 
 export const seedTypesOfPlace = async (): Promise<TypesOfPlaceType[]> => {
   await TypeOfPlace.deleteMany({});
@@ -48,47 +52,43 @@ export const getTypeOfPlace = async (): Promise<TypesOfPlaceType[]> => {
   return typeOfPlace;
 };
 
-// export const createTypeOfPlace = async (
-//   body: TypeOfPlaceCreateOrUpdateSchemaType,
-// ): Promise<TypesOfPlaceType | Error> => {
-//   try {
-//     const newTypeOfPlace = await db
-//       .insert(typeOfPlace)
-//       .values({ ...body })
-//       .returning()
-//       .execute();
+export const createTypeOfPlace = async (
+  body: TypeOfPlaceCreateOrUpdateSchemaType,
+): Promise<TypesOfPlaceType | Error> => {
+  const newTypeOfPlace = await TypeOfPlace.create({ ...body });
+  return newTypeOfPlace;
+};
 
-//     return newTypeOfPlace[0];
-//   } catch (_) {
-//     return new Error('Error creating type of place');
-//   }
-// };
+export const updateTypeOfPlace = async (
+  payload: TypeOfPlaceCreateOrUpdateSchemaType,
+  typeOfPlaceId: TypeOfPlaceIdSchemaType,
+): Promise<TypesOfPlaceType> => {
+  const { id } = typeOfPlaceId;
+  const typeOfPlace = await TypeOfPlace.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        ...payload,
+      },
+    },
+    {
+      new: true,
+    },
+  );
 
-// export const updateTypeOfPlace = async (
-//   payload: TypeOfPlaceCreateOrUpdateSchemaType,
-//   typeOfPlaceId: TypeOfPlaceIdSchemaType,
-// ): Promise<TypesOfPlaceType> => {
-//   const { id } = typeOfPlaceId;
-//   const typeOfPlaceData = await db.query.typeOfPlace.findFirst({
-//     where: eq(typeOfPlace.id, id),
-//   });
+  if (!typeOfPlace) {
+    throw new Error('TypeOfPlace not found');
+  }
 
-//   if (!typeOfPlaceData) {
-//     throw new Error('Type of place not found');
-//   }
+  return typeOfPlace;
+};
 
-//   const updatedTypeOfPlace = await db
-//     .update(typeOfPlace)
-//     .set({ ...payload })
-//     .where(eq(typeOfPlace.id, id))
-//     .returning()
-//     .execute();
-
-//   return updatedTypeOfPlace[0];
-// };
-
-// export const deleteTypeOfPlace = async (
-//   typeOfPlaceId: number,
-// ): Promise<void> => {
-//   await db.delete(typeOfPlace).where(eq(typeOfPlace.id, typeOfPlaceId));
-// };
+export const deleteTypeOfPlace = async (
+  typeOfPlaceId: TypeOfPlaceIdSchemaType,
+): Promise<void> => {
+  const { id } = typeOfPlaceId;
+  const deleted = await TypeOfPlace.deleteOne({ _id: id });
+  if (deleted.deletedCount < 1) {
+    throw new Error('TypeOfPlace does not Exist');
+  }
+};

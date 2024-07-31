@@ -5,6 +5,7 @@ import { ApartmentType } from '../types';
 import { JwtPayload } from '../utils/auth.utils';
 import {
   ApartmentCreateOrUpdateSchemaType,
+  ApartmentIdSchemaType,
   ApartmentListQueryParamsType,
 } from './apartment.schema';
 import { businesses, users } from '../drizzle/schema';
@@ -19,40 +20,10 @@ export const getApartments = async (
     'facilities',
     'houseRules',
     'discounts',
+    'bookingType',
   ]);
 
-  const fetchUsersPromise = db.query.users.findMany({
-    where: inArray(
-      users.id,
-      Array.from(new Set(results.map((result) => Number(result.userId)))),
-    ),
-  });
-
-  const fetchBusinessesPromise = db.query.businesses.findMany({
-    where: inArray(
-      businesses.id,
-      Array.from(new Set(results.map((result) => Number(result.businessId)))),
-    ),
-  });
-
-  const [fetchUsers, fetchBusinesses] = await Promise.all([
-    fetchUsersPromise,
-    fetchBusinessesPromise,
-  ]);
-
-  const mappedResults = results.map((result) => {
-    return {
-      ...result.toObject(),
-      user: fetchUsers.find(
-        (user) => Number(user.id) === Number(result.userId),
-      ),
-      business: fetchBusinesses.find(
-        (business) => Number(business.id) === Number(result.businessId),
-      ),
-    };
-  });
-
-  return mappedResults;
+  return results;
 };
 
 export const createApartment = async (
@@ -65,4 +36,45 @@ export const createApartment = async (
   });
 
   return apartment;
+};
+
+export const updateApartment = async (
+  apartmentId: ApartmentIdSchemaType,
+  body: ApartmentCreateOrUpdateSchemaType,
+): Promise<ApartmentType | Error> => {
+  const { id } = apartmentId;
+  const apartment = await Apartment.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        ...body,
+      },
+    },
+    {
+      new: true,
+    },
+  );
+
+  if (!apartment) {
+    throw new Error('Apartment does not exist');
+  }
+
+  return apartment;
+};
+
+export const deleteApartment = async (
+  apartmentId: ApartmentIdSchemaType,
+): Promise<void | Error> => {
+  const { id } = apartmentId;
+  const deleted = await Apartment.deleteOne({
+    _id: id,
+  });
+
+  if (deleted.deletedCount < 1) {
+    throw new Error('Apartment does not Exist');
+  }
+};
+
+export const deleteApartments = async (): Promise<void> => {
+  await Apartment.deleteMany({});
 };

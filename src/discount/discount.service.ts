@@ -1,5 +1,9 @@
 import { Discount } from '../models/apartment';
 import { DiscountsType } from '../types';
+import {
+  DiscountCreateOrUpdateSchemaType,
+  DiscountIdSchemaType,
+} from './discount.schema';
 
 export const seedDiscounts = async (): Promise<DiscountsType[]> => {
   await Discount.deleteMany({});
@@ -28,45 +32,44 @@ export const getDiscount = async (): Promise<DiscountsType[]> => {
   return cancellationPolicy;
 };
 
-// export const createDiscount = async (
-//   body: DiscountCreateOrUpdateSchemaType,
-// ): Promise<DiscountsType | Error> => {
-//   try {
-//     const newDiscount = await db
-//       .insert(discounts)
-//       .values({ ...body })
-//       .returning()
-//       .execute();
+export const createDiscount = async (
+  body: DiscountCreateOrUpdateSchemaType,
+): Promise<DiscountsType | Error> => {
+  const newDiscount = await Discount.create({ ...body });
 
-//     return newDiscount[0];
-//   } catch (_) {
-//     return new Error('Error creating discount');
-//   }
-// };
+  return newDiscount;
+};
 
-// export const updateDiscount = async (
-//   payload: DiscountCreateOrUpdateSchemaType,
-//   discountId: DiscountIdSchemaType,
-// ): Promise<DiscountsType> => {
-//   const { id } = discountId;
-//   const discount = await db.query.discounts.findFirst({
-//     where: eq(discounts.id, id),
-//   });
+export const updateDiscount = async (
+  payload: DiscountCreateOrUpdateSchemaType,
+  discountId: DiscountIdSchemaType,
+): Promise<DiscountsType> => {
+  const { id } = discountId;
+  const discount = await Discount.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        ...payload,
+      },
+    },
+    {
+      new: true,
+    },
+  );
 
-//   if (!discount) {
-//     throw new Error('Discount not found');
-//   }
+  if (!discount) {
+    throw new Error('Discount not found');
+  }
 
-//   const updatedDiscount = await db
-//     .update(discounts)
-//     .set({ ...payload })
-//     .where(eq(discounts.id, id))
-//     .returning()
-//     .execute();
+  return discount;
+};
 
-//   return updatedDiscount[0];
-// };
-
-// export const deleteDiscount = async (discountId: number): Promise<void> => {
-//   await db.delete(discounts).where(eq(discounts.id, discountId));
-// };
+export const deleteDiscount = async (
+  discountId: DiscountIdSchemaType,
+): Promise<void> => {
+  const { id } = discountId;
+  const deleted = await Discount.deleteOne({ _id: id });
+  if (deleted.deletedCount < 1) {
+    throw new Error('Discount does not Exist');
+  }
+};
