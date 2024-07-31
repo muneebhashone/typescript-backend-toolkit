@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   handleCreateFacility,
+  handleDeleteAllFacilities,
   handleDeleteFacility,
   handleGetFacilities,
   handleSeedFacilities,
@@ -30,6 +31,12 @@ facilityRouter.post(
   canAccess('roles', ['SUPER_ADMIN']),
   validateZodSchema({ body: facilityCreateOrUpdateSchema }),
   handleCreateFacility,
+);
+
+facilityRouter.delete(
+  '/',
+  canAccess('roles', ['SUPER_ADMIN']),
+  handleDeleteAllFacilities,
 );
 
 facilityRouter.patch(
