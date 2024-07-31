@@ -7,6 +7,12 @@ import { JwtPayload } from '../../utils/auth.utils';
 import { ICarBooking } from '../car-booking-types';
 import { convertDistance, getDistance } from 'geolib';
 import { Car } from '../car.model';
+import {
+  BODYGUARD_PRICE,
+  CHAUFFEUR_PRICE,
+  TAX_PERCENTAGE,
+} from '../car.constants';
+import { CarSubCategoryUnion } from '../car-types';
 
 export const getCarBookings = async (): Promise<ICarBooking[]> => {
   const results = await CarBooking.find({});
@@ -47,11 +53,38 @@ export const createCarBooking = async (
     throw new Error('Car not found');
   }
 
+  let total = car.perDayPrice;
+  let discountAmount = 0;
+
+  if (body.discount) {
+    discountAmount = total * (body.discount / 100) - total;
+    total = total * (body.discount / 100);
+  }
+
+  if (body.bodyguards > 0) {
+    total += BODYGUARD_PRICE * body.bodyguards;
+  }
+
+  if (
+    (['chauffeur', 'chauffeur_bodyguard'] as CarSubCategoryUnion[]).includes(
+      car.subCategory,
+    )
+  ) {
+    total += CHAUFFEUR_PRICE;
+  }
+
+  const taxAmount = total * (TAX_PERCENTAGE + 1) - total;
+
+  total = total * (TAX_PERCENTAGE + 1);
+
   const carBooking = await CarBooking.create({
     ...body,
     userId: user.sub,
     totalMiles: totalMiles,
     amount: car.perDayPrice,
+    total: total,
+    tax: taxAmount,
+    discount: discountAmount,
   });
 
   return carBooking;
