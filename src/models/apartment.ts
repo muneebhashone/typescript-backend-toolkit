@@ -20,7 +20,8 @@ export interface IApartment {
   petHosting: mongoose.Types.Decimal128;
   totalRating?: number;
   ratingCount?: number;
-  areaInSqft: number;
+  propertySize: number;
+  propertySizeUnit: string;
   bookingType: mongoose.Types.ObjectId;
   businessId?: number;
   userId?: number;
@@ -157,7 +158,8 @@ const ApartmentSchema = new Schema<IApartment>(
     petHosting: { type: Schema.Types.Decimal128, required: true },
     totalRating: { type: Number, default: 0 },
     ratingCount: { type: Number, default: 0 },
-    areaInSqft: { type: Number, required: true },
+    propertySize: { type: Number, required: true },
+    propertySizeUnit: { type: String, required: true },
     bookingType: {
       type: Schema.Types.ObjectId,
       ref: 'BookingType',
