@@ -11,6 +11,8 @@ export interface IApartment {
   zipCode: string;
   country: string;
   photos: string[];
+  checkIn: string;
+  checkOut: string;
   propertyPrice: mongoose.Types.Decimal128;
   numberOfRooms: number;
   numberOfBathrooms: number;
@@ -20,7 +22,8 @@ export interface IApartment {
   petHosting: mongoose.Types.Decimal128;
   totalRating?: number;
   ratingCount?: number;
-  areaInSqft: number;
+  propertySize: number;
+  propertySizeUnit: string;
   bookingType: mongoose.Types.ObjectId;
   businessId?: number;
   userId?: number;
@@ -148,6 +151,8 @@ const ApartmentSchema = new Schema<IApartment>(
     state: { type: String, required: true },
     zipCode: { type: String, required: true },
     country: { type: String, required: true },
+    checkIn: { type: String, required: true },
+    checkOut: { type: String, required: true },
     propertyPrice: { type: Schema.Types.Decimal128, required: true },
     numberOfRooms: { type: Number, required: true },
     numberOfBathrooms: { type: Number, required: true },
@@ -157,7 +162,8 @@ const ApartmentSchema = new Schema<IApartment>(
     petHosting: { type: Schema.Types.Decimal128, required: true },
     totalRating: { type: Number, default: 0 },
     ratingCount: { type: Number, default: 0 },
-    areaInSqft: { type: Number, required: true },
+    propertySize: { type: Number, required: true },
+    propertySizeUnit: { type: String, required: true },
     bookingType: {
       type: Schema.Types.ObjectId,
       ref: 'BookingType',

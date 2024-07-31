@@ -49,7 +49,6 @@ export const getUserById = async (
   userId: number,
   role: RoleType = 'DEFAULT_USER',
 ): Promise<InferSelectModel<typeof users>> => {
-  console.log({ userId, role });
   const user = await db.query.users.findFirst({
     where: eq(users.id, userId),
     ...(role === 'VENDOR' ? { with: { business: true } } : {}),
