@@ -4,12 +4,15 @@ import {
   ApartmentBookingCreateOrUpdateSchemaType,
   ApartmentBookingIdSchemaType,
   ConfirmApartmentBookingSchema,
+  MyApartmentBookingsSchema,
 } from './apartment-booking.schema';
 import {
   createApartmentBooking,
   deleteApartmentBooking,
   getApartmentBooking,
   getApartmentBookingSummary,
+  getMyApartmentBooking,
+  refundApartmentBooking,
 } from './apartment-booking.service';
 
 export const handleGetApartmentBookings = async (_: Request, res: Response) => {
@@ -64,6 +67,32 @@ export const handleGetApartmentBookingSummary = async (
       'Apartment Booking created successfully',
       newApartmentBooking,
     );
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleGetMyApartmentBookings = async (
+  req: Request<never, never, MyApartmentBookingsSchema>,
+  res: Response,
+) => {
+  try {
+    const myBookings = await getMyApartmentBooking(req.query, req.user);
+
+    return successResponse(res, undefined, myBookings);
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleRefundApartmentBooking = async (
+  req: Request<ApartmentBookingIdSchemaType, never, never>,
+  res: Response,
+) => {
+  try {
+    await refundApartmentBooking({ id: req.params.id });
+
+    return successResponse(res, 'ApartmentBooking refund successfully');
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

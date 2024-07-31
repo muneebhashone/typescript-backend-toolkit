@@ -1,5 +1,6 @@
 import validator from 'validator';
 import z from 'zod';
+import { BookingStatus } from '../../types';
 
 export const apartmentBookingIdSchema = z.object({
   id: z
@@ -39,7 +40,9 @@ export const confirmApartmentBookingSchema = z
   .merge(apartmentBookingIdSchema);
 
 export const myBookingsSchema = z.object({
-  type: z.string(),
+  status: z
+    .enum(Object.keys(BookingStatus) as [keyof typeof BookingStatus])
+    .optional(),
 });
 
 export type ApartmentBookingIdSchemaType = z.infer<
@@ -51,3 +54,4 @@ export type ApartmentBookingCreateOrUpdateSchemaType = z.infer<
 export type ConfirmApartmentBookingSchema = z.infer<
   typeof confirmApartmentBookingSchema
 >;
+export type MyApartmentBookingsSchema = z.infer<typeof myBookingsSchema>;
