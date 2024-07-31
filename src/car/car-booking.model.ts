@@ -103,6 +103,10 @@ const CarBookingSchema = new mongoose.Schema<ICarBooking>(
       type: Number,
       required: true,
     },
+    confirmed: {
+      type: Boolean,
+      default: false,
+    },
     total: {
       type: Number,
       required: true,

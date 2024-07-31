@@ -3,15 +3,15 @@ import z from 'zod';
 import { CarBookingTypes } from '../car-booking-types';
 
 // Define the Zod schema for GeoJSONPoint
-export const GeoJSONPointSchema = z.object({
+export const geoJSONPointSchema = z.object({
   type: z.literal('Point'),
   coordinates: z.tuple([z.number(), z.number()]),
 });
 
 // Define the Zod schema for CarBooking
-export const CarBookingSchema = z.object({
-  from: GeoJSONPointSchema,
-  to: GeoJSONPointSchema,
+export const carBookingSchema = z.object({
+  from: geoJSONPointSchema,
+  to: geoJSONPointSchema,
   pickupAddress: z.string().max(255),
   destination: z.string().max(255),
   pickupDate: z.string().date(),
@@ -37,6 +37,6 @@ export const carBookingIdSchema = z.object({
 });
 
 // Export types for usage
-export type GeoJSONPointSchemaType = z.infer<typeof GeoJSONPointSchema>;
-export type CarBookingSchemaType = z.infer<typeof CarBookingSchema>;
+export type GeoJSONPointSchemaType = z.infer<typeof geoJSONPointSchema>;
+export type CarBookingSchemaType = z.infer<typeof carBookingSchema>;
 export type CarBookingIdSchemaType = z.infer<typeof carBookingIdSchema>;

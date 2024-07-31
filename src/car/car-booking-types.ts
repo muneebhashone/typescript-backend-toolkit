@@ -34,6 +34,7 @@ export interface ICarBooking {
   tax: number;
   amount: number;
   total: number;
+  confirmed: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
