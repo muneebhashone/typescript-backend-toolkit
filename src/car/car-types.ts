@@ -7,6 +7,7 @@ export const TypesOfVehicle = {
 
 export const CarSubCategory = {
   chauffeur: 'chauffeur',
+  chauffeur_bodyguard: 'chauffeur_bodyguard',
   self_drive: 'self_drive',
 } as const;
 
@@ -103,8 +104,7 @@ export interface ICarLocation {
   postalCode: string;
 }
 
-export interface ICarService {
-  type: CarSubCategoryUnion;
+export interface ICarChauffeur {
   name: string;
   phoneNumber: string;
   perDayPrice: number;
@@ -122,7 +122,8 @@ export interface ICar {
   perDayPrice: number;
   description: string;
   location: ICarLocation;
-  service: ICarService;
+  chauffeurDetails: ICarChauffeur;
+  subCategory: CarSubCategoryUnion;
   facilities: CarFacilitiesUnion[];
   coverPhoto: string;
   photos: string;
