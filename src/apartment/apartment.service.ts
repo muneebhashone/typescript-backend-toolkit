@@ -26,6 +26,27 @@ export const getApartments = async (
   return results;
 };
 
+export const getApartment = async (
+  apartmentId: ApartmentIdSchemaType,
+): Promise<ApartmentType> => {
+  const { id } = apartmentId;
+  const result = await Apartment.findOne({ _id: id }).populate([
+    'propertyType',
+    'typeOfPlace',
+    'cancellationPolicies',
+    'facilities',
+    'houseRules',
+    'discounts',
+    'bookingType',
+  ]);
+
+  if (!result) {
+    throw new Error('Apartment not found');
+  }
+
+  return result;
+};
+
 export const createApartment = async (
   body: ApartmentCreateOrUpdateSchemaType,
   user: JwtPayload,
