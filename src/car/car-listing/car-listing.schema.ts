@@ -53,8 +53,10 @@ export const carCreateSchema = z.object({
     street: z.string().max(255),
     postalCode: z.string().max(20),
   }),
-  service: z.object({
-    type: z.enum(Object.keys(CarSubCategory) as [keyof typeof CarSubCategory]),
+  subCategory: z.enum(
+    Object.keys(CarSubCategory) as [keyof typeof CarSubCategory],
+  ),
+  chauffeurDetails: z.object({
     name: z.string().max(255),
     phoneNumber: z
       .string()

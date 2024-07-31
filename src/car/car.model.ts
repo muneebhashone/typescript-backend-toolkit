@@ -13,7 +13,7 @@ import {
   CarFacilitiesUnion,
   CarSubCategoryUnion,
   ICarLocation,
-  ICarService,
+  ICarChauffeur,
   ICar,
 } from '../car/car-types';
 
@@ -27,12 +27,7 @@ const CarLocationSchema = new mongoose.Schema<ICarLocation>({
 });
 
 // Schema for CarService
-const CarServiceSchema = new mongoose.Schema<ICarService>({
-  type: {
-    type: String,
-    enum: Object.keys(CarSubCategory) as CarSubCategoryUnion[],
-    required: true,
-  },
+const CarChauffeurSchema = new mongoose.Schema<ICarChauffeur>({
   name: { type: String, required: true },
   phoneNumber: { type: String, required: true },
   perDayPrice: { type: Number, required: true },
@@ -58,10 +53,15 @@ const CarSchema = new mongoose.Schema<ICar>(
       enum: Object.keys(CarTransmissions) as CarTransmissionsUnion[],
       required: true,
     },
+    subCategory: {
+      type: String,
+      enum: Object.keys(CarSubCategory) as CarSubCategoryUnion[],
+      required: true,
+    },
     perDayPrice: { type: Number, required: true },
     description: { type: String, required: true },
     location: { type: CarLocationSchema, required: true },
-    service: { type: CarServiceSchema, required: true },
+    chauffeurDetails: { type: CarChauffeurSchema, required: true },
     facilities: [
       {
         type: String,
@@ -91,6 +91,12 @@ const CarSchema = new mongoose.Schema<ICar>(
 );
 
 // Create and export Mongoose models
-export const CarLocation = mongoose.model('CarLocation', CarLocationSchema);
-export const CarService = mongoose.model('CarService', CarServiceSchema);
-export const Car = mongoose.model('Car', CarSchema);
+export const CarLocation = mongoose.model<ICarLocation>(
+  'CarLocation',
+  CarLocationSchema,
+);
+export const CarChauffeur = mongoose.model<ICarChauffeur>(
+  'CarChauffeur',
+  CarChauffeurSchema,
+);
+export const Car = mongoose.model<ICar>('Car', CarSchema);

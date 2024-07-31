@@ -34,5 +34,8 @@ const ReviewSchema = new mongoose.Schema<IReview>(
 );
 
 // Create and export Mongoose models
-export const ReviewType = mongoose.model('ReviewType', ReviewTypeSchema);
-export const Review = mongoose.model('Review', ReviewSchema);
+export const ReviewType = mongoose.model<IReviewType>(
+  'ReviewType',
+  ReviewTypeSchema,
+);
+export const Review = mongoose.model<IReview>('Review', ReviewSchema);
