@@ -5,6 +5,7 @@ import {
   handleCreateApartment,
   handleDeleteApartment,
   handleDeleteApartments,
+  handleGetApartment,
   handleGetApartments,
   handleUpdateApartment,
 } from './apartment.controller';
@@ -36,6 +37,8 @@ apartmentRouter.delete(
   canAccess('roles', ['VENDOR', 'SUPER_ADMIN']),
   handleDeleteApartments,
 );
+
+apartmentRouter.get('/:id', handleGetApartment);
 
 apartmentRouter.patch(
   '/:id',

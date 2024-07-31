@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { errorResponse, successResponse } from '../utils/api.utils';
 import {
   createFacility,
+  deleteAllFacilities,
   deleteFacility,
   getFacility,
   seedFacilities,
@@ -70,6 +71,19 @@ export const handleDeleteFacility = async (
 ) => {
   try {
     await deleteFacility({ id: req.params.id });
+
+    return successResponse(res, 'Facility deleted successfully');
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleDeleteAllFacilities = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    await deleteAllFacilities();
 
     return successResponse(res, 'Facility deleted successfully');
   } catch (err) {

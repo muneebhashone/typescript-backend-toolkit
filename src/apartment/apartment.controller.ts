@@ -4,6 +4,7 @@ import {
   createApartment,
   deleteApartment,
   deleteApartments,
+  getApartment,
   getApartments,
   updateApartment,
 } from './apartment.service';
@@ -54,6 +55,16 @@ export const handleUpdateApartment = async (
         updatedApartment,
       );
     }
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleGetApartment = async (req: Request, res: Response) => {
+  try {
+    const result = await getApartment({id: req.params.id});
+
+    return successResponse(res, undefined, result);
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }
