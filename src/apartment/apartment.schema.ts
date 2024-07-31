@@ -22,7 +22,7 @@ export const apartmentListQueryParamsSchema = z
 export const apartmentCreateOrUpdateSchema = z.object({
   name: z.string().max(255),
   coverPhotoUrl: z.string().nullable().optional(),
-  video_url: z.string().nullable().optional(),
+  videoUrl: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   address: z.string().max(255),
   city: z.string().max(100),
@@ -36,7 +36,8 @@ export const apartmentCreateOrUpdateSchema = z.object({
   numberOfPets: z.number().int().nonnegative(),
   numberOfPersonsAllowed: z.number().int().nonnegative(),
   petHosting: z.number().nonnegative().transform(String),
-  areaInSqft: z.number().int().nonnegative(),
+  propertySize: z.number().int().nonnegative(),
+  propertySizeUnit: z.string().max(100),
   bookingType: z.string().min(1),
   businessId: z.number().int().nonnegative(),
   propertyType: z.string().min(1),
