@@ -14,13 +14,27 @@ export const carIdSchema = z.object({
   id: z
     .string({ required_error: 'ID is required' })
     .min(1)
-    .refine((value) => validator.isAlphanumeric(value), 'ID must be valid'),
+    .refine((value) => validator.isMongoId(value), 'ID must be valid'),
 });
 
 export const carListQueryParamsSchema = z
   .object({
     minPrice: z.string().transform(Number).optional(),
     maxPrice: z.string().transform(Number).optional(),
+    numberOfSeats: z.string().transform(Number).optional(),
+    make: z.string().min(1).optional(),
+    model: z.string().min(4).optional(),
+    rating: z
+      .string()
+      .transform(Number)
+      .refine(
+        (value) => value < 0 && value > 5,
+        'Rating must be between 0 and 5',
+      )
+      .optional(),
+    subCategory: z
+      .enum(Object.keys(CarSubCategory) as [keyof typeof CarSubCategory])
+      .optional(),
     transmission: z
       .enum(Object.keys(CarTransmissions) as [keyof typeof CarTransmissions])
       .optional(),

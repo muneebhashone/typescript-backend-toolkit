@@ -1,19 +1,80 @@
-import { Car } from '../car.model';
+import { FilterQuery } from 'mongoose';
 import { CarType } from '../../types';
 import { JwtPayload } from '../../utils/auth.utils';
+import { getPaginator, GetPaginatorReturnType } from '../../utils/getPaginator';
+import { ICar } from '../car-types';
+import { Car } from '../car.model';
 import {
   CarCreateSchemaType,
-  CarUpdateSchemaType,
   CarIdSchemaType,
   CarListQueryParamsType,
+  CarUpdateSchemaType,
 } from './car-listing.schema';
 
-export const getCars = async (
-  _: CarListQueryParamsType,
-): Promise<CarType[]> => {
-  const results = await Car.find({});
+export interface IGetCars {
+  results: CarType[];
+  paginator: GetPaginatorReturnType;
+}
 
-  return results;
+export const getCars = async (
+  query: CarListQueryParamsType,
+): Promise<IGetCars> => {
+  const filterQuery: FilterQuery<ICar> = { $or: [], $and: [] };
+
+  if (query.search) {
+    filterQuery.$or?.push({ name: { $regex: query.search, $options: 'i' } });
+    filterQuery.$or?.push({ brand: { $regex: query.search, $options: 'i' } });
+    filterQuery.$or?.push({ model: { $regex: query.search, $options: 'i' } });
+  }
+
+  if (query.maxPrice) {
+    filterQuery.$and?.push({ perDayPrice: { $lte: query.maxPrice } });
+  }
+
+  if (query.minPrice) {
+    filterQuery.$and?.push({ perDayPrice: { $gte: query.minPrice } });
+  }
+
+  if (query.numberOfSeats) {
+    filterQuery.$and?.push({ noOfSeats: query.numberOfSeats });
+  }
+
+  if (query.make) {
+    filterQuery.$and?.push({ make: query.make });
+  }
+
+  if (query.model) {
+    filterQuery.$and?.push({ model: query.model });
+  }
+
+  if (query.transmission) {
+    filterQuery.$and?.push({ transmission: query.transmission });
+  }
+
+  if (query.subCategory) {
+    filterQuery.$and?.push({ subCategory: query.subCategory });
+  }
+
+  if (query.typeOfVehicle) {
+    filterQuery.$and?.push({ typeOfVehicle: query.typeOfVehicle });
+  }
+
+  if (query.rating) {
+    filterQuery.$and?.push({ rating: { $lte: query.rating } });
+  }
+
+  const total = await Car.countDocuments(filterQuery);
+
+  const paginator = getPaginator(query.limit ?? 10, query.page ?? 1, total);
+
+  const results = await Car.find(filterQuery)
+    .skip(paginator.skip)
+    .limit(paginator.limit);
+
+  return {
+    results: results,
+    paginator: paginator,
+  };
 };
 
 export const getCar = async (carId: CarIdSchemaType): Promise<CarType> => {
