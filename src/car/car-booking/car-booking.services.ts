@@ -19,6 +19,13 @@ export const getCarBookings = async (): Promise<ICarBooking[]> => {
   return results;
 };
 
+export const getMyCarBookings = async (
+  userId: string,
+): Promise<ICarBooking[]> => {
+  const results = await CarBooking.find({ userId: userId });
+  return results;
+};
+
 export const getCarBooking = async (
   carBookingId: CarBookingIdSchemaType,
 ): Promise<ICarBooking> => {
