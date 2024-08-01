@@ -1,3 +1,5 @@
+import mongoose from 'mongoose';
+
 export const TypesOfVehicle = {
   car: 'car',
   suv: 'suv',
@@ -128,7 +130,7 @@ export interface ICar {
   coverPhoto: string;
   photos: string;
   video?: string;
-  userId: string;
+  userId: mongoose.Types.ObjectId;
   discounts?: CarDiscountsUnion[];
   cancellationPolicies?: CarCancellationPoliciesUnion[];
   createdAt: Date;
