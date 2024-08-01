@@ -6,15 +6,27 @@ import {
   createCarBooking,
   deleteCarBooking,
   deleteCarBookings,
+  getMyCarBookings,
 } from './car-booking.services';
 import {
   CarBookingSchemaType,
   CarBookingIdSchemaType,
 } from './car-booking.schema';
+import { JwtPayload } from '../../utils/auth.utils';
 
 export const handleGetCarBookings = async (_: Request, res: Response) => {
   try {
     const results = await getCarBookings();
+    return successResponse(res, undefined, results);
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleMyGetCarBookings = async (req: Request, res: Response) => {
+  try {
+    const currentUser = req.user as JwtPayload;
+    const results = await getMyCarBookings(currentUser.sub);
     return successResponse(res, undefined, results);
   } catch (err) {
     return errorResponse(res, (err as Error).message);
