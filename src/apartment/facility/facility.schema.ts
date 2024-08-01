@@ -5,7 +5,7 @@ export const facilityIdSchema = z.object({
   id: z
     .string({ required_error: 'ID is required' })
     .min(1)
-    .refine((value) => validator.isAlphanumeric(value), 'ID must be valid'),
+    .refine((value) => validator.isMongoId(value), 'ID must be valid'),
 });
 
 export const facilityCreateOrUpdateSchema = z.object({
