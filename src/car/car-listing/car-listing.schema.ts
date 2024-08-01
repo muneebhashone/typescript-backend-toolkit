@@ -17,6 +17,10 @@ export const carIdSchema = z.object({
     .refine((value) => validator.isMongoId(value), 'ID must be valid'),
 });
 
+export const carMakeSchema = z.object({
+  make: z.string({ required_error: 'Make is required' }).min(1),
+});
+
 export const carListQueryParamsSchema = z
   .object({
     minPrice: z.string().transform(Number).optional(),
@@ -107,6 +111,7 @@ export const carUpdateSchema = carCreateSchema
   .partial();
 
 export type CarIdSchemaType = z.infer<typeof carIdSchema>;
+export type CarMakeSchemaType = z.infer<typeof carMakeSchema>;
 export type CarCreateSchemaType = z.infer<typeof carCreateSchema>;
 export type CarUpdateSchemaType = z.infer<typeof carUpdateSchema>;
 export type CarListQueryParamsType = z.infer<typeof carListQueryParamsSchema>;

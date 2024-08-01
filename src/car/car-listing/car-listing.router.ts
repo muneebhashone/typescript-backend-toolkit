@@ -6,6 +6,8 @@ import {
   handleDeleteCar,
   handleDeleteCars,
   handleGetCar,
+  handleGetCarMakes,
+  handleGetCarModelsByMake,
   handleGetCars,
   handleUpdateCar,
 } from './car-listing.controller';
@@ -14,11 +16,19 @@ import {
   carUpdateSchema,
   carIdSchema,
   carListQueryParamsSchema,
+  carMakeSchema,
 } from './car-listing.schema';
 
 export const CAR_ROUTER_ROOT = '/car';
 
 const carRouter = Router();
+
+carRouter.get('/makes', handleGetCarMakes);
+carRouter.get(
+  '/:make/models',
+  validateZodSchema({ params: carMakeSchema }),
+  handleGetCarModelsByMake,
+);
 
 carRouter.get(
   '/',
