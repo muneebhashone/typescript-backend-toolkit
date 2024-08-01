@@ -45,6 +45,21 @@ export const sanitizeRecord = <T extends Record<any, any>>(record: T): T => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const checkRecordForEmptyArrays = <T extends Record<any, any>>(
+  record: T,
+): T => {
+  try {
+    return Object.fromEntries(
+      Object.entries(record).filter(
+        ([_, value]) => Array.isArray(value) && !!value.length,
+      ),
+    ) as T;
+  } catch {
+    return record;
+  }
+};
+
 export const generateRandomNumbers = (length: number): string => {
   let id = '';
 

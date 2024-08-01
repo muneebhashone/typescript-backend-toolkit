@@ -1,20 +1,19 @@
+import { StatusCodes } from 'http-status-codes';
 import { ReturnMessageSchemaType } from '../../lib/common.schema';
-import { Apartment, Discount, IApartment } from '../apartment.model';
-import { ApartmentBooking } from './apartment-booking.model';
 import {
   ApartmentBookingsSummaryType,
   ApartmentBookingsType,
-  ApartmentType,
 } from '../../types';
 import { getApartmentBookingPaymentDetails } from '../../utils/apartment.utils';
+import { JwtPayload } from '../../utils/auth.utils';
+import { Apartment, Discount } from '../apartment.model';
+import { ApartmentBooking } from './apartment-booking.model';
 import {
   ApartmentBookingCreateOrUpdateSchemaType,
   ApartmentBookingIdSchemaType,
   ConfirmApartmentBookingSchema,
   MyApartmentBookingsSchema,
 } from './apartment-booking.schema';
-import { JwtPayload } from '../../utils/auth.utils';
-import { StatusCodes } from 'http-status-codes';
 
 export const getApartmentBooking = async (): Promise<
   ApartmentBookingsType[]
@@ -29,7 +28,7 @@ export const getMyApartmentBooking = async (
   user: JwtPayload,
 ): Promise<ApartmentBookingsType[]> => {
   const { status } = payload;
-  let filter: MyApartmentBookingsSchema & { user?: string } = {};
+  const filter: MyApartmentBookingsSchema & { user?: string } = {};
   if (status) {
     filter.status = status;
   }
