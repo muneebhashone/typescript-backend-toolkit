@@ -8,15 +8,19 @@ import {
   getReviews,
   updateReview,
 } from './review.service';
-import { ReviewSchemaType, ReviewIdSchemaType } from './review.schema';
+import {
+  ReviewSchemaType,
+  ReviewIdSchemaType,
+  ReviewRefIdSchemaType,
+} from './review.schema';
 import { JwtPayload } from '../utils/auth.utils';
 
 export const handleGetReviews = async (
-  _: Request<never, never, never>,
+  req: Request<ReviewRefIdSchemaType, never, never>,
   res: Response,
 ) => {
   try {
-    const result = await getReviews();
+    const result = await getReviews(req.params.refId);
 
     return successResponse(res, undefined, result);
   } catch (err) {

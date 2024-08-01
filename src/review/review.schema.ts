@@ -20,6 +20,13 @@ export const reviewIdSchema = z.object({
     .refine((value) => validator.isMongoId(value), 'ID must be valid'),
 });
 
+export const reviewRefIdSchema = z.object({
+  refId: z
+    .string({ required_error: 'ID is required' })
+    .min(1)
+    .refine((value) => validator.isMongoId(value), 'ID must be valid'),
+});
+
 // Define the Review schema
 export const reviewSchema = z.object({
   reviewerId: z.string().refine((value) => validator.isMongoId(value), {
@@ -38,3 +45,4 @@ export type BusinessTypesSchemaType = z.infer<typeof businessTypesSchema>;
 export type ReviewTypeSchemaType = z.infer<typeof reviewTypeSchema>;
 export type ReviewSchemaType = z.infer<typeof reviewSchema>;
 export type ReviewIdSchemaType = z.infer<typeof reviewIdSchema>;
+export type ReviewRefIdSchemaType = z.infer<typeof reviewRefIdSchema>;
