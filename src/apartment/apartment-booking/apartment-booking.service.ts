@@ -1,9 +1,10 @@
 import { ReturnMessageSchemaType } from '../../lib/common.schema';
-import { Apartment, Discount } from '../apartment.model';
+import { Apartment, Discount, IApartment } from '../apartment.model';
 import { ApartmentBooking } from './apartment-booking.model';
 import {
   ApartmentBookingsSummaryType,
   ApartmentBookingsType,
+  ApartmentType,
 } from '../../types';
 import { getApartmentBookingPaymentDetails } from '../../utils/apartment.utils';
 import {
@@ -28,16 +29,20 @@ export const getMyApartmentBooking = async (
   user: JwtPayload,
 ): Promise<ApartmentBookingsType[]> => {
   const { status } = payload;
+  let filter: MyApartmentBookingsSchema & { user?: string } = {};
+  if (status) {
+    filter.status = status;
+  }
 
-  const myBookings = await ApartmentBooking.find({
-    status,
-    user: user.sub,
-  });
+  filter.user = user.sub;
+
+  const myBookings = await ApartmentBooking.find(filter);
+  // .populate('apartment discount');
 
   return myBookings;
 };
 
-export const createApartmentBooking = async (
+export const confirmApartmentBooking = async (
   body: ConfirmApartmentBookingSchema,
 ): Promise<ReturnMessageSchemaType | Error> => {
   const apartmentBookingConfirmed = await ApartmentBooking.findByIdAndUpdate(
@@ -82,7 +87,7 @@ export const refundApartmentBooking = async (
   apartmentBookingId: ApartmentBookingIdSchemaType,
 ): Promise<ReturnMessageSchemaType> => {
   const { id } = apartmentBookingId;
-  const updatedBooking = ApartmentBooking.findByIdAndUpdate(
+  const updatedBooking = await ApartmentBooking.findByIdAndUpdate(
     id,
     {
       $set: {
@@ -106,9 +111,10 @@ export const refundApartmentBooking = async (
   };
 };
 
-export const getApartmentBookingSummary = async (
+export const createApartmentBookingSummary = async (
   payload: ApartmentBookingCreateOrUpdateSchemaType,
-): Promise<ApartmentBookingsSummaryType> => {
+  user: JwtPayload,
+): Promise<ApartmentBookingsType> => {
   const apartment = await Apartment.findById(payload.apartment).select(
     'name address propertyPrice coverPhotoUrl ratingCount totalRating userId',
   );
@@ -121,20 +127,43 @@ export const getApartmentBookingSummary = async (
   if (!discount)
     throw new Error('Discount selected for booking does not exist');
 
+  console.log({ apartment, discount });
+
   const booking = await ApartmentBooking.create({
     ...payload,
     confirmed: false,
     apartmentOwner: apartment.userId,
     status: 'pending',
     paymentStatus: 'unpaid',
+    user: user.sub,
   });
+
+  return booking;
+};
+
+export const getApartmentBookingSummary = async (
+  bookingId: ApartmentBookingIdSchemaType,
+): Promise<ApartmentBookingsSummaryType> => {
+  const { id } = bookingId;
+  const booking = await ApartmentBooking.findById(id);
+
+  if (!booking) throw new Error('Booking Does not exist');
+
+  const apartment = await Apartment.findById(booking.apartment);
+
+  if (!apartment)
+    throw new Error('Apartment selected for booking does not exist');
+
+  const discount = await Discount.findById(booking.discount);
+
+  if (!discount)
+    throw new Error('Discount selected for booking does not exist');
 
   const bookingDetails = getApartmentBookingPaymentDetails(
     booking,
     apartment,
     discount,
   );
-
   return {
     period: {
       checkIn: booking.checkIn,

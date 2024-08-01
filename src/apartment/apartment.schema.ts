@@ -41,7 +41,7 @@ export const apartmentCreateOrUpdateSchema = z.object({
   propertySize: z.number().int().nonnegative(),
   propertySizeUnit: z.string().max(100),
   bookingType: z.string().min(1),
-  businessId: z.number().int().nonnegative(),
+  businessId: z.string().refine((value) => validator.isMongoId(value)),
   propertyType: z.string().min(1),
   typeOfPlace: z.string().min(1),
   updatedAt: z.string().optional(),
