@@ -9,13 +9,21 @@ import {
   handleGetReviews,
   handleUpdateReview,
 } from './review.controller';
-import { reviewSchema, reviewIdSchema } from './review.schema';
+import {
+  reviewSchema,
+  reviewIdSchema,
+  reviewRefIdSchema,
+} from './review.schema';
 
 export const REVIEW_ROUTER_ROOT = '/review';
 
 const reviewRouter = Router();
 
-reviewRouter.get('/', handleGetReviews);
+reviewRouter.get(
+  '/:refId/refId',
+  validateZodSchema({ params: reviewRefIdSchema }),
+  handleGetReviews,
+);
 
 reviewRouter.post(
   '/',
@@ -31,7 +39,7 @@ reviewRouter.delete(
 );
 
 reviewRouter.get(
-  '/:id',
+  '/:id/id',
   validateZodSchema({ params: reviewIdSchema }),
   handleGetReview,
 );
