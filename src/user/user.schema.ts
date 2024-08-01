@@ -110,7 +110,10 @@ export const setUserLocationSchema = z.object({
 });
 
 export const userIdSchema = z.object({
-  id: z.string({ required_error: 'ID is required' }).min(1),
+  id: z
+    .string({ required_error: 'ID is required' })
+    .min(1)
+    .refine((value) => validator.isMongoId(value), 'ID must be valid'),
 });
 
 export const bulkUserIdsSchema = z.object({

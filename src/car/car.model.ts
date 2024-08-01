@@ -42,7 +42,6 @@ const CarSchema = new mongoose.Schema<ICar>(
       enum: Object.keys(TypesOfVehicle) as TypesOfVehicleUnion[],
       required: true,
     },
-    userId: { type: String, required: true },
     underReview: { type: Boolean, default: true },
     make: { type: String, required: true },
     model: { type: String, required: true },
@@ -56,6 +55,11 @@ const CarSchema = new mongoose.Schema<ICar>(
     subCategory: {
       type: String,
       enum: Object.keys(CarSubCategory) as CarSubCategoryUnion[],
+      required: true,
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
       required: true,
     },
     perDayPrice: { type: Number, required: true },
