@@ -1,5 +1,7 @@
+import { FilterQuery } from 'mongoose';
 import { ApartmentType } from '../types';
 import { JwtPayload } from '../utils/auth.utils';
+import { getPaginator, GetPaginatorReturnType } from '../utils/getPaginator';
 import { Apartment } from './apartment.model';
 import {
   ApartmentCreateOrUpdateSchemaType,
@@ -7,20 +9,85 @@ import {
   ApartmentListQueryParamsType,
 } from './apartment.schema';
 
-export const getApartments = async (
-  _: ApartmentListQueryParamsType,
-): Promise<ApartmentType[]> => {
-  const results = await Apartment.find({}).populate([
-    'propertyType',
-    'typeOfPlace',
-    'cancellationPolicies',
-    'facilities',
-    'houseRules',
-    'discounts',
-    'bookingType',
-  ]);
+export interface IGetApartment {
+  results: ApartmentType[];
+  paginator: GetPaginatorReturnType;
+}
 
-  return results;
+export const getApartments = async (
+  query: ApartmentListQueryParamsType,
+): Promise<IGetApartment> => {
+  const filter: FilterQuery<ApartmentType> = { $or: [], $and: [] };
+
+  if (query.search) {
+    filter.$or = [
+      { name: { $regex: query.search, $options: 'i' } },
+      { description: { $regex: query.search, $options: 'i' } },
+    ];
+  }
+
+  if (query.rating) {
+    filter.$expr = {
+      $eq: [
+        {
+          $round: [
+            { $divide: ['$total_rating', { $ifNull: ['$rating_count', 1] }] },
+            1,
+          ],
+        },
+        query.rating,
+      ],
+    };
+  }
+
+  if (query.minPrice) {
+    filter.propertyPrice = {
+      $gte: query.minPrice,
+    };
+  }
+
+  if (query.maxPrice) {
+    if (filter.propertyPrice) {
+      filter.propertyPrice = {
+        ...filter.propropertyPrice,
+        $lte: query.maxPrice,
+      };
+    } else {
+      filter.propertyPrice = {
+        $lte: query.maxPrice,
+      };
+    }
+  }
+
+  if (query.numberOfBathrooms) {
+    filter.numberOfBathrooms = query.numberOfBathrooms;
+  }
+
+  if (query.numberOfBedrooms) {
+    filter.numberOfBedrooms = query.numberOfBedrooms;
+  }
+
+  const total = await Apartment.countDocuments(filter);
+
+  const paginator = getPaginator(query.limit ?? 10, query.page ?? 1, total);
+
+  const results = await Apartment.find(filter)
+    .skip(paginator.skip)
+    .limit(paginator.limit)
+    .populate([
+      'propertyType',
+      'typeOfPlace',
+      'cancellationPolicies',
+      'facilities',
+      'houseRules',
+      'discounts',
+      'bookingType',
+    ]);
+
+  return {
+    results,
+    paginator,
+  };
 };
 
 export const getApartment = async (
