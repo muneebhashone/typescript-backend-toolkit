@@ -1,6 +1,7 @@
 import { FilterQuery } from 'mongoose';
 import { ApartmentType } from '../types';
 import { JwtPayload } from '../utils/auth.utils';
+import { checkRecordForEmptyArrays } from '../utils/common.utils';
 import { getPaginator, GetPaginatorReturnType } from '../utils/getPaginator';
 import { Apartment } from './apartment.model';
 import {
@@ -8,10 +9,6 @@ import {
   ApartmentIdSchemaType,
   ApartmentListQueryParamsType,
 } from './apartment.schema';
-import {
-  checkRecordForEmptyArrays,
-  sanitizeRecord,
-} from '../utils/common.utils';
 
 export interface IGetApartment {
   results: ApartmentType[];
