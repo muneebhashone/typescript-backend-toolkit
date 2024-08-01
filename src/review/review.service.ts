@@ -3,8 +3,8 @@ import { IReview } from './review.types';
 import { JwtPayload } from '../utils/auth.utils';
 import { ReviewSchemaType, ReviewIdSchemaType } from './review.schema';
 
-export const getReviews = async (): Promise<IReview[]> => {
-  const results = await Review.find({});
+export const getReviews = async (refId: string): Promise<IReview[]> => {
+  const results = await Review.find({ refId: refId });
 
   return results;
 };
