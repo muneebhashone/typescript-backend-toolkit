@@ -7,17 +7,21 @@ import {
   handleDeleteCarBookings,
   handleGetCarBooking,
   handleGetCarBookings,
+  handleMyGetCarBookings,
 } from './car-booking.controller';
 import { carBookingSchema, carBookingIdSchema } from './car-booking.schema';
-import { handleGetMyApartmentBookings } from '../../apartment/apartment-booking/apartment-booking.controller';
 
 export const CAR_BOOKING_ROUTER_ROOT = '/car-booking';
 
 const carBookingRouter = Router();
 
-carBookingRouter.get('/', handleGetCarBookings);
+carBookingRouter.get(
+  '/',
+  canAccess('roles', ['SUPER_ADMIN']),
+  handleGetCarBookings,
+);
 
-carBookingRouter.get('/my', handleGetMyApartmentBookings);
+carBookingRouter.get('/my', canAccess(), handleMyGetCarBookings);
 
 carBookingRouter.post(
   '/',
