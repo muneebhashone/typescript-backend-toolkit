@@ -5,7 +5,9 @@ import { CarBookingTypes } from '../car-booking-types';
 // Define the Zod schema for GeoJSONPoint
 export const geoJSONPointSchema = z.object({
   type: z.literal('Point'),
-  coordinates: z.tuple([z.number(), z.number()]),
+  coordinates: z.tuple([z.number(), z.number()]).refine((value) => {
+    return validator.isLatLong(`${value[0]},${value[1]}`);
+  }, 'Coordinates must be a valid latitude and longitude'),
 });
 
 // Define the Zod schema for CarBooking
@@ -21,9 +23,6 @@ export const carBookingSchema = z.object({
     Object.keys(CarBookingTypes) as [keyof typeof CarBookingTypes],
   ),
   carId: z.string().refine((value) => validator.isMongoId(value), {
-    message: 'Invalid ObjectId',
-  }),
-  userId: z.string().refine((value) => validator.isMongoId(value), {
     message: 'Invalid ObjectId',
   }),
   discount: z.number().nonnegative(),

@@ -10,6 +10,7 @@ import { Car } from '../car.model';
 import {
   BODYGUARD_PRICE,
   CHAUFFEUR_PRICE,
+  STANDARD_PROTECTION_PRICE,
   TAX_PERCENTAGE,
 } from '../car.constants';
 import { CarSubCategoryUnion } from '../car-types';
@@ -64,12 +65,18 @@ export const createCarBooking = async (
   let discountAmount = 0;
 
   if (body.discount) {
-    discountAmount = total * (body.discount / 100) - total;
-    total = total * (body.discount / 100);
+    discountAmount = total * (body.discount / 100);
+    total = total - discountAmount;
   }
 
   if (body.bodyguards > 0) {
     total += BODYGUARD_PRICE * body.bodyguards;
+  }
+
+  const StandardProtection = true;
+
+  if (StandardProtection) {
+    total += STANDARD_PROTECTION_PRICE;
   }
 
   if (
@@ -80,9 +87,9 @@ export const createCarBooking = async (
     total += CHAUFFEUR_PRICE;
   }
 
-  const taxAmount = total * (TAX_PERCENTAGE + 1) - total;
+  const taxAmount = total * TAX_PERCENTAGE;
 
-  total = total * (TAX_PERCENTAGE + 1);
+  total = total + taxAmount;
 
   const carBooking = await CarBooking.create({
     ...body,
@@ -92,9 +99,15 @@ export const createCarBooking = async (
     total: total,
     tax: taxAmount,
     discount: discountAmount,
+    pickupFee: 0,
+    standardProtection: true,
+    paymentStatus: 'unpaid',
+    bookingStatus: 'pending',
   });
 
-  return carBooking;
+  const booking = await carBooking.populate('carId');
+
+  return booking;
 };
 
 export const deleteCarBooking = async (
