@@ -19,9 +19,6 @@ export const apartmentBookingCreateOrUpdateSchema = z.object({
   apartment: z
     .string()
     .refine((value) => validator.isMongoId(value), 'ID must be valid'),
-  user: z
-    .string()
-    .refine((value) => validator.isMongoId(value), 'ID must be valid'),
   billingCard: z
     .string()
     .refine((value) => validator.isMongoId(value), 'ID must be valid')

@@ -50,7 +50,7 @@ export const createApartment = async (
 ): Promise<ApartmentType> => {
   const apartment = await Apartment.create({
     ...body,
-    userId: Number(user.sub),
+    userId: user.sub,
   });
 
   return apartment;

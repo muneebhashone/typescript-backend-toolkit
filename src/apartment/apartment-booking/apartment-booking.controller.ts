@@ -7,12 +7,13 @@ import {
   MyApartmentBookingsSchema,
 } from './apartment-booking.schema';
 import {
-  createApartmentBooking,
+  confirmApartmentBooking,
   deleteApartmentBooking,
   getApartmentBooking,
-  getApartmentBookingSummary,
+  createApartmentBookingSummary,
   getMyApartmentBooking,
   refundApartmentBooking,
+  getApartmentBookingSummary,
 } from './apartment-booking.service';
 
 export const handleGetApartmentBookings = async (_: Request, res: Response) => {
@@ -25,12 +26,25 @@ export const handleGetApartmentBookings = async (_: Request, res: Response) => {
   }
 };
 
-export const handleCreateApartmentBooking = async (
+export const handleGetApartmentBookingSummary = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const result = await getApartmentBookingSummary({ id: req.params.id });
+
+    return successResponse(res, undefined, result);
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleConfirmApartmentBooking = async (
   req: Request<never, never, ConfirmApartmentBookingSchema>,
   res: Response,
 ) => {
   try {
-    const newApartmentBooking = await createApartmentBooking(req.body);
+    const newApartmentBooking = await confirmApartmentBooking(req.body);
 
     return successResponse(
       res,
@@ -55,17 +69,17 @@ export const handleDeleteApartmentBooking = async (
   }
 };
 
-export const handleGetApartmentBookingSummary = async (
+export const handleCreateApartmentBookingSummary = async (
   req: Request<never, never, ApartmentBookingCreateOrUpdateSchemaType>,
   res: Response,
 ) => {
   try {
-    const newApartmentBooking = await getApartmentBookingSummary(req.body);
+    const newBooking = await createApartmentBookingSummary(req.body, req.user);
 
     return successResponse(
       res,
       'Apartment Booking created successfully',
-      newApartmentBooking,
+      newBooking,
     );
   } catch (err) {
     return errorResponse(res, (err as Error).message);
@@ -90,9 +104,9 @@ export const handleRefundApartmentBooking = async (
   res: Response,
 ) => {
   try {
-    await refundApartmentBooking({ id: req.params.id });
+    const response = await refundApartmentBooking({ id: req.params.id });
 
-    return successResponse(res, 'ApartmentBooking refund successfully');
+    return successResponse(res, undefined, response);
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

@@ -382,16 +382,16 @@ export type SeedUsersReturn = {
 };
 
 export const seedUsers = async (): Promise<SeedUsersReturn> => {
-  await User.deleteMany({});
+  // await User.deleteMany({});
 
   // const password = 'Pa$$w0rd!';
   const superAdmin = await createUser({
-    email: 'john.doe@example.com',
-    tempEmail: 'john.temp@example.com',
+    email: 'john5.doe@example.com',
+    tempEmail: 'john4.temp@example.com',
     avatar: 'https://example.com/avatars/johndoe.jpg',
     firstName: 'John',
     lastName: 'Doe',
-    role: 'DEFAULT_USER',
+    role: 'SUPER_ADMIN',
     dob: new Date(),
     phoneNo: '+1234567890',
     tempPhoneNo: '+1987654321',
@@ -400,7 +400,7 @@ export const seedUsers = async (): Promise<SeedUsersReturn> => {
     password: 'Pa$$w0rd!',
     // passwordResetCode: 'reset123',
     // setPasswordCode: 'set456',
-    _id: '507f1f77bcf86cd799439011',
+    // _id: '507f1f77bcf86cd799439011',
     // otp: '123456',
     // loginOtp: '654321',
     // updateOtp: '789012',

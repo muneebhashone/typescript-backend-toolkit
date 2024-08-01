@@ -2,11 +2,12 @@ import { Router } from 'express';
 import { canAccess } from '../../middlewares/can-access.middleware';
 import { validateZodSchema } from '../../middlewares/validate-zod-schema.middleware';
 import {
+  handleCreateApartmentBookingSummary,
   handleGetMyApartmentBookings,
   handleRefundApartmentBooking,
 } from './apartment-booking.controller';
 import {
-  handleCreateApartmentBooking,
+  handleConfirmApartmentBooking,
   handleDeleteApartmentBooking,
   handleGetApartmentBookings,
   handleGetApartmentBookingSummary,
@@ -28,10 +29,10 @@ apartmentBookingRouter.post(
   '/',
   canAccess('roles', ['DEFAULT_USER']),
   validateZodSchema({ body: confirmApartmentBookingSchema }),
-  handleCreateApartmentBooking,
+  handleConfirmApartmentBooking,
 );
 
-apartmentBookingRouter.post(
+apartmentBookingRouter.get(
   '/my',
   canAccess('roles', ['DEFAULT_USER']),
   validateZodSchema({ query: myBookingsSchema }),
@@ -40,8 +41,9 @@ apartmentBookingRouter.post(
 
 apartmentBookingRouter.post(
   '/summary',
-  validateZodSchema({ body: apartmentBookingCreateOrUpdateSchema }) ,
-  handleGetApartmentBookingSummary,
+  canAccess('roles', ['DEFAULT_USER']),
+  validateZodSchema({ body: apartmentBookingCreateOrUpdateSchema }),
+  handleCreateApartmentBookingSummary,
 );
 
 apartmentBookingRouter.delete(
@@ -53,13 +55,19 @@ apartmentBookingRouter.delete(
   handleDeleteApartmentBooking,
 );
 
-apartmentBookingRouter.patch(
+apartmentBookingRouter.get(
   '/:id/refund',
   canAccess('roles', ['DEFAULT_USER']),
   validateZodSchema({
     params: apartmentBookingIdSchema,
   }),
   handleRefundApartmentBooking,
+);
+
+apartmentBookingRouter.get(
+  '/:id/summary',
+  canAccess('roles', ['DEFAULT_USER']),
+  handleGetApartmentBookingSummary,
 );
 
 export default apartmentBookingRouter;
