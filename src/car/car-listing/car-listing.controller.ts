@@ -5,6 +5,8 @@ import {
   deleteCar,
   deleteCars,
   getCar,
+  getCarMakes,
+  getCarModelsByMake,
   getCars,
   updateCar,
 } from './car-listing.service';
@@ -13,7 +15,34 @@ import {
   CarUpdateSchemaType,
   CarIdSchemaType,
   CarListQueryParamsType,
+  CarMakeSchemaType,
 } from './car-listing.schema';
+
+export const handleGetCarMakes = async (
+  _: Request<never, never, never>,
+  res: Response,
+) => {
+  try {
+    const result = await getCarMakes();
+
+    return successResponse(res, undefined, result);
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleGetCarModelsByMake = async (
+  req: Request<CarMakeSchemaType, never, never>,
+  res: Response,
+) => {
+  try {
+    const result = await getCarModelsByMake(req.params.make);
+
+    return successResponse(res, undefined, result);
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
 
 export const handleGetCars = async (
   req: Request<never, never, never, CarListQueryParamsType>,

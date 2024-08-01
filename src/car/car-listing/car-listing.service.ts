@@ -5,6 +5,7 @@ import { checkRecordForEmptyArrays } from '../../utils/common.utils';
 import { getPaginator, GetPaginatorReturnType } from '../../utils/getPaginator';
 import { ICar } from '../car-types';
 import { Car } from '../car.model';
+import cars from '../../json/cars.json';
 import {
   CarCreateSchemaType,
   CarIdSchemaType,
@@ -82,6 +83,16 @@ export const getCars = async (
     results: results,
     paginator: paginator,
   };
+};
+
+export const getCarMakes = () => {
+  return cars.map((car) => car.title);
+};
+
+export const getCarModelsByMake = (make: string) => {
+  return (cars.find((car) => car.title === make)?.models ?? []).map(
+    (model) => model.title,
+  );
 };
 
 export const getCar = async (carId: CarIdSchemaType): Promise<CarType> => {
