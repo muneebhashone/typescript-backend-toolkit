@@ -1,6 +1,7 @@
 import { FilterQuery } from 'mongoose';
 import { CarType } from '../../types';
 import { JwtPayload } from '../../utils/auth.utils';
+import { checkRecordForEmptyArrays } from '../../utils/common.utils';
 import { getPaginator, GetPaginatorReturnType } from '../../utils/getPaginator';
 import { ICar } from '../car-types';
 import { Car } from '../car.model';
@@ -59,15 +60,21 @@ export const getCars = async (
     filterQuery.$and?.push({ typeOfVehicle: query.typeOfVehicle });
   }
 
+  if (query.facilities && query.facilities.length) {
+    filterQuery.$and?.push({ facilities: { $all: query.facilities } });
+  }
+
   if (query.rating) {
     filterQuery.$and?.push({ rating: { $lte: query.rating } });
   }
 
-  const total = await Car.countDocuments(filterQuery);
+  const total = await Car.countDocuments(
+    checkRecordForEmptyArrays(filterQuery),
+  );
 
   const paginator = getPaginator(query.limit ?? 10, query.page ?? 1, total);
 
-  const results = await Car.find(filterQuery)
+  const results = await Car.find(checkRecordForEmptyArrays(filterQuery))
     .skip(paginator.skip)
     .limit(paginator.limit);
 

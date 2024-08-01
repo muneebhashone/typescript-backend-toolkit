@@ -28,7 +28,7 @@ export const carListQueryParamsSchema = z
       .string()
       .transform(Number)
       .refine(
-        (value) => value < 0 && value > 5,
+        (value) => value >= 0 && value <= 5,
         'Rating must be between 0 and 5',
       )
       .optional(),
@@ -97,6 +97,9 @@ export const carCreateSchema = z.object({
     )
     .min(1)
     .optional(),
+  typeOfVehicle: z.enum(
+    Object.keys(TypesOfVehicle) as [keyof typeof TypesOfVehicle],
+  ),
 });
 
 export const carUpdateSchema = carCreateSchema
