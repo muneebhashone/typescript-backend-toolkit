@@ -8,6 +8,10 @@ import {
   ApartmentIdSchemaType,
   ApartmentListQueryParamsType,
 } from './apartment.schema';
+import {
+  checkRecordForEmptyArrays,
+  sanitizeRecord,
+} from '../utils/common.utils';
 
 export interface IGetApartment {
   results: ApartmentType[];
@@ -17,61 +21,58 @@ export interface IGetApartment {
 export const getApartments = async (
   query: ApartmentListQueryParamsType,
 ): Promise<IGetApartment> => {
-  const filter: FilterQuery<ApartmentType> = { $or: [], $and: [] };
+  const filterQuery: FilterQuery<ApartmentType> = { $or: [], $and: [] };
 
   if (query.search) {
-    filter.$or = [
-      { name: { $regex: query.search, $options: 'i' } },
-      { description: { $regex: query.search, $options: 'i' } },
-    ];
+    filterQuery.$or?.push({ name: { $regex: query.search, $options: 'i' } });
+    filterQuery.$or?.push({
+      description: { $regex: query.search, $options: 'i' },
+    });
   }
 
   if (query.rating) {
-    filter.$expr = {
-      $eq: [
-        {
-          $round: [
-            { $divide: ['$total_rating', { $ifNull: ['$rating_count', 1] }] },
-            1,
-          ],
-        },
-        query.rating,
-      ],
-    };
-  }
-
-  if (query.minPrice) {
-    filter.propertyPrice = {
-      $gte: query.minPrice,
-    };
+    filterQuery.$and?.push({
+      $expr: {
+        $eq: [
+          {
+            $round: [
+              { $divide: ['$total_rating', { $ifNull: ['$rating_count', 1] }] },
+              1,
+            ],
+          },
+          query.rating,
+        ],
+      },
+    });
   }
 
   if (query.maxPrice) {
-    if (filter.propertyPrice) {
-      filter.propertyPrice = {
-        ...filter.propropertyPrice,
-        $lte: query.maxPrice,
-      };
-    } else {
-      filter.propertyPrice = {
-        $lte: query.maxPrice,
-      };
-    }
+    filterQuery.$and?.push({ propertyPrice: { $lte: query.maxPrice } });
+  }
+
+  if (query.minPrice) {
+    filterQuery.$and?.push({ propertyPrice: { $gte: query.minPrice } });
   }
 
   if (query.numberOfBathrooms) {
-    filter.numberOfBathrooms = query.numberOfBathrooms;
+    filterQuery.$and?.push({
+      numberOfBathrooms: { $gte: query.numberOfBathrooms },
+    });
   }
 
   if (query.numberOfBedrooms) {
-    filter.numberOfBedrooms = query.numberOfBedrooms;
+    filterQuery.$and?.push({
+      numberOfBedrooms: { $gte: query.numberOfBedrooms },
+    });
   }
 
-  const total = await Apartment.countDocuments(filter);
+  const total = await Apartment.countDocuments(
+    checkRecordForEmptyArrays(filterQuery),
+  );
 
   const paginator = getPaginator(query.limit ?? 10, query.page ?? 1, total);
 
-  const results = await Apartment.find(filter)
+  const results = await Apartment.find(checkRecordForEmptyArrays(filterQuery))
     .skip(paginator.skip)
     .limit(paginator.limit)
     .populate([
