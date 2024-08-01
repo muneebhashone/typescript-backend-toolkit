@@ -1,26 +1,94 @@
+import { FilterQuery } from 'mongoose';
 import { ApartmentType } from '../types';
 import { JwtPayload } from '../utils/auth.utils';
+import { getPaginator, GetPaginatorReturnType } from '../utils/getPaginator';
 import { Apartment } from './apartment.model';
 import {
   ApartmentCreateOrUpdateSchemaType,
   ApartmentIdSchemaType,
   ApartmentListQueryParamsType,
 } from './apartment.schema';
+import {
+  checkRecordForEmptyArrays,
+  sanitizeRecord,
+} from '../utils/common.utils';
+
+export interface IGetApartment {
+  results: ApartmentType[];
+  paginator: GetPaginatorReturnType;
+}
 
 export const getApartments = async (
-  _: ApartmentListQueryParamsType,
-): Promise<ApartmentType[]> => {
-  const results = await Apartment.find({}).populate([
-    'propertyType',
-    'typeOfPlace',
-    'cancellationPolicies',
-    'facilities',
-    'houseRules',
-    'discounts',
-    'bookingType',
-  ]);
+  query: ApartmentListQueryParamsType,
+): Promise<IGetApartment> => {
+  const filterQuery: FilterQuery<ApartmentType> = { $or: [], $and: [] };
 
-  return results;
+  if (query.search) {
+    filterQuery.$or?.push({ name: { $regex: query.search, $options: 'i' } });
+    filterQuery.$or?.push({
+      description: { $regex: query.search, $options: 'i' },
+    });
+  }
+
+  if (query.rating) {
+    filterQuery.$and?.push({
+      $expr: {
+        $eq: [
+          {
+            $round: [
+              { $divide: ['$total_rating', { $ifNull: ['$rating_count', 1] }] },
+              1,
+            ],
+          },
+          query.rating,
+        ],
+      },
+    });
+  }
+
+  if (query.maxPrice) {
+    filterQuery.$and?.push({ propertyPrice: { $lte: query.maxPrice } });
+  }
+
+  if (query.minPrice) {
+    filterQuery.$and?.push({ propertyPrice: { $gte: query.minPrice } });
+  }
+
+  if (query.numberOfBathrooms) {
+    filterQuery.$and?.push({
+      numberOfBathrooms: { $gte: query.numberOfBathrooms },
+    });
+  }
+
+  if (query.numberOfBedrooms) {
+    filterQuery.$and?.push({
+      numberOfBedrooms: { $gte: query.numberOfBedrooms },
+    });
+  }
+
+  const total = await Apartment.countDocuments(
+    checkRecordForEmptyArrays(filterQuery),
+  );
+
+  const paginator = getPaginator(query.limit ?? 10, query.page ?? 1, total);
+
+  const results = await Apartment.find(checkRecordForEmptyArrays(filterQuery))
+    .skip(paginator.skip)
+    .limit(paginator.limit)
+    .populate([
+      'propertyType',
+      'typeOfPlace',
+      'cancellationPolicies',
+      'facilities',
+      'houseRules',
+      'discounts',
+      'bookingType',
+    ]);
+
+  return {
+    results,
+    paginator,
+  };
 };
 
 export const getApartment = async (
