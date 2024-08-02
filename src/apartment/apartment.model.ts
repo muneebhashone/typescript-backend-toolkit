@@ -26,7 +26,7 @@ export interface IApartment {
   propertySizeUnit: string;
   bookingType: mongoose.Types.ObjectId;
   businessId?: number;
-  userId?: number;
+  owner?: mongoose.Schema.Types.ObjectId;
   propertyType?: mongoose.Types.ObjectId;
   typeOfPlace?: mongoose.Types.ObjectId;
   cancellationPolicies?: mongoose.Types.ObjectId[];
@@ -174,7 +174,7 @@ const ApartmentSchema = new Schema<IApartment>(
       ref: 'Business',
       required: true,
     },
-    userId: {
+    owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
