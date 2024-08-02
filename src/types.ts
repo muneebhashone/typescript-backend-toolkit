@@ -40,5 +40,13 @@ export const BookingPaymentStatus = {
   refunded: 'refunded',
 } as const;
 
+export const BusinessTypes = {
+  apartment: 'apartment',
+  car: 'car',
+  jet: 'jet',
+  boat: 'boat',
+} as const;
+
+export type BusinessTypesUnion = keyof typeof BusinessTypes;
 export type BookingStatusUnion = keyof typeof BookingStatus;
 export type BookingPaymentStatusUnion = keyof typeof BookingPaymentStatus;

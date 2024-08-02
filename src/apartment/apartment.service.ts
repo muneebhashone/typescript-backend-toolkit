@@ -115,7 +115,7 @@ export const createApartment = async (
 ): Promise<ApartmentType> => {
   const apartment = await Apartment.create({
     ...body,
-    userId: user.sub,
+    owner: user.sub,
   });
 
   return apartment;
