@@ -1,10 +1,9 @@
-import { CarBooking } from '../car-booking.model';
 import {
   CarBookingSchemaType,
   CarBookingIdSchemaType,
 } from './car-booking.schema';
 import { JwtPayload } from '../../utils/auth.utils';
-import { ICarBooking } from '../car-booking-types';
+import { ICarBooking } from './car-booking-types';
 import { convertDistance, getDistance } from 'geolib';
 import { Car } from '../car.model';
 import {
@@ -14,6 +13,7 @@ import {
   TAX_PERCENTAGE,
 } from '../car.constants';
 import { CarSubCategoryUnion } from '../car-types';
+import { CarBooking } from './car-booking.model';
 
 export const getCarBookings = async (): Promise<ICarBooking[]> => {
   const results = await CarBooking.find({});

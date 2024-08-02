@@ -14,6 +14,7 @@ import {
   getMyApartmentBooking,
   refundApartmentBooking,
   getApartmentBookingSummary,
+  cancelApartmentBooking,
 } from './apartment-booking.service';
 
 export const handleGetApartmentBookings = async (_: Request, res: Response) => {
@@ -105,6 +106,18 @@ export const handleRefundApartmentBooking = async (
 ) => {
   try {
     const response = await refundApartmentBooking({ id: req.params.id });
+
+    return successResponse(res, undefined, response);
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+export const handleCancelApartmentBooking = async (
+  req: Request<ApartmentBookingIdSchemaType, never, never>,
+  res: Response,
+) => {
+  try {
+    const response = await cancelApartmentBooking({ id: req.params.id });
 
     return successResponse(res, undefined, response);
   } catch (err) {
