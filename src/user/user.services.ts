@@ -297,5 +297,5 @@ export const createUser = async (
     ...payload,
     password: hashedPassword,
   });
-  return { ...createdUser.toObject(), password: '', otp: '' };
+  return { ...createdUser.toObject(), password: '', otp: null };
 };

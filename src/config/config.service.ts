@@ -23,6 +23,9 @@ const configSchema = z.object({
   STATIC_OTP: z.enum(['1', '0']).transform(Number),
   NODE_ENV: z.union([z.literal('production'), z.literal('development')]),
   SET_SESSION: z.string(),
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
+  REDIRECT_URI: z.string(),
 });
 
 export type Config = z.infer<typeof configSchema>;

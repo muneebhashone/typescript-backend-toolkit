@@ -1,7 +1,12 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { rolesEnums } from '../enums'; // Import rolesEnums
-
-// Define User interface extending Document
+import { ISocialAccountType, rolesEnums } from '../enums'; // Import rolesEnums
+export interface ISocialAccountInfo {
+  accountType: ISocialAccountType;
+  accessToken: string;
+  tokenExpiry: Date;
+  refreshToken?: string;
+  accountID: string;
+}
 export interface IUser {
   email?: string;
   tempEmail?: string;
@@ -31,8 +36,18 @@ export interface IUser {
   bankName?: string;
   accountNumber?: string;
   interest?: string;
+  socialAccount?: ISocialAccountInfo;
 }
-
+const SocialAccountSchema = new Schema<ISocialAccountInfo>({
+  accountType: {
+    type: String,
+    required: true,
+  },
+  accessToken: { type: String, required: true },
+  tokenExpiry: { type: Date, required: true },
+  refreshToken: { type: String },
+  accountID: { type: String, required: true },
+});
 // Define User schema
 const UserSchema: Schema<IUser> = new Schema({
   email: { type: String },
@@ -76,8 +91,9 @@ const UserSchema: Schema<IUser> = new Schema({
     ref: 'Business',
     required: false,
   },
+  socialAccount: { type: SocialAccountSchema, required: false },
 });
-
+export interface ISocialAccountDocument extends ISocialAccountInfo, Document {}
 export interface IUserDocument extends IUser, Document {}
 const User = mongoose.model<IUser>('User', UserSchema);
 export default User;
