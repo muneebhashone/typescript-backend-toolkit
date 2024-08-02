@@ -40,5 +40,10 @@ export const BookingPaymentStatus = {
   refunded: 'refunded',
 } as const;
 
+export interface GoogleCallbackQuery {
+  code: string;
+  error?: string;
+}
+
 export type BookingStatusUnion = keyof typeof BookingStatus;
 export type BookingPaymentStatusUnion = keyof typeof BookingPaymentStatus;

@@ -24,6 +24,7 @@ import {
 import {
   changePassword,
   forgetPassword,
+  googleLogin,
   loginUserByEmail,
   loginUserByPhone,
   loginUserByPhoneAndPassword,
@@ -35,6 +36,8 @@ import {
   verifyOtp,
 } from './auth.service';
 import { RoleType } from '../enums';
+import { sign } from 'jsonwebtoken';
+import { GoogleCallbackQuery } from '../types';
 
 export const handleSetPassword = async (
   req: Request<never, never, SetPasswordSchemaType>,
@@ -262,5 +265,38 @@ export const handleGetCurrentUser = async (req: Request, res: Response) => {
       'Not allowed to access this route',
       StatusCodes.UNAUTHORIZED,
     );
+  }
+};
+export const handleGoogleLogin = async (req: Request, res: Response) => {
+  try {
+    const googleAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URI}&scope=email profile`;
+    res.redirect(googleAuthURL);
+  } catch (err) {
+    if (err instanceof NotFoundError) {
+      return errorResponse(res, err.message, StatusCodes.NOT_FOUND);
+    }
+
+    return errorResponse(
+      res,
+      'Not allowed to access this route',
+      StatusCodes.UNAUTHORIZED,
+    );
+  }
+};
+export const handleGoogleCallback = async (
+  req: Request<{}, {}, {}, GoogleCallbackQuery>,
+  res: Response,
+) => {
+  try {
+    const result = await googleLogin(req.query);
+    if (!result) throw new Error('Failed to login');
+    res.status(200).json({
+      message: 'Login Successful',
+      data: {
+        ...result,
+      },
+    });
+  } catch (err) {
+    res.status(401).json({ error: 'Not allowed to access this route' });
   }
 };
