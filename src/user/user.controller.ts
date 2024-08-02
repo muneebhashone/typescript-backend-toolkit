@@ -4,7 +4,6 @@ import { prepareSetPasswordAndSendEmail } from '../auth/auth.service';
 import { ConflictError } from '../errors/errors.service';
 import { errorResponse, successResponse } from '../utils/api.utils';
 import { generateRandomPassword, JwtPayload } from '../utils/auth.utils';
-import { usersToSeed } from './dummy.user';
 import {
   CreateUserSchemaType,
   GetUsersSchemaType,
@@ -21,13 +20,13 @@ import {
   createUser,
   deleteUser,
   getUsers,
-  seedManyUsers,
   updateHost,
   updateUser,
   updateUserEmail,
   updateUserPhone,
   verifyUpdateOtp,
 } from './user.services';
+import { seedManyUsers, usersToSeed } from './user.seeder';
 
 export const handleVerifyUpdateOtp = async (
   req: Request<never, never, VerifyUpdateOtpSchemaType>,
