@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { canAccess } from '../../middlewares/can-access.middleware';
 import { validateZodSchema } from '../../middlewares/validate-zod-schema.middleware';
 import {
+  handleCancelApartmentBooking,
   handleCreateApartmentBookingSummary,
   handleGetMyApartmentBookings,
   handleRefundApartmentBooking,
@@ -63,7 +64,14 @@ apartmentBookingRouter.get(
   }),
   handleRefundApartmentBooking,
 );
-
+apartmentBookingRouter.get(
+  '/:id/cancel',
+  canAccess('roles', ['DEFAULT_USER', 'VENDOR']),
+  validateZodSchema({
+    params: apartmentBookingIdSchema,
+  }),
+  handleCancelApartmentBooking,
+);
 apartmentBookingRouter.get(
   '/:id/summary',
   canAccess('roles', ['DEFAULT_USER']),

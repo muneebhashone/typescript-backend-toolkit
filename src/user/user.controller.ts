@@ -4,6 +4,7 @@ import { prepareSetPasswordAndSendEmail } from '../auth/auth.service';
 import { ConflictError } from '../errors/errors.service';
 import { errorResponse, successResponse } from '../utils/api.utils';
 import { generateRandomPassword, JwtPayload } from '../utils/auth.utils';
+import { usersToSeed } from './dummy.user';
 import {
   CreateUserSchemaType,
   GetUsersSchemaType,
@@ -20,7 +21,7 @@ import {
   createUser,
   deleteUser,
   getUsers,
-  seedUsers,
+  seedManyUsers,
   updateHost,
   updateUser,
   updateUserEmail,
@@ -99,26 +100,14 @@ export const handleToggleActive = async (
 
 export const handleUserSeeder = async (_: Request, res: Response) => {
   try {
-    const result = await seedUsers();
+    // const result = await seedUsers();
+    const result = await seedManyUsers(usersToSeed);
 
     return successResponse(res, 'Data seeded successfully', result);
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }
 };
-
-// export const handleDeleteBulkUsers = async (
-//   req: Request<never, never, never, BulkUserIdSchemaType>,
-//   res: Response,
-// ) => {
-//   try {
-//     await deleteBulkUsers(req.query.ids);
-
-//     return successResponse(res, 'Users are deleted');
-//   } catch (err) {
-//     return errorResponse(res, (err as Error).message);
-//   }
-// };
 
 export const handleDeleteUser = async (
   req: Request<UserIdSchemaType, never>,

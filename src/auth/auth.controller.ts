@@ -234,8 +234,9 @@ export const handleValidateLoginCode = async (
   try {
     const token = await validateLoginOtp(req.body);
 
-    res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
-
+    if (process.env.SET_SESSION) {
+      res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
+    }
     return res.json({ token: token });
   } catch (err) {
     if (err instanceof InvalidCredentialseError) {

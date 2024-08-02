@@ -38,6 +38,7 @@ const boostrapServer = async () => {
     app.use(morgan('dev'));
   } else {
     app.use(httpLogger);
+    process.env.SET_SESSION = 'true';
   }
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
