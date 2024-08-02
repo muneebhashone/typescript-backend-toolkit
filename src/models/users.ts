@@ -44,7 +44,7 @@ const SocialAccountSchema = new Schema<ISocialAccountInfo>({
     required: true,
   },
   accessToken: { type: String, required: true },
-  tokenExpiry: { type: Date, required: true },
+  tokenExpiry: { type: Date },
   refreshToken: { type: String },
   accountID: { type: String, required: true },
 });

@@ -492,27 +492,35 @@ export const googleLogin = async (
   const userInfoResponse = await getUserInfo(access_token);
   console.log({ userInfoResponse });
 
-  const userInfo = (await userInfoResponse) as GoogleUserInfo;
-  const { id, email, name, picture } = userInfo;
-  const existingUser = await User.findOne({
-    email,
-  });
-  if (existingUser) throw new Error('User Already Exists With This Email!');
-  const user = await createUser({
-    email: email,
-    firstName: name.split(' ')[0],
-    avatar: picture,
-    role: rolesEnums[0],
-    isActive: true,
-    password: generateRandomNumbers(4),
-    socialAccount: {
+  // const userInfo = (await userInfoResponse.) as GoogleUserInfo;
+  const { id, email, name, picture } = userInfoResponse;
+  const existingUser = await User.findOne({ email });
+  if (!existingUser) {
+    return await createUser({
+      email,
+      firstName: name,
+      avatar: picture,
+      role: rolesEnums[0],
+      isActive: true,
+      password: generateRandomNumbers(4),
+      socialAccount: {
+        refreshToken: refresh_token,
+        tokenExpiry: new Date(Date.now() + expires_in * 1000),
+        accountType: SOCIAL_ACCOUNTS[0],
+        accessToken: access_token,
+        accountID: id,
+      },
+    });
+  } else {
+    existingUser.socialAccount = {
       refreshToken: refresh_token,
-      tokenExpiry: new Date(expires_in),
+      tokenExpiry: new Date(Date.now() + expires_in * 1000),
       accountType: SOCIAL_ACCOUNTS[0],
       accessToken: access_token,
       accountID: id,
-    },
-  });
+    };
+    await existingUser.save();
+  }
 
-  return user;
+  return existingUser.toObject();
 };

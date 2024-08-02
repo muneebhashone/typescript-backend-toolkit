@@ -38,6 +38,7 @@ import {
 import { RoleType } from '../enums';
 import { sign } from 'jsonwebtoken';
 import { GoogleCallbackQuery } from '../types';
+import { ISocialAccountInfo } from '../models/users';
 
 export const handleSetPassword = async (
   req: Request<never, never, SetPasswordSchemaType>,
@@ -288,15 +289,12 @@ export const handleGoogleCallback = async (
   res: Response,
 ) => {
   try {
-    const result = await googleLogin(req.query);
-    if (!result) throw new Error('Failed to login');
-    res.status(200).json({
-      message: 'Login Successful',
-      data: {
-        ...result,
-      },
-    });
+    const user = await googleLogin(req.query);
+    if (!user) throw new Error('Failed to login');
+    res.cookie(AUTH_COOKIE_KEY, user.socialAccount?.accessToken, COOKIE_CONFIG);
+
+    return res.json({ token: user.socialAccount?.accessToken });
   } catch (err) {
-    res.status(401).json({ error: 'Not allowed to access this route' });
+    res.status(401).json({ error: (err as { message: string }).message });
   }
 };
