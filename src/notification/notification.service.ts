@@ -2,10 +2,11 @@ import { ApartmentBooking } from '../apartment/apartment-booking/apartment-booki
 import { CarBooking } from '../car/car-booking.model';
 import fbAdmin from '../lib/fcm';
 import User from '../models/users';
+import { NotificationQueuePayloadType } from '../queues/notification.queue';
 import { INotification } from './notification.model';
 import Batch from 'batch';
 
-export const sendNotifications = async (data: INotification) => {
+export const sendNotifications = async (data: NotificationQueuePayloadType) => {
   const { recievers, sender } = data;
 
   const users = await fetchUsersForNotification(data);
@@ -21,9 +22,6 @@ export const sendNotifications = async (data: INotification) => {
           notification: {
             title: data.title,
             body: data.message,
-          },
-          data: {
-            // Additional data
           },
         };
 
@@ -43,7 +41,9 @@ export const sendNotifications = async (data: INotification) => {
   });
 };
 
-const fetchUsersForNotification = async (data: INotification) => {
+const fetchUsersForNotification = async (
+  data: NotificationQueuePayloadType,
+) => {
   switch (data.notificationType) {
     case 'SYSTEM_NOTIFICATION':
       return await fetchAllUsers();
@@ -60,23 +60,21 @@ const fetchAllUsers = async () => {
   return await User.find({}).select('fcmToken');
 };
 
-const fetchBookingUsers = async (data: INotification) => {
+const fetchBookingUsers = async (data: NotificationQueuePayloadType) => {
   switch (data.businessType) {
     case 'apartment':
-      return await ApartmentBooking.find({
-        apartmentOwner: {
-          $in: data.recievers,
-        },
-      });
+      const apartmentBooking = await ApartmentBooking.findById(data.bookingId);
+      return User.find({
+        _id: { $in: [apartmentBooking?.apartmentOwner] },
+      }).select('fcmToken');
     case 'car':
-      return await CarBooking.find({
-        owner: {
-          $in: data.recievers,
-        },
-      });
+      const carBooking = await CarBooking.findById(data.bookingId);
+      return User.find({ _id: { $in: [carBooking?.owner] } }).select(
+        'fcmToken',
+      );
     default:
       return [];
   }
 };
 
-const fetchChatUsers = async (data: INotification) => {};
+const fetchChatUsers = async (data: NotificationQueuePayloadType) => {};

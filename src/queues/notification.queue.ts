@@ -2,7 +2,7 @@ import { Queue } from '../lib/queue.server';
 import { INotification } from '../notification/notification.model';
 
 export interface NotificationQueuePayloadType extends INotification {
-  
+  bookingId?: string
 }
 
 export const NotificationQueue = Queue<NotificationQueuePayloadType>(
