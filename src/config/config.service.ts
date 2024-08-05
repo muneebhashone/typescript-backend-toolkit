@@ -22,6 +22,7 @@ const configSchema = z.object({
   SET_PASSWORD_TOKEN_EXPIRES_IN: z.string().min(1).transform(Number),
   STATIC_OTP: z.enum(['1', '0']).transform(Number),
   NODE_ENV: z.union([z.literal('production'), z.literal('development')]),
+  SET_SESSION: z.string(),
 });
 
 export type Config = z.infer<typeof configSchema>;

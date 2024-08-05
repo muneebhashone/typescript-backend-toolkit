@@ -1,6 +1,6 @@
 import validator from 'validator';
 import z from 'zod';
-import { CarBookingTypes } from '../car-booking-types';
+import { CarBookingTypes } from './car-booking-types';
 
 // Define the Zod schema for GeoJSONPoint
 export const geoJSONPointSchema = z.object({

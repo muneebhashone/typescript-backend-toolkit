@@ -6,7 +6,7 @@ import {
   BookingPaymentStatusUnion,
   BookingStatus,
   BookingStatusUnion,
-} from '../types';
+} from '../../types';
 
 // Schema for GeoJSONPoint
 const GeoJSONPointSchema = new mongoose.Schema<IGeoJSONPoint>({
