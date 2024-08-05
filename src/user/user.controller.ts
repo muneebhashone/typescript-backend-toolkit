@@ -20,13 +20,13 @@ import {
   createUser,
   deleteUser,
   getUsers,
-  seedUsers,
   updateHost,
   updateUser,
   updateUserEmail,
   updateUserPhone,
   verifyUpdateOtp,
 } from './user.services';
+import { seedManyUsers, usersToSeed } from './user.seeder';
 
 export const handleVerifyUpdateOtp = async (
   req: Request<never, never, VerifyUpdateOtpSchemaType>,
@@ -99,26 +99,14 @@ export const handleToggleActive = async (
 
 export const handleUserSeeder = async (_: Request, res: Response) => {
   try {
-    const result = await seedUsers();
+    // const result = await seedUsers();
+    const result = await seedManyUsers(usersToSeed);
 
     return successResponse(res, 'Data seeded successfully', result);
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }
 };
-
-// export const handleDeleteBulkUsers = async (
-//   req: Request<never, never, never, BulkUserIdSchemaType>,
-//   res: Response,
-// ) => {
-//   try {
-//     await deleteBulkUsers(req.query.ids);
-
-//     return successResponse(res, 'Users are deleted');
-//   } catch (err) {
-//     return errorResponse(res, (err as Error).message);
-//   }
-// };
 
 export const handleDeleteUser = async (
   req: Request<UserIdSchemaType, never>,

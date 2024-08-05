@@ -47,11 +47,6 @@ export const getUserById = async (
   return user?.toObject();
 };
 
-// export type GetUsersReturnType = {
-//   results: InferSelectModel<typeof users>[];
-//   paginatorInfo: GetPaginatorReturnType;
-// };
-
 export const clearUsers = async () => {
   await User.deleteMany();
 };
@@ -64,27 +59,10 @@ export const deleteUser = async (userId: UserIdSchemaType) => {
     throw new Error("SUPER_ADMIN can't be deleted");
   }
 
-  // await db.delete(users).where(eq(users.id, userId)).execute();
   await User.deleteOne({
     _id: id,
   });
 };
-
-// export const deleteBulkUsers = async (userIds: number[]) => {
-//   const manyUsers = await User.find({
-//     _id: { $in: userIds },
-//   });
-
-//   const isThereAnySuperAdmin = manyUsers.some(
-//     (singleUser) => singleUser.role === 'SUPER_ADMIN',
-//   );
-
-//   if (isThereAnySuperAdmin) {
-//     throw new Error("SUPER_ADMIN can't be deleted");
-//   }
-
-//   await User.deleteMany({ _id: { $in: userIds } });
-// };
 
 export const getUsers = async (
   userId: UserIdSchemaType,
@@ -180,9 +158,7 @@ export const updateUserPhone = async (
   userId: UserIdSchemaType,
 ): Promise<void> => {
   const { id } = userId;
-  // const isPhoneNoAlreadyInUse = await db.query.users.findFirst({
-  //   where: and(eq(users.phoneNo, payload.phoneNo), ne(users.id, userId)),
-  // });
+
   const isPhoneNoAlreadyInUse = await User.findOne({
     _id: id,
     phoneNo: payload.phoneNo,
@@ -193,7 +169,6 @@ export const updateUserPhone = async (
   }
 
   const user = await User.findOne({ _id: id });
-  // const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
 
   if (!user) {
     throw new Error("User doesn't exist");
@@ -204,12 +179,7 @@ export const updateUserPhone = async (
   }
 
   const otpCode = generateRandomNumbers(4);
-  // await db
-  //   .update(users)
-  //   .set({ tempPhoneNo: payload.phoneNo, updateOtp: otpCode })
-  //   .where(eq(users.id, userId))
-  //   .returning()
-  //   .execute();
+
   await User.updateOne(
     { _id: id },
     { $set: { tempPhoneNo: payload.phoneNo, updateOtp: otpCode } },
@@ -222,9 +192,7 @@ export const updateUserEmail = async (
   userId: UserIdSchemaType,
 ): Promise<void> => {
   const { id: _id } = userId;
-  // const isEmailAlreadyInUse = await db.query.users.findFirst({
-  //   where: and(eq(users.email, payload.email), ne(users.id, userId)),
-  // });
+
   const isEmailAlreadyInUse = await User.findOne({
     email: payload.email,
     _id: { $ne: _id },
@@ -234,7 +202,6 @@ export const updateUserEmail = async (
     throw new Error('Email already in use');
   }
 
-  // const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
   const user = await User.findOne({ _id });
 
   if (!user) {
@@ -264,31 +231,11 @@ export const updateUserEmail = async (
   });
 };
 
-// export const updateUser = async (
-//   payload: UpdateUserSchemaType,
-//   userId: number,
-// ) => {
-//   // const user = await db
-//   //   .update(users)
-//   //   .set({ ...payload })
-//   //   .where(eq(users.id, userId))
-//   //   .returning()
-//   //   .execute();
-
-//   // return user?.toObject()[0];
-//   const user = await User.findOneAndUpdate(
-//     { _id: userId },
-//     { $set: { ...payload } },
-//     { new: true },
-//   );
-//   return user?.toObject();
-// };
 export const updateUser = async (
   payload: Partial<UserType>,
   userId: UserIdSchemaType,
 ) => {
   const { id } = userId;
-  // const userObjectId = userId;
 
   const user = await User.findOneAndUpdate(
     { _id: id },
@@ -306,14 +253,6 @@ export const updateHost = async (
   payload: UpdateHostSchemaType,
   userId: UserIdSchemaType,
 ) => {
-  // const user = await db
-  //   .update(users)
-  //   .set({ ...payload })
-  //   .where(eq(users.id, userId))
-  //   .returning()
-  //   .execute();
-
-  // return user?.toObject()[0];
   const { id } = userId;
   const user = await User.findOneAndUpdate(
     { _id: id },
@@ -334,18 +273,12 @@ export const createUser = async (
     let isUserExist: IUserDocument | null | undefined = null;
 
     if (payload.email) {
-      // isUserExist = await db.query.users.findFirst({
-      //   where: eq(users.email, payload.email),
-      // });
       isUserExist = await User.findOne({ email: payload.email });
 
       if (isUserExist) {
         throw new ConflictError('User already exists with same email address');
       }
     } else if (payload.phoneNo) {
-      // isUserExist = await db.query.users.findFirst({
-      //   where: eq(users.email, payload.phoneNo),
-      // });
       isUserExist = await User.findOne({ phoneNo: payload.phoneNo });
 
       if (isUserExist) {
@@ -360,63 +293,9 @@ export const createUser = async (
 
   const hashedPassword = await hashPassword(payload.password);
 
-  // const createdUser = (
-  //   await db
-  //     .insert(users)
-  //     .values({
-  //       ...payload,
-  //       password: hashedPassword,
-  //     })
-  //     .returning()
-  //     .execute()
-  // )[0];
   const createdUser = await User.create({
     ...payload,
     password: hashedPassword,
   });
-  return { ...createdUser.toObject(), password: '', otp: '' };
-};
-
-export type SeedUsersReturn = {
-  superAdmin: IUser;
-};
-
-export const seedUsers = async (): Promise<SeedUsersReturn> => {
-  // await User.deleteMany({});
-
-  // const password = 'Pa$$w0rd!';
-  const superAdmin = await createUser({
-    email: 'john5.doe@example.com',
-    tempEmail: 'john4.temp@example.com',
-    avatar: 'https://example.com/avatars/johndoe.jpg',
-    firstName: 'John',
-    lastName: 'Doe',
-    role: 'SUPER_ADMIN',
-    dob: new Date(),
-    phoneNo: '+1234567890',
-    tempPhoneNo: '+1987654321',
-    isActive: true,
-    otp: null,
-    password: 'Pa$$w0rd!',
-    // passwordResetCode: 'reset123',
-    // setPasswordCode: 'set456',
-    // _id: '507f1f77bcf86cd799439011',
-    // otp: '123456',
-    // loginOtp: '654321',
-    // updateOtp: '789012',
-    country: 'United States',
-    state: 'California',
-    city: 'San Francisco',
-    streetAddress: '123 Tech Street',
-    business: '507f1f77bcf86cd799439011',
-    postalCode: '94105',
-    // updatedAt: new Date(),
-    // createdAt: new Date(),
-    accountName: 'John Doe',
-    bankName: 'TechBank',
-    accountNumber: '1234567890',
-    interest: '507f1f77bcf86cd799439011',
-  });
-
-  return { superAdmin };
+  return { ...createdUser.toObject(), password: '', otp: null };
 };

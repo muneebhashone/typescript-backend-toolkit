@@ -29,7 +29,7 @@ export const canAccess =
           StatusCodes.UNAUTHORIZED,
         );
       }
-
+      console.log({ requestUser });
       const currentUser = await getUserById(
         { id: requestUser.sub },
         requestUser.role,

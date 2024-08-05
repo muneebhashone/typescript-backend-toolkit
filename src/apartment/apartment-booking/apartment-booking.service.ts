@@ -3,6 +3,8 @@ import { ReturnMessageSchemaType } from '../../lib/common.schema';
 import {
   ApartmentBookingsSummaryType,
   ApartmentBookingsType,
+  BookingPaymentStatus,
+  BookingStatus,
 } from '../../types';
 import { getApartmentBookingPaymentDetails } from '../../utils/apartment.utils';
 import { JwtPayload } from '../../utils/auth.utils';
@@ -59,17 +61,18 @@ export const confirmApartmentBooking = async (
     },
   );
 
-  if (apartmentBookingConfirmed) {
-    return {
-      status: 200,
-      message: 'Apartment Successfully Booked',
-    };
+  if (!apartmentBookingConfirmed) {
+    throw new Error('Apartment Booking Failed');
   }
-
   return {
-    status: 400,
-    message: 'Apartment Booking Failed',
+    status: 200,
+    message: 'Apartment Successfully Booked',
   };
+
+  // return {
+  //   status: 400,
+  //   message: 'Apartment Booking Failed',
+  // };
 };
 
 export const deleteApartmentBooking = async (
@@ -86,12 +89,38 @@ export const refundApartmentBooking = async (
   apartmentBookingId: ApartmentBookingIdSchemaType,
 ): Promise<ReturnMessageSchemaType> => {
   const { id } = apartmentBookingId;
+  const booking = await ApartmentBooking.findOne({ _id: id });
+  if (booking?.status !== BookingStatus.cancelled) {
+    throw new Error('Please cancel the booking first!');
+  }
+  const updatedBooking = await ApartmentBooking.findOneAndUpdate(
+    { _id: id, status: BookingStatus.cancelled },
+    {
+      $set: {
+        paymentStatus: BookingPaymentStatus.refunded,
+      },
+    },
+    { new: true },
+  );
+
+  if (!updatedBooking) {
+    throw new Error('Booking Refund failed or not found');
+  }
+
+  return {
+    status: StatusCodes.OK,
+    message: 'Payment Refunded',
+  };
+};
+export const cancelApartmentBooking = async (
+  apartmentBookingId: ApartmentBookingIdSchemaType,
+): Promise<ReturnMessageSchemaType> => {
+  const { id } = apartmentBookingId;
   const updatedBooking = await ApartmentBooking.findByIdAndUpdate(
     id,
     {
       $set: {
-        status: 'cancelled',
-        paymentStatus: 'refund',
+        status: BookingStatus.cancelled,
       },
     },
     { new: true },
@@ -100,13 +129,13 @@ export const refundApartmentBooking = async (
   if (!updatedBooking) {
     return {
       status: StatusCodes.BAD_REQUEST,
-      message: 'Booking Refund failed or not found',
+      message: 'Booking Cancellation failed or not found',
     };
   }
 
   return {
     status: StatusCodes.OK,
-    message: 'Payment Refunded',
+    message: 'Booking Cancelled',
   };
 };
 

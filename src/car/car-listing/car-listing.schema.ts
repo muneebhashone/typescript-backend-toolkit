@@ -54,6 +54,7 @@ export const carListQueryParamsSchema = z
 export const carCreateSchema = z.object({
   name: z.string().max(255),
   coverPhoto: z.string().nullable().optional(),
+  photos: z.array(z.string().url()),
   video: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   make: z.string().max(255),

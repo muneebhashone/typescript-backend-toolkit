@@ -48,5 +48,10 @@ export const BusinessTypes = {
 } as const;
 
 export type BusinessTypesUnion = keyof typeof BusinessTypes;
+export interface GoogleCallbackQuery {
+  code: string;
+  error?: string;
+}
+
 export type BookingStatusUnion = keyof typeof BookingStatus;
 export type BookingPaymentStatusUnion = keyof typeof BookingPaymentStatus;

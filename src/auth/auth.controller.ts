@@ -24,6 +24,7 @@ import {
 import {
   changePassword,
   forgetPassword,
+  googleLogin,
   loginUserByEmail,
   loginUserByPhone,
   loginUserByPhoneAndPassword,
@@ -35,6 +36,9 @@ import {
   verifyOtp,
 } from './auth.service';
 import { RoleType } from '../enums';
+import { sign } from 'jsonwebtoken';
+import { GoogleCallbackQuery } from '../types';
+import { ISocialAccountInfo } from '../models/users';
 
 export const handleSetPassword = async (
   req: Request<never, never, SetPasswordSchemaType>,
@@ -234,8 +238,9 @@ export const handleValidateLoginCode = async (
   try {
     const token = await validateLoginOtp(req.body);
 
-    res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
-
+    if (process.env.SET_SESSION) {
+      res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
+    }
     return res.json({ token: token });
   } catch (err) {
     if (err instanceof InvalidCredentialseError) {
@@ -261,5 +266,35 @@ export const handleGetCurrentUser = async (req: Request, res: Response) => {
       'Not allowed to access this route',
       StatusCodes.UNAUTHORIZED,
     );
+  }
+};
+export const handleGoogleLogin = async (req: Request, res: Response) => {
+  try {
+    const googleAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URI}&scope=email profile`;
+    res.redirect(googleAuthURL);
+  } catch (err) {
+    if (err instanceof NotFoundError) {
+      return errorResponse(res, err.message, StatusCodes.NOT_FOUND);
+    }
+
+    return errorResponse(
+      res,
+      'Not allowed to access this route',
+      StatusCodes.UNAUTHORIZED,
+    );
+  }
+};
+export const handleGoogleCallback = async (
+  req: Request<{}, {}, {}, GoogleCallbackQuery>,
+  res: Response,
+) => {
+  try {
+    const user = await googleLogin(req.query);
+    if (!user) throw new Error('Failed to login');
+    res.cookie(AUTH_COOKIE_KEY, user.socialAccount?.accessToken, COOKIE_CONFIG);
+
+    return res.json({ token: user.socialAccount?.accessToken });
+  } catch (err) {
+    res.status(401).json({ error: (err as { message: string }).message });
   }
 };
