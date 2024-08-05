@@ -34,7 +34,7 @@ apartmentRouter.post(
 
 apartmentRouter.delete(
   '/',
-  canAccess('roles', ['VENDOR', 'SUPER_ADMIN']),
+  canAccess('roles', ['SUPER_ADMIN']),
   handleDeleteApartments,
 );
 
