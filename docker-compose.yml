@@ -10,14 +10,14 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
-      - mongodb_city_link:/data/db
+      - ./.database/mongodb_city_link:/data/db
 
   redis:
     image: redis:latest
     ports:
       - 6379:6379
     volumes:
-      - redis:/data
+      - ./.databse/redis:/data
 
 volumes:
   mongodb_city_link:

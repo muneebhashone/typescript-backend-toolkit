@@ -1,16 +1,18 @@
 import { Queue } from '../lib/queue.server';
 import { INotification } from '../notification/notification.model';
+import { sendNotifications } from '../notification/notification.service';
 
-export interface NotificationQueuePayloadType extends INotification {
-  bookingId?: string
+export interface NotificationQueuePayloadType
+  extends Omit<INotification, 'isRead'> {
+  bookingId?: string;
 }
 
-export const NotificationQueue = Queue<NotificationQueuePayloadType>(
+export const notificationQueue = Queue<NotificationQueuePayloadType>(
   'NotificationQueue',
   async (job) => {
     try {
       const { data } = job;
-      const { notificationType } = data;
+      await sendNotifications(data);
 
       return true;
     } catch (err) {
@@ -22,7 +24,5 @@ export const NotificationQueue = Queue<NotificationQueuePayloadType>(
 export const addNotificationJob = async (
   data: NotificationQueuePayloadType,
 ) => {
-  await NotificationQueue.add('sendNotification', data);
+  await notificationQueue.add('sendNotification', data);
 };
-
-const addNotificationToBatch = async () => {};

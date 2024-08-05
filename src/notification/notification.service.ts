@@ -5,6 +5,22 @@ import User from '../models/users';
 import { NotificationQueuePayloadType } from '../queues/notification.queue';
 import { INotification, Notification } from './notification.model';
 import Batch from 'batch';
+import { NotificationFCMTokenSchemaType } from './notification.schema';
+
+export const setFCMToken = async (
+  payload: NotificationFCMTokenSchemaType & { userId: string },
+): Promise<void> => {
+  await fbAdmin.auth().verifyIdToken(payload.fcmToken);
+  const tokenSet = await User.findByIdAndUpdate(payload.userId, {
+    $set: {
+      fcmToken: payload.fcmToken,
+    },
+  });
+
+  if (!tokenSet) {
+    throw new Error('Invalid User ID, or server error');
+  }
+};
 
 export const sendNotifications = async (data: NotificationQueuePayloadType) => {
   const users = await fetchUsersForNotification(data);
@@ -29,6 +45,7 @@ export const sendNotifications = async (data: NotificationQueuePayloadType) => {
             ...data,
             sender: null,
             recievers: users.map((user) => user.id),
+            isRead: false,
           }),
         ];
 
@@ -92,5 +109,3 @@ const storeNotificationInDB = async (data: INotification) => {
     console.error('Error storing notification in DB:', error);
   }
 };
-
-const fetchChatUsers = async (data: NotificationQueuePayloadType) => {};
