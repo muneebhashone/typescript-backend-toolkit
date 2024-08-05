@@ -46,6 +46,9 @@ import carBookingRouter, {
 import notificationRouter, {
   NOTIFICATION_ROUTER_ROOT,
 } from '../notification/notification.router';
+import chauffeurRouter, {
+  CHAUFFEUR_ROUTER_ROOT,
+} from '../chauffeur/chauffeur.routes';
 
 const router = express.Router();
 
@@ -68,5 +71,6 @@ router.use(CAR_ROUTER_ROOT, carRouter);
 router.use(REVIEW_ROUTER_ROOT, reviewRouter);
 router.use(CAR_BOOKING_ROUTER_ROOT, carBookingRouter);
 router.use(NOTIFICATION_ROUTER_ROOT, notificationRouter);
+router.use(CHAUFFEUR_ROUTER_ROOT, chauffeurRouter);
 
 export default router;
