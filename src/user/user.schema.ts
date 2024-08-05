@@ -10,21 +10,24 @@ import {
 const baseCreateUser = {
   email: z
     .string({ required_error: 'Email is required' })
-    .email({ message: 'Email is not valid' }),
-  name: z.string({ required_error: 'Name is required' }).min(1),
+    .email({ message: 'Email is not valid' })
+    .optional(),
+  name: z.string({ required_error: 'Name is required' }).min(1).optional(),
 };
 
 export const createUserSchema = z.object({
   ...baseCreateUser,
   firstName: z.string({ required_error: 'Name is required' }).min(1),
-  lastName: z.string({ required_error: 'Name is required' }).min(1),
+  lastName: z.string({ required_error: 'Name is required' }).min(1).optional(),
   phoneNo: z
     .string({ required_error: 'Phone number is required' })
     .min(6, 'Phone number must atleast contains 6 characters')
-    .max(15, 'Phone number should not be greater than 15 characters'),
+    .max(15, 'Phone number should not be greater than 15 characters')
+    .optional(),
   dob: z
     .string({ required_error: 'Birthday is required' })
-    .datetime("Date must be formated as 'YYYY-MM-DD'"),
+    .datetime("Date must be formated as 'YYYY-MM-DD'")
+    .optional(),
 });
 
 export const updateUserEmailSchema = z.object({

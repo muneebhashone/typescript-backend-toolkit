@@ -5,6 +5,8 @@ import {
   handleChangePassword,
   handleForgetPassword,
   handleGetCurrentUser,
+  handleGoogleCallback,
+  handleGoogleLogin,
   handleLoginByEmail,
   handleLoginByPhone,
   handleLoginByPhoneAndPassword,
@@ -104,5 +106,8 @@ authRouter.post(
   validateZodSchema({ body: setPasswordSchema }),
   handleSetPassword,
 );
+
+authRouter.get('/google', handleGoogleLogin);
+authRouter.get('/google/callback', handleGoogleCallback);
 
 export default authRouter;

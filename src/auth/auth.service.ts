@@ -1,15 +1,18 @@
-import { RoleType } from '../enums';
+import { rolesEnums, RoleType, SOCIAL_ACCOUNTS } from '../enums';
 import {
   InvalidCredentialseError,
   NotFoundError,
 } from '../errors/errors.service';
-import User from '../models/users';
+import User, { IUser } from '../models/users';
 import { SendOtpEmailQueue } from '../queues/email.queue';
-import { UserType } from '../types';
+import { GoogleCallbackQuery, UserType } from '../types';
 import { createUser } from '../user/user.services';
 import {
+  GoogleUserInfo,
   JwtPayload,
   compareHash,
+  fetchGoogleTokens,
+  getUserInfo,
   hashPassword,
   signToken,
 } from '../utils/auth.utils';
@@ -469,4 +472,55 @@ export const validateLoginOtp = async (payload: ValidateLoginOtpSchemaType) => {
   const token = await signToken(jwtPayload);
 
   return token;
+};
+export const googleLogin = async (
+  payload: GoogleCallbackQuery,
+): Promise<UserType> => {
+  const { code, error } = payload;
+  console.log({ code, error });
+  if (error) {
+    throw new Error(error);
+  }
+
+  if (!code) {
+    throw new Error('Code Not Provided');
+  }
+  const tokenResponse = await fetchGoogleTokens({ code });
+
+  const { access_token, refresh_token, expires_in } = tokenResponse;
+
+  const userInfoResponse = await getUserInfo(access_token);
+  console.log({ userInfoResponse });
+
+  // const userInfo = (await userInfoResponse.) as GoogleUserInfo;
+  const { id, email, name, picture } = userInfoResponse;
+  const existingUser = await User.findOne({ email });
+  if (!existingUser) {
+    return await createUser({
+      email,
+      firstName: name,
+      avatar: picture,
+      role: rolesEnums[0],
+      isActive: true,
+      password: generateRandomNumbers(4),
+      socialAccount: {
+        refreshToken: refresh_token,
+        tokenExpiry: new Date(Date.now() + expires_in * 1000),
+        accountType: SOCIAL_ACCOUNTS[0],
+        accessToken: access_token,
+        accountID: id,
+      },
+    });
+  } else {
+    existingUser.socialAccount = {
+      refreshToken: refresh_token,
+      tokenExpiry: new Date(Date.now() + expires_in * 1000),
+      accountType: SOCIAL_ACCOUNTS[0],
+      accessToken: access_token,
+      accountID: id,
+    };
+    await existingUser.save();
+  }
+
+  return existingUser.toObject();
 };
