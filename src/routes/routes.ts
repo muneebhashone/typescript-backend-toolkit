@@ -43,6 +43,9 @@ import reviewRouter, { REVIEW_ROUTER_ROOT } from '../review/review.router';
 import carBookingRouter, {
   CAR_BOOKING_ROUTER_ROOT,
 } from '../car/car-booking/car-booking.routes';
+import chauffeurRouter, {
+  CHAUFFEUR_ROUTER_ROOT,
+} from '../chauffeur/chauffeur.routes';
 
 const router = express.Router();
 
@@ -64,5 +67,6 @@ router.use(APARTMENT_BOOKING_ROUTER_ROOT, apartmentBookingRouter);
 router.use(CAR_ROUTER_ROOT, carRouter);
 router.use(REVIEW_ROUTER_ROOT, reviewRouter);
 router.use(CAR_BOOKING_ROUTER_ROOT, carBookingRouter);
+router.use(CHAUFFEUR_ROUTER_ROOT, chauffeurRouter);
 
 export default router;
