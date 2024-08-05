@@ -144,7 +144,7 @@ export const createApartmentBookingSummary = async (
   user: JwtPayload,
 ): Promise<ApartmentBookingsType> => {
   const apartment = await Apartment.findById(payload.apartment).select(
-    'name address propertyPrice coverPhotoUrl ratingCount totalRating userId',
+    'name address propertyPrice coverPhotoUrl ratingCount totalRating owner',
   );
 
   if (!apartment)
@@ -160,7 +160,7 @@ export const createApartmentBookingSummary = async (
   const booking = await ApartmentBooking.create({
     ...payload,
     confirmed: false,
-    apartmentOwner: apartment.userId,
+    apartmentOwner: apartment.owner,
     status: 'pending',
     paymentStatus: 'unpaid',
     user: user.sub,

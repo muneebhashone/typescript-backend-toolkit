@@ -1,11 +1,6 @@
-import z from 'zod';
 import validator from 'validator';
-import { BusinessTypes } from './review.types';
-
-// Define the BusinessTypes enum
-export const businessTypesSchema = z.enum(
-  Object.keys(BusinessTypes) as [keyof typeof BusinessTypes],
-);
+import z from 'zod';
+import { businessTypesSchema } from '../lib/common.schema';
 
 // Define the ReviewType schema
 export const reviewTypeSchema = z.object({
@@ -41,7 +36,6 @@ export const reviewSchema = z.object({
 });
 
 // Exporting types for usage
-export type BusinessTypesSchemaType = z.infer<typeof businessTypesSchema>;
 export type ReviewTypeSchemaType = z.infer<typeof reviewTypeSchema>;
 export type ReviewSchemaType = z.infer<typeof reviewSchema>;
 export type ReviewIdSchemaType = z.infer<typeof reviewIdSchema>;

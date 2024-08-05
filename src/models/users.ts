@@ -36,6 +36,7 @@ export interface IUser {
   bankName?: string;
   accountNumber?: string;
   interest?: string;
+  fcmToken?: string;
   socialAccount?: ISocialAccountInfo;
 }
 const SocialAccountSchema = new Schema<ISocialAccountInfo>({
@@ -92,6 +93,10 @@ const UserSchema: Schema<IUser> = new Schema({
     required: false,
   },
   socialAccount: { type: SocialAccountSchema, required: false },
+  fcmToken: {
+    type: String,
+    required: false,
+  },
 });
 export interface ISocialAccountDocument extends ISocialAccountInfo, Document {}
 export interface IUserDocument extends IUser, Document {}
