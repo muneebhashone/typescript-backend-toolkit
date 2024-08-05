@@ -1,32 +1,39 @@
 import { ApartmentBooking } from '../apartment/apartment-booking/apartment-booking.model';
-import { CarBooking } from '../car/car-booking.model';
+import { CarBooking } from '../car/car-booking/car-booking.model';
 import fbAdmin from '../lib/fcm';
 import User from '../models/users';
 import { NotificationQueuePayloadType } from '../queues/notification.queue';
-import { INotification } from './notification.model';
+import { INotification, Notification } from './notification.model';
 import Batch from 'batch';
 
 export const sendNotifications = async (data: NotificationQueuePayloadType) => {
-  const { recievers, sender } = data;
-
   const users = await fetchUsersForNotification(data);
 
   const batch = new Batch();
-  batch.concurrency(5); // Number of concurrent batch processes
+  batch.concurrency(5);
 
   users.forEach((user) => {
     batch.push(async (done) => {
       try {
         const messages = {
-          token: user.fcmToken,
+          token: user.fcmToken as string,
           notification: {
             title: data.title,
             body: data.message,
           },
         };
 
-        await fbAdmin.messaging().send(messages);
-        await storeNotificationInDB(user._id, notificationType, data); // Store notification in DB
+        const promises = [
+          fbAdmin.messaging().send(messages),
+          storeNotificationInDB({
+            ...data,
+            sender: null,
+            recievers: users.map((user) => user.id),
+          }),
+        ];
+
+        await Promise.all(promises);
+
         done(null, `Notification sent to user ${user._id}`);
       } catch (error) {
         console.error(`Error sending notification to user ${user._id}:`, error);
@@ -66,14 +73,23 @@ const fetchBookingUsers = async (data: NotificationQueuePayloadType) => {
       const apartmentBooking = await ApartmentBooking.findById(data.bookingId);
       return User.find({
         _id: { $in: [apartmentBooking?.apartmentOwner] },
-      }).select('fcmToken');
+      }).select('fcmToken _id');
     case 'car':
       const carBooking = await CarBooking.findById(data.bookingId);
       return User.find({ _id: { $in: [carBooking?.owner] } }).select(
-        'fcmToken',
+        'fcmToken _id',
       );
     default:
       return [];
+  }
+};
+
+const storeNotificationInDB = async (data: INotification) => {
+  try {
+    const notification = await Notification.create({ ...data });
+    await notification.save();
+  } catch (error) {
+    console.error('Error storing notification in DB:', error);
   }
 };
 
