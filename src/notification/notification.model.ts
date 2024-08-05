@@ -8,7 +8,7 @@ import { BusinessTypes, BusinessTypesUnion } from '../types';
 export interface INotification {
   title: string;
   message: string;
-  sender?: mongoose.Schema.Types.ObjectId;
+  sender?: mongoose.Schema.Types.ObjectId | null;
   notificationType: TYPE_OF_NOTIFICATION_UNION;
   recievers: mongoose.Schema.Types.ObjectId[];
   businessType?: BusinessTypesUnion;
@@ -32,12 +32,12 @@ const NotificationSchema = new Schema<INotification>(
     },
     sender: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      required: false,
       ref: 'User',
     },
     recievers: [
       {
-        type: mongoose.Schema.Types,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
       },
