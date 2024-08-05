@@ -1,10 +1,6 @@
 import mongoose from 'mongoose';
-import {
-  BusinessTypes,
-  BusinessTypesUnion,
-  IReviewType,
-  IReview,
-} from './review.types';
+import { IReview, IReviewType } from './review.types';
+import { BusinessTypes } from '../types';
 
 // Schema for ReviewType
 const ReviewTypeSchema = new mongoose.Schema<IReviewType>({
@@ -24,7 +20,7 @@ const ReviewSchema = new mongoose.Schema<IReview>(
     refId: { type: mongoose.Schema.Types.ObjectId, required: true },
     businessType: {
       type: String,
-      enum: Object.keys(BusinessTypes) as BusinessTypesUnion[],
+      enum: Object.keys(BusinessTypes),
       required: true,
     },
     reviewTypes: [{ type: ReviewTypeSchema, required: true }],

@@ -40,6 +40,14 @@ export const BookingPaymentStatus = {
   refunded: 'refunded',
 } as const;
 
+export const BusinessTypes = {
+  apartment: 'apartment',
+  car: 'car',
+  jet: 'jet',
+  boat: 'boat',
+} as const;
+
+export type BusinessTypesUnion = keyof typeof BusinessTypes;
 export interface GoogleCallbackQuery {
   code: string;
   error?: string;
