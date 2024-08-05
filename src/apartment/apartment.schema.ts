@@ -24,6 +24,7 @@ export const apartmentCreateOrUpdateSchema = z.object({
   coverPhotoUrl: z.string().nullable().optional(),
   videoUrl: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
+  photos: z.array(z.string().url()),
   address: z.string().max(255),
   city: z.string().max(100),
   state: z.string().max(100),
