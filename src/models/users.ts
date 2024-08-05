@@ -96,6 +96,7 @@ const UserSchema: Schema<IUser> = new Schema({
   fcmToken: {
     type: String,
     required: false,
+    default: null,
   },
 });
 export interface ISocialAccountDocument extends ISocialAccountInfo, Document {}

@@ -10,8 +10,9 @@ export interface INotification {
   message: string;
   sender?: mongoose.Schema.Types.ObjectId | null;
   notificationType: TYPE_OF_NOTIFICATION_UNION;
-  recievers: mongoose.Schema.Types.ObjectId[];
+  recievers?: mongoose.Schema.Types.ObjectId[];
   businessType?: BusinessTypesUnion;
+  isRead: boolean;
 }
 
 export interface INotificationDocument extends INotification, Document {}
@@ -47,6 +48,11 @@ const NotificationSchema = new Schema<INotification>(
       enum: Object.keys(BusinessTypes),
       required: true,
       default: null,
+    },
+    isRead: {
+      type: Boolean,
+      default: false,
+      required: true,
     },
   },
   { timestamps: true },

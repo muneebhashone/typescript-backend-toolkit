@@ -16,6 +16,11 @@ import {
   ConfirmApartmentBookingSchema,
   MyApartmentBookingsSchema,
 } from './apartment-booking.schema';
+import { addNotificationJob } from '../../queues/notification.queue';
+import {
+  NOTIFICATION_MESSAGES,
+  NOTIFICATION_TITLE,
+} from '../../notification/notification.constants';
 
 export const getApartmentBooking = async (): Promise<
   ApartmentBookingsType[]
@@ -64,6 +69,15 @@ export const confirmApartmentBooking = async (
   if (!apartmentBookingConfirmed) {
     throw new Error('Apartment Booking Failed');
   }
+
+  await addNotificationJob({
+    title: NOTIFICATION_TITLE.YOUR_PURCHASE_IS_DONE,
+    message: NOTIFICATION_MESSAGES.YOUR_PURCHASE_IS_DONE,
+    notificationType: 'SYSTEM_NOTIFICATION',
+    businessType: 'apartment',
+    bookingId: apartmentBookingConfirmed.id,
+  });
+
   return {
     status: 200,
     message: 'Apartment Successfully Booked',
