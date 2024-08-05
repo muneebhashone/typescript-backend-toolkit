@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { BookingPaymentStatusUnion, BookingStatusUnion } from '../types';
+import { BookingPaymentStatusUnion, BookingStatusUnion } from '../../types';
 
 export const CarBookingTypes = {
   one_way: 'one_way',
