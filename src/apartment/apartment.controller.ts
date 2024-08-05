@@ -6,6 +6,7 @@ import {
   deleteApartments,
   getApartment,
   getApartments,
+  getMyApartments,
   updateApartment,
 } from './apartment.service';
 import {
@@ -16,6 +17,15 @@ import {
 export const handleGetApartments = async (req: Request, res: Response) => {
   try {
     const result = await getApartments(req.query);
+
+    return successResponse(res, undefined, result);
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+export const handleGetMyApartments = async (req: Request, res: Response) => {
+  try {
+    const result = await getMyApartments({ id: req.user.sub });
 
     return successResponse(res, undefined, result);
   } catch (err) {
@@ -75,7 +85,8 @@ export const handleDeleteApartment = async (
   res: Response,
 ) => {
   try {
-    await deleteApartment({ id: req.params.id });
+    const userId = req.user?.sub;
+    await deleteApartment({ id: req.params.id }, { id: userId });
 
     return successResponse(res, 'Apartment deleted successfully');
   } catch (err) {
