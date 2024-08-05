@@ -169,7 +169,6 @@ export const createApartmentBookingSummary = async (
   if (!discount)
     throw new Error('Discount selected for booking does not exist');
 
-  console.log({ apartment, discount });
 
   const booking = await ApartmentBooking.create({
     ...payload,

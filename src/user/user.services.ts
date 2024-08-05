@@ -40,7 +40,6 @@ export const getUserById = async (
   const user = await User.findOne({
     _id: id,
   }).select('+otp');
-  console.log({ user });
   if (role === 'VENDOR') {
     await user?.populate('business');
   }

@@ -477,7 +477,6 @@ export const googleLogin = async (
   payload: GoogleCallbackQuery,
 ): Promise<UserType> => {
   const { code, error } = payload;
-  console.log({ code, error });
   if (error) {
     throw new Error(error);
   }
@@ -490,7 +489,6 @@ export const googleLogin = async (
   const { access_token, refresh_token, expires_in } = tokenResponse;
 
   const userInfoResponse = await getUserInfo(access_token);
-  console.log({ userInfoResponse });
 
   // const userInfo = (await userInfoResponse.) as GoogleUserInfo;
   const { id, email, name, picture } = userInfoResponse;

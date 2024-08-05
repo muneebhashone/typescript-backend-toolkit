@@ -105,6 +105,7 @@ export const createCarBooking = async (
     bookingStatus: 'pending',
     owner: car.userId,
   });
+  
 
   const booking = await carBooking.populate('carId');
 
