@@ -21,13 +21,31 @@ export const createChauffeur = async (
 
   return chauffeur;
 };
+
 export const getMyChauffeurs = async (
   user: JwtPayload,
 ): Promise<IChauffeur[]> => {
-  const allChauffers = await Chauffeur.find({ vendorId: user?.sub });
+  const allChauffeurs = await Chauffeur.find({ vendorId: user?.sub });
 
-  return allChauffers;
+  return allChauffeurs;
 };
+export const verifyChauffeur = async (
+  user: JwtPayload,
+  chauffeurId: UserIdSchemaType['id'],
+): Promise<IChauffeur> => {
+  const chauffeur = await Chauffeur.findOneAndUpdate(
+    { _id: chauffeurId, vendorId: user.sub },
+    { isVerified: true },
+    { new: true },
+  );
+
+  if (!chauffeur) {
+    throw new Error('Chauffeur not found or unauthorized');
+  }
+
+  return chauffeur;
+};
+
 export const getChauffeursByVendorID = async (
   vendorId: UserIdSchemaType,
 ): Promise<IChauffeur[]> => {
@@ -39,34 +57,45 @@ export const getChauffeursByVendorID = async (
 
   return chauffeurs;
 };
+
 export const updateChauffeurById = async (
   chauffeurId: UserIdSchemaType,
   updateData: ChauffeurBookingSchemaType,
 ): Promise<ChauffeurBookingSchemaType | null> => {
-  try {
-    return await Chauffeur.findByIdAndUpdate(chauffeurId, updateData, {
+  const updatedChauffeur = await Chauffeur.findByIdAndUpdate(
+    chauffeurId.id,
+    updateData,
+    {
       new: true,
       runValidators: true,
-    });
-  } catch (err) {
-    throw new Error('Error updating chauffeur');
+    },
+  );
+
+  if (!updatedChauffeur) {
+    throw new Error('Error updating chauffeur: Chauffeur not found');
   }
+
+  return updatedChauffeur;
 };
 
 export const deleteChauffeurById = async (
   chauffeurId: UserIdSchemaType,
+  userID: UserIdSchemaType,
 ): Promise<void> => {
-  try {
-    await Chauffeur.findByIdAndDelete(chauffeurId);
-  } catch (err) {
-    throw new Error('Error deleting chauffeur');
+  const result = await Chauffeur.deleteOne({
+    _id: chauffeurId.id,
+    vendorId: userID.id,
+  });
+
+  if (result.deletedCount === 0) {
+    throw new Error('Error deleting chauffeur: Chauffeur not found');
   }
 };
 
 export const deleteAllChauffeurs = async (): Promise<void> => {
-  try {
-    await Chauffeur.deleteMany({});
-  } catch (err) {
-    throw new Error('Error deleting all chauffeurs');
+  const result = await Chauffeur.deleteMany({});
+
+  if (result.deletedCount === 0) {
+    throw new Error('Error deleting all chauffeurs: No chauffeurs found');
   }
 };

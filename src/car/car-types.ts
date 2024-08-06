@@ -106,11 +106,11 @@ export interface ICarLocation {
   postalCode: string;
 }
 
-export interface ICarChauffeur {
-  name: string;
-  phoneNumber: string;
-  perDayPrice: number;
-}
+// export interface ICarChauffeur {
+//   name: string;
+//   phoneNumber: string;
+//   perDayPrice: number;
+// }
 
 export interface ICar {
   name: string;
@@ -124,13 +124,13 @@ export interface ICar {
   perDayPrice: number;
   description: string;
   location: ICarLocation;
-  chauffeurDetails: ICarChauffeur;
+  chauffeurId: mongoose.Types.ObjectId;
   subCategory: CarSubCategoryUnion;
   facilities: CarFacilitiesUnion[];
   coverPhoto: string;
   photos: string;
   video?: string;
-  userId: mongoose.Types.ObjectId;
+  userId: mongoose.Schema.Types.ObjectId;
   discounts?: CarDiscountsUnion[];
   cancellationPolicies?: CarCancellationPoliciesUnion[];
   createdAt: Date;

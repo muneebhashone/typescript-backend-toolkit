@@ -25,6 +25,7 @@ export interface ICarBooking {
   bookingType: CarBookingTypesUnion;
   carId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
+  chauffeurId: mongoose.Types.ObjectId;
   owner: mongoose.Types.ObjectId;
   bookingStatus: BookingStatusUnion;
   paymentStatus: BookingPaymentStatusUnion;

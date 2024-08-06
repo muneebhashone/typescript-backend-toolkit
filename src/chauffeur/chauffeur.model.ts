@@ -47,7 +47,6 @@ const ChauffeurSchema = new Schema<IChauffeur>(
     },
     isVerified: {
       type: Boolean,
-      required: true,
     },
     vendorId: {
       type: String,
@@ -56,5 +55,5 @@ const ChauffeurSchema = new Schema<IChauffeur>(
   },
   { timestamps: true },
 );
-const Chauffeur = mongoose.model<IChauffeur>('Chauffer', ChauffeurSchema);
+const Chauffeur = mongoose.model<IChauffeur>('Chauffeur', ChauffeurSchema);
 export default Chauffeur;
