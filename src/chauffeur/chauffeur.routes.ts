@@ -8,6 +8,7 @@ import {
   handleGetMyChauffeurs,
   handleSeedChauffeurs,
   handleUpdateChauffeurByID,
+  handleVerifyChauffeur,
 } from './chauffeur.controller';
 
 export const CHAUFFEUR_ROUTER_ROOT = '/chauffeur';
@@ -20,6 +21,11 @@ chauffeurRouter.post(
 );
 chauffeurRouter.post('/seed', handleSeedChauffeurs);
 chauffeurRouter.get('/', canAccess('roles', ['VENDOR']), handleGetMyChauffeurs);
+chauffeurRouter.patch(
+  '/verify/:id',
+  canAccess('roles', ['VENDOR']),
+  handleVerifyChauffeur,
+);
 chauffeurRouter.get(
   '/:id',
   canAccess('roles', ['DEFAULT_USER']),

@@ -13,7 +13,6 @@ import {
   CarFacilitiesUnion,
   CarSubCategoryUnion,
   ICarLocation,
-  ICarChauffeur,
   ICar,
 } from '../car/car-types';
 
@@ -27,11 +26,11 @@ const CarLocationSchema = new mongoose.Schema<ICarLocation>({
 });
 
 // Schema for CarService
-const CarChauffeurSchema = new mongoose.Schema<ICarChauffeur>({
-  name: { type: String, required: true },
-  phoneNumber: { type: String, required: true },
-  perDayPrice: { type: Number, required: true },
-});
+// const CarChauffeurSchema = new mongoose.Schema<ICarChauffeur>({
+//   name: { type: String, required: true },
+//   phoneNumber: { type: String, required: true },
+//   perDayPrice: { type: Number, required: true },
+// });
 
 // Schema for Car
 const CarSchema = new mongoose.Schema<ICar>(
@@ -65,7 +64,11 @@ const CarSchema = new mongoose.Schema<ICar>(
     perDayPrice: { type: Number, required: true },
     description: { type: String, required: true },
     location: { type: CarLocationSchema, required: true },
-    chauffeurDetails: { type: CarChauffeurSchema, required: true },
+    chauffeurId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Chauffeur',
+      required: true,
+    },
     facilities: [
       {
         type: String,
@@ -99,8 +102,5 @@ export const CarLocation = mongoose.model<ICarLocation>(
   'CarLocation',
   CarLocationSchema,
 );
-export const CarChauffeur = mongoose.model<ICarChauffeur>(
-  'CarChauffeur',
-  CarChauffeurSchema,
-);
+
 export const Car = mongoose.model<ICar>('Car', CarSchema);

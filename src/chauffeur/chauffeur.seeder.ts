@@ -12,7 +12,7 @@ const seedChauffeurs = async () => {
       idBack: 'https://example.com/id/back.jpg',
       verificationPhoto: 'https://example.com/verification.jpg',
       availabilityStatus: 'available',
-      vendorId: '64b32ef1d4d0f7e0e2a4f4d3', // Adjust the vendor ID accordingly
+      vendorId: '64b32ef1d4d0f7e0e2a4f4d3',
     },
     {
       firstName: 'Jane',
@@ -47,8 +47,8 @@ const seedChauffeurs = async () => {
       idFront: 'https://example.com/id/front4.jpg',
       idBack: 'https://example.com/id/back4.jpg',
       verificationPhoto: 'https://example.com/verification4.jpg',
-      availabilityStatus: 'unavailable',
-      vendorId: '64b32ef1d4d0f7e0e2a4f4d4',
+      availabilityStatus: 'inTransit',
+      vendorId: '66b105587e4636d86491315b',
     },
     {
       firstName: 'Michael',
@@ -60,11 +60,12 @@ const seedChauffeurs = async () => {
       idBack: 'https://example.com/id/back5.jpg',
       verificationPhoto: 'https://example.com/verification5.jpg',
       availabilityStatus: 'available',
-      vendorId: '64b32ef1d4d0f7e0e2a4f4d4',
+      vendorId: '66b105587e4636d86491315b',
     },
   ];
 
   try {
+    await Chauffeur.deleteMany({});
     await Chauffeur.insertMany(chauffeurs);
     console.log('Chauffeurs seeded successfully');
   } catch (err) {
