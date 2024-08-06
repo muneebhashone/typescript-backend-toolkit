@@ -12,11 +12,13 @@ import {
   handleUpdateUserEmail,
   handleUpdateUserPhone,
   handleUserSeeder,
+  handleUserTakeABreak,
   handleVerifyUpdateOtp,
 } from './user.controller';
 import {
   createUserSchema,
   getUsersSchema,
+  takeABreakSchema,
   updateHostSchema,
   updateUserEmailSchema,
   updateUserPhoneNoSchema,
@@ -89,6 +91,13 @@ userRouter.post(
   canAccess(),
   validateZodSchema({ body: verifyUpdateOtpSchema }),
   handleVerifyUpdateOtp,
+);
+
+userRouter.post(
+  '/take-a-break',
+  canAccess('roles', ['VENDOR']),
+  validateZodSchema({ body: takeABreakSchema }),
+  handleUserTakeABreak,
 );
 
 export default userRouter;

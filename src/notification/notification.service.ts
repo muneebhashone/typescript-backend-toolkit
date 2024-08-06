@@ -1,7 +1,7 @@
 import { ApartmentBooking } from '../apartment/apartment-booking/apartment-booking.model';
 import { CarBooking } from '../car/car-booking/car-booking.model';
 import fbAdmin from '../lib/fcm';
-import User from '../models/users';
+import User from '../user/user.model';
 import { NotificationQueuePayloadType } from '../queues/notification.queue';
 import { INotification, Notification } from './notification.model';
 import Batch from 'batch';

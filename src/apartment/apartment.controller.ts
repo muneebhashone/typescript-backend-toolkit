@@ -7,11 +7,13 @@ import {
   getApartment,
   getApartments,
   getMyApartments,
+  takeABreakForApartment,
   updateApartment,
 } from './apartment.service';
 import {
   ApartmentCreateOrUpdateSchemaType,
   ApartmentIdSchemaType,
+  TakeABreakSchemaType,
 } from './apartment.schema';
 
 export const handleGetApartments = async (req: Request, res: Response) => {
@@ -102,6 +104,22 @@ export const handleDeleteApartments = async (
     await deleteApartments();
 
     return successResponse(res, 'Apartments deleted successfully');
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleApartmentTakeABreak = async (
+  req: Request<never, never, TakeABreakSchemaType>,
+  res: Response,
+) => {
+  try {
+    await takeABreakForApartment({ ...req.body });
+
+    return successResponse(
+      res,
+      "This Apartment has been marked as 'On A Break'.",
+    );
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

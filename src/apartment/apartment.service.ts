@@ -9,6 +9,7 @@ import {
   ApartmentCreateOrUpdateSchemaType,
   ApartmentIdSchemaType,
   ApartmentListQueryParamsType,
+  TakeABreakSchemaType,
 } from './apartment.schema';
 import { addNotificationJob } from '../queues/notification.queue';
 import {
@@ -198,4 +199,19 @@ export const deleteApartment = async (
 
 export const deleteApartments = async (): Promise<void> => {
   await Apartment.deleteMany({});
+};
+
+export const takeABreakForApartment = async (payload: TakeABreakSchemaType) => {
+  const apartment = await Apartment.findByIdAndUpdate(payload.apartmentId, {
+    $set: {
+      isOnBreak: true,
+      reasonForBreak: payload.reason,
+      breakFrom: payload.from,
+      breakTill: payload.till,
+    },
+  });
+
+  if (!apartment) {
+    throw new Error('Apartment not found or invalid token');
+  }
 };
