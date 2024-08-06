@@ -10,14 +10,10 @@ export interface NotificationQueuePayloadType
 export const notificationQueue = Queue<NotificationQueuePayloadType>(
   'NotificationQueue',
   async (job) => {
-    try {
-      const { data } = job;
-      await sendNotifications(data);
+    const { data } = job;
+    await sendNotifications(data);
 
-      return true;
-    } catch (err) {
-      throw err;
-    }
+    return true;
   },
 );
 

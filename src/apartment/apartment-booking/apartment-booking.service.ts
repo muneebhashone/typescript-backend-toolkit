@@ -73,7 +73,7 @@ export const confirmApartmentBooking = async (
   await addNotificationJob({
     title: NOTIFICATION_TITLE.YOUR_PURCHASE_IS_DONE,
     message: NOTIFICATION_MESSAGES.YOUR_PURCHASE_IS_DONE,
-    notificationType: 'SYSTEM_NOTIFICATION',
+    notificationType: 'BOOKING_NOTIFICATION',
     businessType: 'apartment',
     bookingId: apartmentBookingConfirmed.id,
   });
@@ -168,7 +168,6 @@ export const createApartmentBookingSummary = async (
 
   if (!discount)
     throw new Error('Discount selected for booking does not exist');
-
 
   const booking = await ApartmentBooking.create({
     ...payload,

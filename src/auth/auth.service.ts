@@ -3,18 +3,17 @@ import {
   InvalidCredentialseError,
   NotFoundError,
 } from '../errors/errors.service';
-import User, { IUser } from '../models/users';
+import User from '../models/users';
 import { SendOtpEmailQueue } from '../queues/email.queue';
 import { GoogleCallbackQuery, UserType } from '../types';
 import { createUser } from '../user/user.services';
 import {
-  GoogleUserInfo,
-  JwtPayload,
   compareHash,
   fetchGoogleTokens,
   getUserInfo,
   hashPassword,
-  signToken,
+  JwtPayload,
+  signToken
 } from '../utils/auth.utils';
 import { generateRandomNumbers } from '../utils/common.utils';
 import {
