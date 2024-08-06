@@ -12,6 +12,7 @@ import {
   CarListQueryParamsType,
   CarUpdateSchemaType,
 } from './car-listing.schema';
+import Chauffeur from '../../chauffeur/chauffeur.model';
 
 export interface IGetCars {
   results: CarType[];
@@ -110,10 +111,24 @@ export const createCar = async (
   body: CarCreateSchemaType,
   user: JwtPayload,
 ): Promise<CarType> => {
+  const { chauffeurId } = body;
+  const isValidChauffeur = await Chauffeur.findOne({
+    _id: chauffeurId,
+    vendorId: user.sub,
+  });
+
+  if (!isValidChauffeur) {
+    throw new Error(
+      'Invalid chauffeur ID or chauffeur does not belong to the current user.',
+    );
+  }
+
   const car = await Car.create({
     ...body,
     userId: user.sub,
   });
+
+  await car.populate('chauffeurId');
 
   return car;
 };
