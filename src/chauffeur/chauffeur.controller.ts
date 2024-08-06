@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
-import { createCarBooking } from '../car/car-booking/car-booking.services';
+import { UserIdSchemaType } from '../user/user.schema';
 import { errorResponse, successResponse } from '../utils/api.utils';
+import { JwtPayload } from '../utils/auth.utils';
+import { ChauffeurBookingSchemaType } from './chauffeur.schema';
+import seedChauffeurs from './chauffeur.seeder';
 import {
   createChauffeur,
   deleteAllChauffeurs,
@@ -9,10 +12,6 @@ import {
   getMyChauffeurs,
   updateChauffeurById,
 } from './chauffeur.services';
-import { ChauffeurBookingSchemaType } from './chauffeur.schema';
-import { JwtPayload } from '../utils/auth.utils';
-import { UserIdSchemaType } from '../user/user.schema';
-import seedChauffeurs from './chauffeur.seeder';
 export const handleCreateChauffeur = async (
   req: Request<never, never, ChauffeurBookingSchemaType>,
   res: Response,
@@ -132,7 +131,7 @@ export const handleDeleteChauffeurByID = async (
 };
 
 export const handleDeleteAllChauffeurs = async (
-  req: Request<never, never, never>,
+  _: Request<never, never, never>,
   res: Response,
 ) => {
   try {
@@ -147,7 +146,7 @@ export const handleDeleteAllChauffeurs = async (
     );
   }
 };
-export const handleSeedChauffeurs = async (req: Request, res: Response) => {
+export const handleSeedChauffeurs = async (_: Request, res: Response) => {
   try {
     await seedChauffeurs();
     return successResponse(res, 'Chauffeurs seeded successfully');

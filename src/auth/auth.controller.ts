@@ -1,10 +1,13 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import config from '../config/config.service';
+import { RoleType } from '../enums';
 import {
   ConflictError,
   InvalidCredentialseError,
   NotFoundError,
 } from '../errors/errors.service';
+import { GoogleCallbackQuery } from '../types';
 import { errorResponse, successResponse } from '../utils/api.utils';
 import { JwtPayload, signToken } from '../utils/auth.utils';
 import { AUTH_COOKIE_KEY, COOKIE_CONFIG } from './auth.constants';
@@ -35,10 +38,6 @@ import {
   validateLoginOtp,
   verifyOtp,
 } from './auth.service';
-import { RoleType } from '../enums';
-import { sign } from 'jsonwebtoken';
-import { GoogleCallbackQuery } from '../types';
-import { ISocialAccountInfo } from '../models/users';
 
 export const handleSetPassword = async (
   req: Request<never, never, SetPasswordSchemaType>,
@@ -180,9 +179,10 @@ export const handleLoginByEmail = async (
 ) => {
   try {
     const token = await loginUserByEmail(req.body);
-
-    res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
-
+    console.log(config.SET_SESSION, typeof config.SET_SESSION);
+    if (config.SET_SESSION) {
+      res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
+    }
     return res.json({ token: token });
   } catch (err) {
     if (err instanceof InvalidCredentialseError) {
@@ -268,7 +268,7 @@ export const handleGetCurrentUser = async (req: Request, res: Response) => {
     );
   }
 };
-export const handleGoogleLogin = async (req: Request, res: Response) => {
+export const handleGoogleLogin = async (_: Request, res: Response) => {
   try {
     const googleAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URI}&scope=email profile`;
     res.redirect(googleAuthURL);
@@ -285,7 +285,7 @@ export const handleGoogleLogin = async (req: Request, res: Response) => {
   }
 };
 export const handleGoogleCallback = async (
-  req: Request<{}, {}, {}, GoogleCallbackQuery>,
+  req: Request<never, never, never, GoogleCallbackQuery>,
   res: Response,
 ) => {
   try {

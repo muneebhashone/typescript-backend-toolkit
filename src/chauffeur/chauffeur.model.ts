@@ -1,6 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
 import { ChauffeurAvailability, IChauffeur } from './chauffeur-types';
-import { ChauffeurBookingSchemaType } from './chauffeur.schema';
 
 const ChauffeurSchema = new Schema<IChauffeur>(
   {

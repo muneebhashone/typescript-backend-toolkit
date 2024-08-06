@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import { canAccess } from '../middlewares/can-access.middleware';
 import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
-import { NotificationFCMTokenSchema } from './notification.schema';
 import { handleSetFCMToken } from './notification.controller';
+import { NotificationFCMTokenSchema } from './notification.schema';
 
 export const NOTIFICATION_ROUTER_ROOT = '/notification';
 

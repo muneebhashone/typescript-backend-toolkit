@@ -1,15 +1,20 @@
-import { FilterQuery, ObjectId } from 'mongoose';
+import { FilterQuery } from 'mongoose';
 import { ApartmentType } from '../types';
+import { UserIdSchemaType } from '../user/user.schema';
 import { JwtPayload } from '../utils/auth.utils';
 import { checkRecordForEmptyArrays } from '../utils/common.utils';
 import { getPaginator, GetPaginatorReturnType } from '../utils/getPaginator';
-import { Apartment, IApartment, IApartmentDocument } from './apartment.model';
+import { Apartment, IApartment } from './apartment.model';
 import {
   ApartmentCreateOrUpdateSchemaType,
   ApartmentIdSchemaType,
   ApartmentListQueryParamsType,
 } from './apartment.schema';
-import { UserIdSchemaType } from '../user/user.schema';
+import { addNotificationJob } from '../queues/notification.queue';
+import {
+  NOTIFICATION_MESSAGES,
+  NOTIFICATION_TITLE,
+} from '../notification/notification.constants';
 
 export interface IGetApartment {
   results: ApartmentType[];
@@ -138,6 +143,13 @@ export const createApartment = async (
   const apartment = await Apartment.create({
     ...body,
     owner: user.sub,
+  });
+
+  await addNotificationJob({
+    title: NOTIFICATION_TITLE.NEW_LISTING,
+    message: NOTIFICATION_MESSAGES.NEW_LISTING,
+    notificationType: 'SYSTEM_NOTIFICATION',
+    businessType: 'apartment',
   });
 
   return apartment;

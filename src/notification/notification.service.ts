@@ -6,6 +6,7 @@ import { NotificationQueuePayloadType } from '../queues/notification.queue';
 import { INotification, Notification } from './notification.model';
 import Batch from 'batch';
 import { NotificationFCMTokenSchemaType } from './notification.schema';
+import { rolesEnums } from '../enums';
 
 export const setFCMToken = async (
   payload: NotificationFCMTokenSchemaType & { userId: string },
@@ -28,7 +29,7 @@ export const sendNotifications = async (data: NotificationQueuePayloadType) => {
   const batch = new Batch();
   batch.concurrency(5);
 
-  users.forEach((user) => {
+  users.forEach((user, i) => {
     batch.push(async (done) => {
       try {
         const messages = {
@@ -81,23 +82,28 @@ const fetchUsersForNotification = async (
 };
 
 const fetchAllUsers = async () => {
-  return await User.find({}).select('fcmToken');
+  return await User.find({
+    role: {
+      $nin: [rolesEnums[1]],
+    },
+  }).select('fcmToken id');
 };
 
 const fetchBookingUsers = async (data: NotificationQueuePayloadType) => {
   switch (data.businessType) {
-    case 'apartment':
-      const apartmentBooking = await ApartmentBooking.findById(data.bookingId);
+    case 'apartment': {
+      const booking = await ApartmentBooking.findById(data.bookingId);
       return User.find({
-        _id: { $in: [apartmentBooking?.apartmentOwner] },
-      }).select('fcmToken _id');
-    case 'car':
-      const carBooking = await CarBooking.findById(data.bookingId);
-      return User.find({ _id: { $in: [carBooking?.owner] } }).select(
-        'fcmToken _id',
-      );
-    default:
+        _id: booking?.apartmentOwner,
+      }).select('fcmToken id');
+    }
+    case 'car': {
+      const booking = await CarBooking.findById(data.bookingId);
+      return User.find({ _id: booking?.owner }).select('fcmToken id');
+    }
+    default: {
       return [];
+    }
   }
 };
 
