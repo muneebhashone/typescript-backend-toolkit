@@ -1,5 +1,5 @@
 import { ConflictError } from '../errors/errors.service';
-import User, { IUser, IUserDocument } from '../models/users';
+import User, { IUser, IUserDocument } from './user.model';
 import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
 import { createUser } from './user.services';

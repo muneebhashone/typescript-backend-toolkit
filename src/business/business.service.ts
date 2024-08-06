@@ -1,4 +1,4 @@
-import Business from '../models/business';
+import Business from './business.model';
 import { BusinessType } from '../types'; // Define your type structure for TypeScript compatibility
 import { BusinessIdSchemaType } from './business.schema';
 

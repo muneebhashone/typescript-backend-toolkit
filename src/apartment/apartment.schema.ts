@@ -55,6 +55,21 @@ export const apartmentCreateOrUpdateSchema = z.object({
   ratingCount: z.number().nonnegative().optional(),
 });
 
+export const takeABreakSchema = z.object({
+  apartmentId: z
+    .string()
+    .refine((value) => validator.isMongoId(value), 'Enter valid Apartment ID'),
+  reason: z.string().min(10).max(150),
+  from: z
+    .string()
+    .refine((value) => validator.isDate(value), 'Enter Valid "From" Date')
+    .transform(Date),
+  till: z
+    .string()
+    .refine((value) => validator.isDate(value), 'Enter Valid "Till" Date')
+    .transform(Date),
+});
+
 export type ApartmentIdSchemaType = z.infer<typeof apartmentIdSchema>;
 export type ApartmentCreateOrUpdateSchemaType = z.infer<
   typeof apartmentCreateOrUpdateSchema
@@ -62,3 +77,4 @@ export type ApartmentCreateOrUpdateSchemaType = z.infer<
 export type ApartmentListQueryParamsType = z.infer<
   typeof apartmentListQueryParamsSchema
 >;
+export type TakeABreakSchemaType = z.infer<typeof takeABreakSchema>;
