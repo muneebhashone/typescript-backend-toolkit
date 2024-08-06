@@ -73,6 +73,11 @@ const CarBookingSchema = new mongoose.Schema<ICarBooking>(
       required: true,
       ref: 'User',
     },
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'User',
+    },
     bookingStatus: {
       type: String,
       enum: Object.keys(BookingStatus) as BookingStatusUnion[],

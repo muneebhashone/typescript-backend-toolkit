@@ -75,16 +75,18 @@ export const carCreateSchema = z.object({
   subCategory: z.enum(
     Object.keys(CarSubCategory) as [keyof typeof CarSubCategory],
   ),
-  chauffeurDetails: z.object({
-    name: z.string().max(255),
-    phoneNumber: z
-      .string()
-      .refine(
-        (value) => validator.isMobilePhone(value),
-        'Phone number must be valid',
-      ),
-    perDayPrice: z.number().nonnegative().transform(String),
-  }),
+  chauffeurId: z.string().refine((value) => validator.isMongoId(value)),
+
+  // chauffeur: z.object({
+  //   name: z.string().max(255),
+  //   phoneNumber: z
+  //     .string()
+  //     .refine(
+  //       (value) => validator.isMobilePhone(value),
+  //       'Phone number must be valid',
+  //     ),
+  //   perDayPrice: z.number().nonnegative().transform(String),
+  // }),
   facilities: z
     .array(z.enum(Object.keys(CarFacilities) as [keyof typeof CarFacilities]))
     .min(1),

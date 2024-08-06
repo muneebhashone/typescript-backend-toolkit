@@ -103,7 +103,9 @@ export const createCarBooking = async (
     standardProtection: true,
     paymentStatus: 'unpaid',
     bookingStatus: 'pending',
+    owner: car.userId,
   });
+  
 
   const booking = await carBooking.populate('carId');
 

@@ -1,7 +1,7 @@
 import { FilterQuery } from 'mongoose';
 import { RoleType } from '../enums';
 import { ConflictError } from '../errors/errors.service';
-import User, { IUser, IUserDocument } from '../models/users';
+import User, { IUserDocument } from '../models/users';
 import { SendOtpEmailQueue } from '../queues/email.queue';
 import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
@@ -40,7 +40,6 @@ export const getUserById = async (
   const user = await User.findOne({
     _id: id,
   }).select('+otp');
-  console.log({ user });
   if (role === 'VENDOR') {
     await user?.populate('business');
   }

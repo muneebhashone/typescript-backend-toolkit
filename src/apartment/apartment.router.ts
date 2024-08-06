@@ -7,6 +7,7 @@ import {
   handleDeleteApartments,
   handleGetApartment,
   handleGetApartments,
+  handleGetMyApartments,
   handleUpdateApartment,
 } from './apartment.controller';
 import {
@@ -24,6 +25,11 @@ apartmentRouter.get(
   validateZodSchema({ query: apartmentListQueryParamsSchema }),
   handleGetApartments,
 );
+apartmentRouter.get(
+  '/my',
+  canAccess('roles', ['SUPER_ADMIN', 'VENDOR']),
+  handleGetMyApartments,
+);
 
 apartmentRouter.post(
   '/',
@@ -34,7 +40,7 @@ apartmentRouter.post(
 
 apartmentRouter.delete(
   '/',
-  canAccess('roles', ['VENDOR', 'SUPER_ADMIN']),
+  canAccess('roles', ['SUPER_ADMIN']),
   handleDeleteApartments,
 );
 
