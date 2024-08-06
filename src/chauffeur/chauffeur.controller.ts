@@ -11,6 +11,7 @@ import {
   getChauffeursByVendorID,
   getMyChauffeurs,
   updateChauffeurById,
+  verifyChauffeur,
 } from './chauffeur.services';
 export const handleCreateChauffeur = async (
   req: Request<never, never, ChauffeurBookingSchemaType>,
@@ -52,6 +53,34 @@ export const handleGetMyChauffeurs = async (
       res,
       (err as Error).message ||
         'An error occurred while creating the chauffeur',
+    );
+  }
+};
+export const handleVerifyChauffeur = async (
+  req: Request<UserIdSchemaType, never, never>,
+  res: Response,
+) => {
+  try {
+    const chauffeurId = req.params.id;
+    if (!req.user || !req.user.sub) {
+      return errorResponse(res, 'Unauthorized: User is not logged in');
+    }
+
+    const verifiedChauffeur = await verifyChauffeur(
+      req.user as JwtPayload,
+      chauffeurId,
+    );
+
+    return successResponse(
+      res,
+      'Chauffeur verified successfully',
+      verifiedChauffeur,
+    );
+  } catch (err) {
+    return errorResponse(
+      res,
+      (err as Error).message ||
+        'An error occurred while verifying the chauffeur',
     );
   }
 };
@@ -118,7 +147,7 @@ export const handleDeleteChauffeurByID = async (
   try {
     const chauffeurId = req.params.id;
 
-    await deleteChauffeurById({ id: chauffeurId });
+    await deleteChauffeurById({ id: chauffeurId }, { id: req.user.sub });
 
     return successResponse(res, 'Chauffeur deleted successfully');
   } catch (err) {
