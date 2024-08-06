@@ -16,6 +16,11 @@ import {
   ConfirmApartmentBookingSchema,
   MyApartmentBookingsSchema,
 } from './apartment-booking.schema';
+import { addNotificationJob } from '../../queues/notification.queue';
+import {
+  NOTIFICATION_MESSAGES,
+  NOTIFICATION_TITLE,
+} from '../../notification/notification.constants';
 
 export const getApartmentBooking = async (): Promise<
   ApartmentBookingsType[]
@@ -64,6 +69,15 @@ export const confirmApartmentBooking = async (
   if (!apartmentBookingConfirmed) {
     throw new Error('Apartment Booking Failed');
   }
+
+  await addNotificationJob({
+    title: NOTIFICATION_TITLE.YOUR_PURCHASE_IS_DONE,
+    message: NOTIFICATION_MESSAGES.YOUR_PURCHASE_IS_DONE,
+    notificationType: 'BOOKING_NOTIFICATION',
+    businessType: 'apartment',
+    bookingId: apartmentBookingConfirmed.id,
+  });
+
   return {
     status: 200,
     message: 'Apartment Successfully Booked',
@@ -144,7 +158,7 @@ export const createApartmentBookingSummary = async (
   user: JwtPayload,
 ): Promise<ApartmentBookingsType> => {
   const apartment = await Apartment.findById(payload.apartment).select(
-    'name address propertyPrice coverPhotoUrl ratingCount totalRating userId',
+    'name address propertyPrice coverPhotoUrl ratingCount totalRating owner',
   );
 
   if (!apartment)
@@ -155,12 +169,10 @@ export const createApartmentBookingSummary = async (
   if (!discount)
     throw new Error('Discount selected for booking does not exist');
 
-  console.log({ apartment, discount });
-
   const booking = await ApartmentBooking.create({
     ...payload,
     confirmed: false,
-    apartmentOwner: apartment.userId,
+    apartmentOwner: apartment.owner,
     status: 'pending',
     paymentStatus: 'unpaid',
     user: user.sub,

@@ -1,13 +1,5 @@
 import mongoose from 'mongoose';
-
-export const BusinessTypes = {
-  apartment: 'apartment',
-  car: 'car',
-  jet: 'jet',
-  boat: 'boat',
-};
-
-export type BusinessTypesUnion = keyof typeof BusinessTypes;
+import { BusinessTypesUnion } from '../types';
 
 export interface IReviewType {
   name: string;

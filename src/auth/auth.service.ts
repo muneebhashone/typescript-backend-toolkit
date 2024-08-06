@@ -3,18 +3,17 @@ import {
   InvalidCredentialseError,
   NotFoundError,
 } from '../errors/errors.service';
-import User, { IUser } from '../models/users';
+import User from '../models/users';
 import { SendOtpEmailQueue } from '../queues/email.queue';
 import { GoogleCallbackQuery, UserType } from '../types';
 import { createUser } from '../user/user.services';
 import {
-  GoogleUserInfo,
-  JwtPayload,
   compareHash,
   fetchGoogleTokens,
   getUserInfo,
   hashPassword,
-  signToken,
+  JwtPayload,
+  signToken
 } from '../utils/auth.utils';
 import { generateRandomNumbers } from '../utils/common.utils';
 import {
@@ -477,7 +476,6 @@ export const googleLogin = async (
   payload: GoogleCallbackQuery,
 ): Promise<UserType> => {
   const { code, error } = payload;
-  console.log({ code, error });
   if (error) {
     throw new Error(error);
   }
@@ -490,7 +488,6 @@ export const googleLogin = async (
   const { access_token, refresh_token, expires_in } = tokenResponse;
 
   const userInfoResponse = await getUserInfo(access_token);
-  console.log({ userInfoResponse });
 
   // const userInfo = (await userInfoResponse.) as GoogleUserInfo;
   const { id, email, name, picture } = userInfoResponse;

@@ -1,14 +1,20 @@
 import { FilterQuery } from 'mongoose';
 import { ApartmentType } from '../types';
+import { UserIdSchemaType } from '../user/user.schema';
 import { JwtPayload } from '../utils/auth.utils';
 import { checkRecordForEmptyArrays } from '../utils/common.utils';
 import { getPaginator, GetPaginatorReturnType } from '../utils/getPaginator';
-import { Apartment } from './apartment.model';
+import { Apartment, IApartment } from './apartment.model';
 import {
   ApartmentCreateOrUpdateSchemaType,
   ApartmentIdSchemaType,
   ApartmentListQueryParamsType,
 } from './apartment.schema';
+import { addNotificationJob } from '../queues/notification.queue';
+import {
+  NOTIFICATION_MESSAGES,
+  NOTIFICATION_TITLE,
+} from '../notification/notification.constants';
 
 export interface IGetApartment {
   results: ApartmentType[];
@@ -108,6 +114,27 @@ export const getApartment = async (
 
   return result;
 };
+export const getMyApartments = async (
+  userId: UserIdSchemaType,
+): Promise<IApartment[]> => {
+  const result = await Apartment.find({
+    owner: userId.id,
+  }).populate([
+    'propertyType',
+    'typeOfPlace',
+    'cancellationPolicies',
+    'facilities',
+    'houseRules',
+    'discounts',
+    'bookingType',
+  ]);
+
+  if (!result) {
+    throw new Error('Apartment not found');
+  }
+
+  return result;
+};
 
 export const createApartment = async (
   body: ApartmentCreateOrUpdateSchemaType,
@@ -115,7 +142,14 @@ export const createApartment = async (
 ): Promise<ApartmentType> => {
   const apartment = await Apartment.create({
     ...body,
-    userId: user.sub,
+    owner: user.sub,
+  });
+
+  await addNotificationJob({
+    title: NOTIFICATION_TITLE.NEW_LISTING,
+    message: NOTIFICATION_MESSAGES.NEW_LISTING,
+    notificationType: 'SYSTEM_NOTIFICATION',
+    businessType: 'apartment',
   });
 
   return apartment;
@@ -147,14 +181,18 @@ export const updateApartment = async (
 
 export const deleteApartment = async (
   apartmentId: ApartmentIdSchemaType,
+  userId: UserIdSchemaType,
 ): Promise<void | Error> => {
   const { id } = apartmentId;
-  const deleted = await Apartment.deleteOne({
-    _id: id,
-  });
 
-  if (deleted.deletedCount < 1) {
+  const apartment = await Apartment.findById(id);
+
+  if (!apartment) {
     throw new Error('Apartment does not Exist');
+  } else if (apartment?.owner?.toString() !== userId.id.toString()) {
+    throw new Error('You do not have permission to delete this apartment.');
+  } else {
+    apartment.deleteOne();
   }
 };
 
