@@ -93,6 +93,25 @@ const CarSchema = new mongoose.Schema<ICar>(
         ) as CarCancellationPoliciesUnion[],
       },
     ],
+    isOnBreak: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    breakFrom: {
+      type: Date,
+      required: true,
+      default: null,
+    },
+    breakTill: {
+      type: Date,
+      required: true,
+      default: null,
+    },
+    reasonForBreak: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true },
 );

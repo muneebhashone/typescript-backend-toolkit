@@ -33,8 +33,10 @@ export interface IApartment {
   facilities?: mongoose.Types.ObjectId[];
   houseRules?: mongoose.Types.ObjectId[];
   discounts?: mongoose.Types.ObjectId[];
-  updatedAt: Date;
-  createdAt: Date;
+  isOnBreak?: boolean;
+  breakFrom?: Date | null;
+  breakTill?: Date | null;
+  reasonForBreak?: string;
 }
 
 export interface IBookingType {
@@ -189,6 +191,25 @@ const ApartmentSchema = new Schema<IApartment>(
       { type: Schema.Types.ObjectId, ref: 'HouseRule', default: [] },
     ],
     discounts: [{ type: Schema.Types.ObjectId, ref: 'Discount', default: [] }],
+    isOnBreak: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    breakFrom: {
+      type: Date,
+      required: false,
+      default: null,
+    },
+    breakTill: {
+      type: Date,
+      required: false,
+      default: null,
+    },
+    reasonForBreak: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true },
 );

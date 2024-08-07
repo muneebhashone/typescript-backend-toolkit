@@ -166,6 +166,10 @@ export const getUsersSchema = z.object({
   filterByRole: z.enum(rolesEnums).optional(),
 });
 
+export const takeABreakSchema = z.object({
+  reason: z.string().min(10).max(150),
+});
+
 export type CreateUserSchemaType = z.infer<typeof createUserSchema>;
 export type GetUsersSchemaType = z.infer<typeof getUsersSchema>;
 export type UserIdSchemaType = z.infer<typeof userIdSchema>;
@@ -177,3 +181,4 @@ export type UpdateUserEmailSchemaType = z.infer<typeof updateUserEmailSchema>;
 export type UpdateUserPhoneSchemaType = z.infer<typeof updateUserPhoneNoSchema>;
 
 export type VerifyUpdateOtpSchemaType = z.infer<typeof verifyUpdateOtpSchema>;
+export type TakeABreakSchemaType = z.infer<typeof takeABreakSchema>;
