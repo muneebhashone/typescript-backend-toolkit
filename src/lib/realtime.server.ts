@@ -1,32 +1,26 @@
 import { Server as IServer } from 'http';
 import { Server as RealtimeServer } from 'socket.io';
 
-let io: RealtimeServer | null = null;
+declare global {
+  var io: RealtimeServer;
+}
+
+let io: RealtimeServer | null = globalThis.io;
 
 export const useSocketIo = (server?: IServer): RealtimeServer => {
-  if (io instanceof RealtimeServer) {
+  if (io) {
     return io;
   } else if (!server) {
     throw new Error('Server instanse is required');
   }
 
-  io = new RealtimeServer(server, {
-    transports: ['websocket'],
+  globalThis.io = new RealtimeServer(server, {
+    transports: ['polling', 'websocket'],
     cors: {
       origin: '*',
       methods: ['GET', 'POST'],
-      //   credentials: true,
     },
   });
 
-  io.on('connection', (socket) => {
-    socket.emit(
-      'connected',
-      `User is connected with SocketID: ${
-        socket.id
-      }, Date: ${new Date().toISOString()}`,
-    );
-  });
-
-  return io;
+  return globalThis.io;
 };

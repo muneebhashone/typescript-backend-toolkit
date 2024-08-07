@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { verifyToken } from '../utils/auth.utils';
+import { JwtPayload, verifyToken } from '../utils/auth.utils';
 
 export const extractJwt = async (
   req: Request,
@@ -15,7 +15,7 @@ export const extractJwt = async (
       return next();
     }
 
-    const decode = await verifyToken(token);
+    const decode = await verifyToken<JwtPayload>(token);
 
     req.user = decode;
     return next();

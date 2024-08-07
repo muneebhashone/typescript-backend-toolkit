@@ -21,4 +21,5 @@ services:
 
 volumes:
   mongodb_city_link:
+    external: true
   redis:

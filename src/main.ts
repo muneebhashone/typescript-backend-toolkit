@@ -16,15 +16,39 @@ import redisStore from './lib/session.store';
 import { extractJwt } from './middlewares/extract-jwt-schema.middleware';
 import apiRoutes from './routes/routes';
 import { connectDatabase } from './lib/database';
+import { useSocketIo } from './lib/realtime.server';
+import path from 'path';
 
 const boostrapServer = async () => {
   const app = express();
 
   await connectDatabase();
-
   app.set('trust proxy', true);
 
   const server = createServer(app);
+
+  const io = useSocketIo(server);
+  io.on('connection', (socket) => {
+    console.log('A user connected');
+
+    socket.emit('chat message', 'Welcome');
+
+    socket.on('chat message', async (msg, clientOffset, callback) => {
+      let result;
+      try {
+        result = 10;
+      } catch (e) {
+        console.error('Error processing message:', e);
+        return;
+      }
+      io.emit('chat message', msg, result);
+      callback();
+    });
+
+    socket.on('disconnect', () => {
+      console.log('A user disconnected');
+    });
+  });
 
   app.use(
     cors({
@@ -38,8 +62,8 @@ const boostrapServer = async () => {
     app.use(morgan('dev'));
   } else {
     app.use(httpLogger);
-    process.env.SET_SESSION = 'true';
   }
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
@@ -52,7 +76,14 @@ const boostrapServer = async () => {
       store: redisStore,
     }),
   );
+  // Middleware to serve static files
+  app.use(express.static(path.join(__dirname, '..', 'public')));
 
+  // Route to send static file via response
+  app.get('/socket', (req, res) => {
+    const filePath = path.join(__dirname, '..', 'public', 'index.html');
+    res.sendFile(filePath);
+  });
   app.use(cookieParser());
 
   app.use(compression());
