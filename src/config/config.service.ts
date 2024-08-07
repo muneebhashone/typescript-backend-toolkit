@@ -22,10 +22,7 @@ const configSchema = z.object({
   SET_PASSWORD_TOKEN_EXPIRES_IN: z.string().min(1).transform(Number),
   STATIC_OTP: z.enum(['1', '0']).transform(Number),
   NODE_ENV: z.union([z.literal('production'), z.literal('development')]),
-  SET_SESSION: z
-    .string()
-    .transform((value) => (value === 'false' ? 0 : 1))
-    .transform(Boolean),
+  SET_SESSION: z.string().transform((value) => !!Number(value)),
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   REDIRECT_URI: z.string(),
