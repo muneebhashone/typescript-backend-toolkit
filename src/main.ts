@@ -18,36 +18,24 @@ import apiRoutes from './routes/routes';
 import { connectDatabase } from './lib/database';
 import { useSocketIo } from './lib/realtime.server';
 import path from 'path';
+import { initChat } from './chat/chat.socket';
 
 const boostrapServer = async () => {
+  await connectDatabase();
+
   const app = express();
 
-  await connectDatabase();
   app.set('trust proxy', true);
 
   const server = createServer(app);
 
   const io = useSocketIo(server);
-  io.on('connection', (socket) => {
-    console.log('A user connected');
 
-    socket.emit('chat message', 'Welcome');
+  initChat(io);
 
-    socket.on('chat message', async (msg, clientOffset, callback) => {
-      let result;
-      try {
-        result = 10;
-      } catch (e) {
-        console.error('Error processing message:', e);
-        return;
-      }
-      io.emit('chat message', msg, result);
-      callback();
-    });
-
-    socket.on('disconnect', () => {
-      console.log('A user disconnected');
-    });
+  app.use((req, _, next) => {
+    req.io = io;
+    next();
   });
 
   app.use(
@@ -80,7 +68,7 @@ const boostrapServer = async () => {
   app.use(express.static(path.join(__dirname, '..', 'public')));
 
   // Route to send static file via response
-  app.get('/socket', (req, res) => {
+  app.get('/socket', (_, res) => {
     const filePath = path.join(__dirname, '..', 'public', 'index.html');
     res.sendFile(filePath);
   });

@@ -1,24 +1,25 @@
-// import { useSocketIo } from '../lib/realtime.server';
+import { Server } from 'socket.io';
 
-// const io = useSocketIo();
-// io.on('connection', (socket) => {
-//   console.log('A user connected');
+export const initChat = (io: Server) => {
+  io.on('connection', (socket) => {
+    console.log('A user connected');
 
-//   socket.emit('chat message', 'Welcome');
+    socket.emit('chat message', 'Welcome');
 
-//   socket.on('chat message', async (msg, clientOffset, callback) => {
-//     let result;
-//     try {
-//       result = 10;
-//     } catch (e) {
-//       console.error('Error processing message:', e);
-//       return;
-//     }
-//     io.emit('chat message', 'Server', result);
-//     callback();
-//   });
+    socket.on('chat message', async (msg, clientOffset, callback) => {
+      let result;
+      try {
+        result = 10;
+      } catch (e) {
+        console.error('Error processing message:', e);
+        return;
+      }
+      io.emit('chat message', msg, result);
+      callback();
+    });
 
-//   socket.on('disconnect', () => {
-//     console.log('A user disconnected');
-//   });
-// });
+    socket.on('disconnect', () => {
+      console.log('A user disconnected');
+    });
+  });
+};
