@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { canAccess } from '../middlewares/can-access.middleware';
 import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
 import {
+  handleApartmentTakeABreak,
   handleCreateApartment,
   handleDeleteApartment,
   handleDeleteApartments,
@@ -14,6 +15,7 @@ import {
   apartmentCreateOrUpdateSchema,
   apartmentIdSchema,
   apartmentListQueryParamsSchema,
+  takeABreakSchema,
 } from './apartment.schema';
 
 export const APARTMENT_ROUTER_ROOT = '/apartment';
@@ -63,6 +65,13 @@ apartmentRouter.delete(
     params: apartmentIdSchema,
   }),
   handleDeleteApartment,
+);
+
+apartmentRouter.post(
+  '/take-a-break',
+  canAccess('roles', ['VENDOR']),
+  validateZodSchema({ body: takeABreakSchema }),
+  handleApartmentTakeABreak,
 );
 
 export default apartmentRouter;

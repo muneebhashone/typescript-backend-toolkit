@@ -7,6 +7,7 @@ import { generateRandomPassword, JwtPayload } from '../utils/auth.utils';
 import {
   CreateUserSchemaType,
   GetUsersSchemaType,
+  TakeABreakSchemaType,
   UpdateHostSchemaType,
   UpdateUserEmailSchemaType,
   UpdateUserPhoneSchemaType,
@@ -20,6 +21,7 @@ import {
   createUser,
   deleteUser,
   getUsers,
+  takeABreakForUser,
   updateHost,
   updateUser,
   updateUserEmail,
@@ -27,6 +29,7 @@ import {
   verifyUpdateOtp,
 } from './user.services';
 import { seedManyUsers, usersToSeed } from './user.seeder';
+import { ReturnMessageSchemaType } from '../lib/common.schema';
 
 export const handleVerifyUpdateOtp = async (
   req: Request<never, never, VerifyUpdateOtpSchemaType>,
@@ -242,6 +245,22 @@ export const handleGetUsers = async (
     );
 
     return res.json({ paginatorInfo: paginatorInfo, results: results });
+  } catch (err) {
+    return errorResponse(res, (err as Error).message);
+  }
+};
+
+export const handleUserTakeABreak = async (
+  req: Request<never, never, TakeABreakSchemaType>,
+  res: Response,
+) => {
+  try {
+    await takeABreakForUser({
+      userId: req.user.sub,
+      reason: req.body.reason,
+    });
+
+    return successResponse(res, "You've been marked as 'On A Break'.");
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

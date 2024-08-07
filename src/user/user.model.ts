@@ -38,6 +38,8 @@ export interface IUser {
   interest?: string;
   fcmToken?: string;
   socialAccount?: ISocialAccountInfo;
+  isOnBreak?: boolean;
+  reasonForBreak?: string;
 }
 const SocialAccountSchema = new Schema<ISocialAccountInfo>({
   accountType: {
@@ -97,6 +99,15 @@ const UserSchema: Schema<IUser> = new Schema({
     type: String,
     required: false,
     default: null,
+  },
+  isOnBreak: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  reasonForBreak: {
+    type: String,
+    required: false,
   },
 });
 export interface ISocialAccountDocument extends ISocialAccountInfo, Document {}

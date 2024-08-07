@@ -11,8 +11,8 @@ import {
   ITypeOfPlace,
 } from './apartment/apartment.model';
 import { ICar } from './car/car-types';
-import { IBusiness } from './models/business';
-import { IUser } from './models/users';
+import { IBusiness } from './business/business.model';
+import { IUser } from './user/user.model';
 
 export type UserType = IUser & { _id?: string };
 export type BusinessType = IBusiness;

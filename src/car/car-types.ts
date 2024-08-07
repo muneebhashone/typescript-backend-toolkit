@@ -133,6 +133,8 @@ export interface ICar {
   userId: mongoose.Schema.Types.ObjectId;
   discounts?: CarDiscountsUnion[];
   cancellationPolicies?: CarCancellationPoliciesUnion[];
-  createdAt: Date;
-  updatedAt: Date;
+  isOnBreak?: boolean;
+  breakFrom?: Date | null;
+  breakTill?: Date | null;
+  reasonForBreak?: string;
 }
