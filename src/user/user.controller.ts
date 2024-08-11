@@ -7,29 +7,24 @@ import { generateRandomPassword, JwtPayload } from '../utils/auth.utils';
 import {
   CreateUserSchemaType,
   GetUsersSchemaType,
-  TakeABreakSchemaType,
-  UpdateHostSchemaType,
   UpdateUserEmailSchemaType,
   UpdateUserPhoneSchemaType,
   UpdateUserSchemaType,
   UserIdSchemaType,
   VerifyUpdateOtpSchemaType,
 } from './user.schema';
+import { seedManyUsers, USERS_TO_SEED } from './user.seeder';
 import {
   activeToggle,
   clearUsers,
   createUser,
   deleteUser,
   getUsers,
-  takeABreakForUser,
-  updateHost,
   updateUser,
   updateUserEmail,
   updateUserPhone,
   verifyUpdateOtp,
 } from './user.services';
-import { seedManyUsers, usersToSeed } from './user.seeder';
-import { ReturnMessageSchemaType } from '../lib/common.schema';
 
 export const handleVerifyUpdateOtp = async (
   req: Request<never, never, VerifyUpdateOtpSchemaType>,
@@ -103,7 +98,7 @@ export const handleToggleActive = async (
 export const handleUserSeeder = async (_: Request, res: Response) => {
   try {
     // const result = await seedUsers();
-    const result = await seedManyUsers(usersToSeed);
+    const result = await seedManyUsers(USERS_TO_SEED);
 
     return successResponse(res, 'Data seeded successfully', result);
   } catch (err) {
@@ -149,21 +144,6 @@ export const handleUpdateUser = async (
   }
 };
 
-export const handleUpdateHost = async (
-  req: Request<never, never, UpdateHostSchemaType>,
-  res: Response,
-) => {
-  try {
-    const currentUser = req.user as JwtPayload;
-
-    const updatedHost = await updateHost(req.body, { id: currentUser.sub });
-
-    return successResponse(res, 'Profile has been updated', updatedHost);
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
-};
-
 export const handleCreateUser = async (
   req: Request<never, never, CreateUserSchemaType>,
   res: Response,
@@ -176,7 +156,7 @@ export const handleCreateUser = async (
       password: generateRandomPassword(),
       isActive: true,
       role: 'DEFAULT_USER',
-      dob: new Date(req.body.dob),
+      ...(req.body?.dob ? { dob: new Date(req.body.dob) } : {}),
     });
 
     await prepareSetPasswordAndSendEmail(user);
@@ -245,22 +225,6 @@ export const handleGetUsers = async (
     );
 
     return res.json({ paginatorInfo: paginatorInfo, results: results });
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
-};
-
-export const handleUserTakeABreak = async (
-  req: Request<never, never, TakeABreakSchemaType>,
-  res: Response,
-) => {
-  try {
-    await takeABreakForUser({
-      userId: req.user.sub,
-      reason: req.body.reason,
-    });
-
-    return successResponse(res, "You've been marked as 'On A Break'.");
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

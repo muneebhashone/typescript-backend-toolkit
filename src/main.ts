@@ -18,7 +18,6 @@ import apiRoutes from './routes/routes';
 import { connectDatabase } from './lib/database';
 import { useSocketIo } from './lib/realtime.server';
 import path from 'path';
-import { initChat } from './chat/chat.socket';
 
 const boostrapServer = async () => {
   await connectDatabase();
@@ -30,8 +29,6 @@ const boostrapServer = async () => {
   const server = createServer(app);
 
   const io = useSocketIo(server);
-
-  initChat(io);
 
   app.use((req, _, next) => {
     req.io = io;
@@ -67,11 +64,12 @@ const boostrapServer = async () => {
   // Middleware to serve static files
   app.use(express.static(path.join(__dirname, '..', 'public')));
 
-  // Route to send static file via response
+  // Route to send static file via response to socket.io
   app.get('/socket', (_, res) => {
     const filePath = path.join(__dirname, '..', 'public', 'index.html');
     res.sendFile(filePath);
   });
+
   app.use(cookieParser());
 
   app.use(compression());
@@ -93,6 +91,7 @@ const boostrapServer = async () => {
     serverAdapter,
   });
 
+  // Dashbaord for BullMQ
   app.use('/admin/queues', serverAdapter.getRouter());
 
   server.listen(config.PORT, () => {
