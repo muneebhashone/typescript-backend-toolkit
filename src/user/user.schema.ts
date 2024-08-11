@@ -1,13 +1,13 @@
 import validator, { isMongoId } from 'validator';
 import * as z from 'zod';
-import { rolesEnums } from '../enums';
+import { ROLE_ENUM, RoleType } from '../enums';
 import {
   isTransformableToBoolean,
   stringToBoolean,
   transformableToBooleanError,
 } from '../utils/common.utils';
 
-const baseCreateUser = {
+export const baseCreateUser = {
   email: z
     .string({ required_error: 'Email is required' })
     .email({ message: 'Email is not valid' })
@@ -17,8 +17,11 @@ const baseCreateUser = {
 
 export const createUserSchema = z.object({
   ...baseCreateUser,
-  firstName: z.string({ required_error: 'Name is required' }).min(1),
-  lastName: z.string({ required_error: 'Name is required' }).min(1).optional(),
+  firstName: z.string({ required_error: 'First name is required' }).min(1),
+  lastName: z
+    .string({ required_error: 'Last na`me is required' })
+    .min(1)
+    .optional(),
   phoneNo: z
     .string({ required_error: 'Phone number is required' })
     .min(6, 'Phone number must atleast contains 6 characters')
@@ -26,7 +29,7 @@ export const createUserSchema = z.object({
     .optional(),
   dob: z
     .string({ required_error: 'Birthday is required' })
-    .datetime("Date must be formated as 'YYYY-MM-DD'")
+    .date("Date must be formated as 'YYYY-MM-DD'")
     .optional(),
 });
 
@@ -80,22 +83,6 @@ export const updateUserSchema = z
       .string()
       .refine((value) => validator.isMongoId(value))
       .optional(),
-  })
-  .strict();
-
-export const updateHostSchema = updateUserSchema
-  .extend({
-    business: z
-      .string()
-      .refine((value) => validator.isMongoId(value))
-      .optional(),
-    accountNumber: z
-      .string()
-      .min(1)
-      .refine((value) => validator.isIBAN(value), 'Must be valid IBAN number')
-      .optional(),
-    bankName: z.string().min(1).optional(),
-    accountName: z.string().min(1).optional(),
   })
   .strict();
 
@@ -163,11 +150,7 @@ export const getUsersSchema = z.object({
     .default('true')
     .refine(isTransformableToBoolean, transformableToBooleanError)
     .transform(stringToBoolean),
-  filterByRole: z.enum(rolesEnums).optional(),
-});
-
-export const takeABreakSchema = z.object({
-  reason: z.string().min(10).max(150),
+  filterByRole: z.enum(Object.keys(ROLE_ENUM) as [RoleType]).optional(),
 });
 
 export type CreateUserSchemaType = z.infer<typeof createUserSchema>;
@@ -175,10 +158,8 @@ export type GetUsersSchemaType = z.infer<typeof getUsersSchema>;
 export type UserIdSchemaType = z.infer<typeof userIdSchema>;
 export type BulkUserIdSchemaType = z.infer<typeof bulkUserIdsSchema>;
 export type UpdateUserSchemaType = z.infer<typeof updateUserSchema>;
-export type UpdateHostSchemaType = z.infer<typeof updateHostSchema>;
 
 export type UpdateUserEmailSchemaType = z.infer<typeof updateUserEmailSchema>;
 export type UpdateUserPhoneSchemaType = z.infer<typeof updateUserPhoneNoSchema>;
 
 export type VerifyUpdateOtpSchemaType = z.infer<typeof verifyUpdateOtpSchema>;
-export type TakeABreakSchemaType = z.infer<typeof takeABreakSchema>;

@@ -1,24 +1,18 @@
-import mongoose, { FilterQuery } from 'mongoose';
-import { RoleType } from '../enums';
+import { FilterQuery } from 'mongoose';
 import { ConflictError } from '../errors/errors.service';
-import User, { IUserDocument } from './user.model';
 import { SendOtpEmailQueue } from '../queues/email.queue';
 import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
 import { generateRandomNumbers } from '../utils/common.utils';
 import { getPaginator } from '../utils/getPaginator';
+import User, { IUserDocument } from './user.model';
 import {
   GetUsersSchemaType,
-  TakeABreakSchemaType,
-  UpdateHostSchemaType,
   UpdateUserEmailSchemaType,
   UpdateUserPhoneSchemaType,
   UserIdSchemaType,
   VerifyUpdateOtpSchemaType,
 } from './user.schema';
-import { Apartment } from '../apartment/apartment.model';
-import { Car } from '../car/car.model';
-import config from '../config/config.service';
 export const activeToggle = async (userId: UserIdSchemaType) => {
   const { id } = userId;
   const user = await User.findOne({ _id: id });
@@ -36,17 +30,12 @@ export const activeToggle = async (userId: UserIdSchemaType) => {
   return toggleStatus;
 };
 
-export const getUserById = async (
-  userId: UserIdSchemaType,
-  role: RoleType = 'DEFAULT_USER',
-) => {
+export const getUserById = async (userId: UserIdSchemaType) => {
   const { id } = userId;
   const user = await User.findOne({
     _id: id,
   }).select('+otp');
-  if (role === 'VENDOR') {
-    await user?.populate('business');
-  }
+
   return user?.toObject();
 };
 
@@ -93,7 +82,7 @@ export const getUsers = async (
   if (payload.filterByRole) {
     conditions.role = payload.filterByRole;
   } else {
-    conditions.role = { $in: ['DEFAULT_USER', 'VENDOR'] };
+    conditions.role = { $in: ['DEFAULT_USER'] };
   }
 
   const totalRecords = await User.countDocuments(conditions);
@@ -252,21 +241,6 @@ export const updateUser = async (
 
   return user?.toObject();
 };
-export const updateHost = async (
-  payload: UpdateHostSchemaType,
-  userId: UserIdSchemaType,
-) => {
-  const { id } = userId;
-  const user = await User.findOneAndUpdate(
-    { _id: id },
-    { $set: { ...payload } },
-    { new: true },
-  );
-  if (!user) {
-    throw new Error('User not found');
-  }
-  return user?.toObject();
-};
 
 export const createUser = async (
   payload: UserType & { password: string },
@@ -301,51 +275,4 @@ export const createUser = async (
     password: hashedPassword,
   });
   return { ...createdUser.toObject(), password: '', otp: null };
-};
-
-export const takeABreakForUser = async (
-  payload: TakeABreakSchemaType & { userId: string },
-) => {
-  const user = await User.findById(payload.userId);
-  if (!user) {
-    throw new Error('User not found or invalid token');
-  }
-
-  await Promise.all([
-    User.updateOne(
-      {
-        _id: user.id,
-      },
-      {
-        isOnBreak: true,
-        reasonForBreak: payload.reason,
-      },
-    ),
-    Apartment.updateMany(
-      {
-        owner: user?._id,
-      },
-      {
-        $set: {
-          isOnBreak: true,
-          breakFrom: null,
-          breakTill: null,
-          reasonForBreak: '',
-        },
-      },
-    ),
-    Car.updateMany(
-      {
-        userId: user?._id,
-      },
-      {
-        $set: {
-          isOnBreak: true,
-          breakFrom: null,
-          breakTill: null,
-          reasonForBreak: '',
-        },
-      },
-    ),
-  ]);
 };

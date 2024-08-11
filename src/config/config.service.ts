@@ -25,7 +25,7 @@ const configSchema = z.object({
   SET_SESSION: z.string().transform((value) => !!Number(value)),
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
-  REDIRECT_URI: z.string(),
+  GOOGLE_REDIRECT_URI: z.string(),
 });
 
 export type Config = z.infer<typeof configSchema>;

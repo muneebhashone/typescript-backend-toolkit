@@ -7,19 +7,15 @@ import {
   handleCreateUser,
   handleGetUsers,
   handleToggleActive,
-  handleUpdateHost,
   handleUpdateUser,
   handleUpdateUserEmail,
   handleUpdateUserPhone,
   handleUserSeeder,
-  handleUserTakeABreak,
   handleVerifyUpdateOtp,
 } from './user.controller';
 import {
   createUserSchema,
   getUsersSchema,
-  takeABreakSchema,
-  updateHostSchema,
   updateUserEmailSchema,
   updateUserPhoneNoSchema,
   updateUserSchema,
@@ -47,13 +43,6 @@ userRouter.put(
   canAccess('roles', ['DEFAULT_USER']),
   validateZodSchema({ body: updateUserSchema }),
   handleUpdateUser,
-);
-
-userRouter.put(
-  '/host',
-  canAccess('roles', ['VENDOR']),
-  validateZodSchema({ body: updateHostSchema }),
-  handleUpdateHost,
 );
 
 userRouter.get(
@@ -91,13 +80,6 @@ userRouter.post(
   canAccess(),
   validateZodSchema({ body: verifyUpdateOtpSchema }),
   handleVerifyUpdateOtp,
-);
-
-userRouter.post(
-  '/take-a-break',
-  canAccess('roles', ['VENDOR']),
-  validateZodSchema({ body: takeABreakSchema }),
-  handleUserTakeABreak,
 );
 
 export default userRouter;
