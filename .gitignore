@@ -131,3 +131,6 @@ dist
 
 # database
 .database
+
+# firebase
+firebase-adminsdk-creds.json

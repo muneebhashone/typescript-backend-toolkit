@@ -91,21 +91,6 @@ export const verifyOtpSchema = z.object({
   type: z.enum(['RESET_PASSWORD', 'DEFAULT']).default('DEFAULT').optional(),
 });
 
-export const registerHostByPhoneSchema = z
-  .object({
-    ...baseAuthSchemaPhone,
-    password: passwordValidation('Password'),
-    repeatPassword: passwordValidation('Repeat password'),
-  })
-  .strict()
-  .refine(({ password, repeatPassword }) => {
-    if (password !== repeatPassword) {
-      return false;
-    }
-
-    return true;
-  }, 'Password and repeat password must be same');
-
 export const registerUserByEmailSchema = z
   .object({
     ...baseAuthSchemaEmail,
@@ -149,10 +134,6 @@ export const validateLoginOtpSchema = z.object({
 
 export type RegisterUserByEmailSchemaType = z.infer<
   typeof registerUserByEmailSchema
->;
-
-export type RegisterHostByPhoneSchemaType = z.infer<
-  typeof registerHostByPhoneSchema
 >;
 
 export type LoginUserByEmailSchemaType = z.infer<typeof loginUserByEmailSchema>;

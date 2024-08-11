@@ -16,15 +16,24 @@ import redisStore from './lib/session.store';
 import { extractJwt } from './middlewares/extract-jwt-schema.middleware';
 import apiRoutes from './routes/routes';
 import { connectDatabase } from './lib/database';
+import { useSocketIo } from './lib/realtime.server';
+import path from 'path';
 
 const boostrapServer = async () => {
-  const app = express();
-
   await connectDatabase();
+
+  const app = express();
 
   app.set('trust proxy', true);
 
   const server = createServer(app);
+
+  const io = useSocketIo(server);
+
+  app.use((req, _, next) => {
+    req.io = io;
+    next();
+  });
 
   app.use(
     cors({
@@ -38,8 +47,8 @@ const boostrapServer = async () => {
     app.use(morgan('dev'));
   } else {
     app.use(httpLogger);
-    process.env.SET_SESSION = 'true';
   }
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
@@ -52,6 +61,14 @@ const boostrapServer = async () => {
       store: redisStore,
     }),
   );
+  // Middleware to serve static files
+  app.use(express.static(path.join(__dirname, '..', 'public')));
+
+  // Route to send static file via response to socket.io
+  app.get('/socket', (_, res) => {
+    const filePath = path.join(__dirname, '..', 'public', 'index.html');
+    res.sendFile(filePath);
+  });
 
   app.use(cookieParser());
 
@@ -74,6 +91,7 @@ const boostrapServer = async () => {
     serverAdapter,
   });
 
+  // Dashbaord for BullMQ
   app.use('/admin/queues', serverAdapter.getRouter());
 
   server.listen(config.PORT, () => {

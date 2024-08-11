@@ -17,7 +17,6 @@ import {
   LoginUserByEmailSchemaType,
   LoginUserByPhoneAndPasswordSchemaType,
   LoginUserByPhoneSchemaType,
-  RegisterHostByPhoneSchemaType,
   RegisterUserByEmailSchemaType,
   ResetPasswordSchemaType,
   SetPasswordSchemaType,
@@ -31,7 +30,6 @@ import {
   loginUserByEmail,
   loginUserByPhone,
   loginUserByPhoneAndPassword,
-  registerHostByPhone,
   registerUserByEmail,
   resetPassword,
   setPassword,
@@ -113,29 +111,6 @@ export const handleVerifyOtp = async (
 
     return successResponse(res, 'Code verified');
   } catch (err) {
-    return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
-  }
-};
-
-export const handleRegisterHost = async (
-  req: Request<never, never, RegisterHostByPhoneSchemaType>,
-  res: Response,
-) => {
-  try {
-    const { user, otpSendTo } = await registerHostByPhone(req.body);
-
-    return successResponse(
-      res,
-      `Please check your ${otpSendTo.join(' or ')}, OTP has been sent`,
-      {
-        userId: user._id,
-      },
-    );
-  } catch (err) {
-    if (err instanceof ConflictError) {
-      return errorResponse(res, err.message, StatusCodes.CONFLICT);
-    }
-
     return errorResponse(res, (err as Error).message, StatusCodes.BAD_REQUEST);
   }
 };
@@ -270,7 +245,7 @@ export const handleGetCurrentUser = async (req: Request, res: Response) => {
 };
 export const handleGoogleLogin = async (_: Request, res: Response) => {
   try {
-    const googleAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URI}&scope=email profile`;
+    const googleAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&scope=email profile`;
     res.redirect(googleAuthURL);
   } catch (err) {
     if (err instanceof NotFoundError) {
@@ -291,9 +266,13 @@ export const handleGoogleCallback = async (
   try {
     const user = await googleLogin(req.query);
     if (!user) throw new Error('Failed to login');
-    res.cookie(AUTH_COOKIE_KEY, user.socialAccount?.accessToken, COOKIE_CONFIG);
+    res.cookie(
+      AUTH_COOKIE_KEY,
+      user.socialAccount?.[0]?.accessToken,
+      COOKIE_CONFIG,
+    );
 
-    return res.json({ token: user.socialAccount?.accessToken });
+    return res.json({ token: user.socialAccount?.[0]?.accessToken });
   } catch (err) {
     res.status(401).json({ error: (err as { message: string }).message });
   }
