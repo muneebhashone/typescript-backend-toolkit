@@ -1,6 +1,12 @@
-# TypeScript Backend Toolkit
-
-Welcome to the TypeScript Backend Toolkit! This project is a robust backend boilerplate designed for scalability, flexibility, and ease of development. It's packed with modern technologies and best practices to kickstart your next backend project.
+<p align="center">
+  <img src="logo.webp" width="200px" align="center" alt="Zod logo" />
+  <h1 align="center">✨ TypeScript Backend Toolkit ✨</h1>
+  <p align="center">
+    <br/>
+    Robust backend boilerplate designed for scalability, flexibility, and ease of development. It's packed with modern technologies and best practices to kickstart your next backend project.
+  </p>
+</p>
+<br/>
 
 ## Prerequisites
 
@@ -27,6 +33,7 @@ Before you get started, make sure you have the following installed on your machi
      ```
 
 3. **Configure Environment Variables**:
+
    - Create a `.env` file in the root directory.
    - Use the provided `.env.sample` as a template to enter all the required environment variables.
 
