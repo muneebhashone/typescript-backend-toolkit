@@ -7,7 +7,6 @@ import {
   handleCreateUser,
   handleGetUsers,
   handleToggleActive,
-  handleUpdateHost,
   handleUpdateUser,
   handleUpdateUserEmail,
   handleUpdateUserPhone,
@@ -17,7 +16,6 @@ import {
 import {
   createUserSchema,
   getUsersSchema,
-  updateHostSchema,
   updateUserEmailSchema,
   updateUserPhoneNoSchema,
   updateUserSchema,
@@ -45,13 +43,6 @@ userRouter.put(
   canAccess('roles', ['DEFAULT_USER']),
   validateZodSchema({ body: updateUserSchema }),
   handleUpdateUser,
-);
-
-userRouter.put(
-  '/host',
-  canAccess('roles', ['VENDOR']),
-  validateZodSchema({ body: updateHostSchema }),
-  handleUpdateHost,
 );
 
 userRouter.get(

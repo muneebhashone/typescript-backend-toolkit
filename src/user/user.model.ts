@@ -1,7 +1,12 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { ISocialAccountType, rolesEnums } from '../enums'; // Import rolesEnums
+import {
+  SocialAccountType,
+  ROLE_ENUM,
+  RoleType,
+  SOCIAL_ACCOUNT_ENUM,
+} from '../enums'; // Import rolesEnums
 export interface ISocialAccountInfo {
-  accountType: ISocialAccountType;
+  accountType: SocialAccountType;
   accessToken: string;
   tokenExpiry: Date;
   refreshToken?: string;
@@ -13,8 +18,8 @@ export interface IUser {
   avatar?: string;
   firstName?: string;
   lastName?: string;
-  role: string;
-  dob?: Date;
+  role: RoleType;
+  dob?: Date | string;
   phoneNo?: string;
   tempPhoneNo?: string;
   isActive: boolean;
@@ -28,21 +33,18 @@ export interface IUser {
   state?: string;
   city?: string;
   streetAddress?: string;
-  business?: string;
   postalCode?: string;
-  updatedAt?: Date;
-  createdAt?: Date;
-  accountName?: string;
-  bankName?: string;
-  accountNumber?: string;
   interest?: string;
   fcmToken?: string;
-  socialAccount?: ISocialAccountInfo;
+  socialAccount?: ISocialAccountInfo[];
+  updatedAt?: Date;
+  createdAt?: Date;
 }
 const SocialAccountSchema = new Schema<ISocialAccountInfo>({
   accountType: {
     type: String,
     required: true,
+    enum: Object.keys(SOCIAL_ACCOUNT_ENUM),
   },
   accessToken: { type: String, required: true },
   tokenExpiry: { type: Date },
@@ -59,8 +61,8 @@ const UserSchema: Schema<IUser> = new Schema({
   role: {
     type: String,
     required: true,
-    enum: rolesEnums,
-    default: rolesEnums[0],
+    enum: Object.keys(ROLE_ENUM),
+    default: ROLE_ENUM.DEFAULT_USER,
   },
   dob: { type: Date },
   phoneNo: { type: String },
@@ -76,23 +78,10 @@ const UserSchema: Schema<IUser> = new Schema({
   state: { type: String },
   city: { type: String },
   streetAddress: { type: String },
-  business: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Business',
-    required: false,
-  },
   postalCode: { type: String },
   updatedAt: { type: Date, default: () => new Date() },
   createdAt: { type: Date, default: () => new Date() },
-  accountName: { type: String },
-  bankName: { type: String },
-  accountNumber: { type: String },
-  interest: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Business',
-    required: false,
-  },
-  socialAccount: { type: SocialAccountSchema, required: false },
+  socialAccount: [{ type: SocialAccountSchema, required: false }],
   fcmToken: {
     type: String,
     required: false,

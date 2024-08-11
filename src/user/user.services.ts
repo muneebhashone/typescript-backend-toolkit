@@ -1,15 +1,13 @@
 import { FilterQuery } from 'mongoose';
-import { RoleType } from '../enums';
 import { ConflictError } from '../errors/errors.service';
-import User, { IUserDocument } from '../models/users';
 import { SendOtpEmailQueue } from '../queues/email.queue';
 import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
 import { generateRandomNumbers } from '../utils/common.utils';
 import { getPaginator } from '../utils/getPaginator';
+import User, { IUserDocument } from './user.model';
 import {
   GetUsersSchemaType,
-  UpdateHostSchemaType,
   UpdateUserEmailSchemaType,
   UpdateUserPhoneSchemaType,
   UserIdSchemaType,
@@ -32,17 +30,12 @@ export const activeToggle = async (userId: UserIdSchemaType) => {
   return toggleStatus;
 };
 
-export const getUserById = async (
-  userId: UserIdSchemaType,
-  role: RoleType = 'DEFAULT_USER',
-) => {
+export const getUserById = async (userId: UserIdSchemaType) => {
   const { id } = userId;
   const user = await User.findOne({
     _id: id,
   }).select('+otp');
-  if (role === 'VENDOR') {
-    await user?.populate('business');
-  }
+
   return user?.toObject();
 };
 
@@ -89,7 +82,7 @@ export const getUsers = async (
   if (payload.filterByRole) {
     conditions.role = payload.filterByRole;
   } else {
-    conditions.role = { $in: ['DEFAULT_USER', 'VENDOR'] };
+    conditions.role = { $in: ['DEFAULT_USER'] };
   }
 
   const totalRecords = await User.countDocuments(conditions);
@@ -246,21 +239,6 @@ export const updateUser = async (
     throw new Error('User not found');
   }
 
-  return user?.toObject();
-};
-export const updateHost = async (
-  payload: UpdateHostSchemaType,
-  userId: UserIdSchemaType,
-) => {
-  const { id } = userId;
-  const user = await User.findOneAndUpdate(
-    { _id: id },
-    { $set: { ...payload } },
-    { new: true },
-  );
-  if (!user) {
-    throw new Error('User not found');
-  }
   return user?.toObject();
 };
 

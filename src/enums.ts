@@ -1,14 +1,13 @@
-export const rolesEnums = ['DEFAULT_USER', 'SUPER_ADMIN', 'VENDOR'] as const;
-export const discountEnums = ['flat', 'percentage'] as const;
-export const SOCIAL_ACCOUNTS = ['GOOGLE', 'FACEBOOK', 'APPLE'] as const;
-export const cancellationPoliciesEnums = [
-  'NO_CANCELLATION',
-  'FREE_CANCELLATION',
-  'FLEXIBLE_OR_NON_REFUNDABLE',
-  'MODERATE',
-] as const;
+export const ROLE_ENUM = {
+  DEFAULT_USER: 'DEFAULT_USER',
+  SUPER_ADMIN: 'SUPER_ADMIN',
+} as const;
 
-export type ISocialAccountType = (typeof SOCIAL_ACCOUNTS)[number];
-export type RoleType = (typeof rolesEnums)[number];
-export type CancellationPolicyType = (typeof cancellationPoliciesEnums)[number];
-export type DiscountType = (typeof discountEnums)[number];
+export const SOCIAL_ACCOUNT_ENUM = {
+  GOOGLE: 'GOOGLE',
+  FACEBOOK: 'FACEBOOK',
+  APPLE: 'APPLE',
+} as const;
+
+export type SocialAccountType = keyof typeof SOCIAL_ACCOUNT_ENUM;
+export type RoleType = keyof typeof ROLE_ENUM;
