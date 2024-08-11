@@ -63,8 +63,22 @@ Before you get started, make sure you have the following installed on your machi
   pnpm run build
   ```
 - **PM2 Support**: Out-of-the-box support for PM2 to manage your production processes.
-- **Socket.io Support (In Progress)**: Adding support for Redis adapter and a chat module.
-- **Notification Infrastructure (In Progress)**: Notifications via FCM and Novu.
+
+## Roadmap
+
+- **Socket.io Support:** Adding support for Redis adapter and a chat module.
+- **Notification Infrastructure**: Notifications via FCM and Novu.
+- **React-Email Support** : Improve email template management with React-Email for more dynamic and flexible email handling.
+- **Ansible Playbook** : Create an Ansible playbook for server configuration to set up a basic environment quickly and consistently.
+- **AWS CDK Support** : Integrate AWS CDK for infrastructure management, making it easier to deploy and manage cloud resources.
+- **Monorepo Support** : Implement monorepo architecture using Turborepo and Pnpm for better project organization and scalability.
+- **AWS Lambda Support** : Add support for deploying serverless functions on AWS Lambda.
+- **Cloudflare Workers Support** : Enable Cloudflare Workers support for edge computing and faster request handling.
+- **Postgres Support with Drizzle** : Add support for PostgreSQL using Drizzle ORM for better relational database management.
+- **Containerization with Docker** : Implement containerization to ensure the project can be easily deployed to any environment using Docker.
+- **Kubernetes Support** : Integrate Kubernetes for container orchestration, enabling scalable and automated deployment of the application.
+- **CI/CD with GitHub Actions** : Implement a CI/CD pipeline using GitHub Actions to automate testing, building, and deployment processes.
+- **Testing with Jest**: Add support for unit and integration testing using Jest to ensure code reliability and maintainability.
 
 ## Contributions
 
