@@ -19,8 +19,18 @@ import { connectDatabase } from './lib/database';
 import { useSocketIo } from './lib/realtime.server';
 import path from 'path';
 
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yaml';
+import fs from 'node:fs/promises';
+
 const boostrapServer = async () => {
   await connectDatabase();
+
+  const file = await fs.readFile(
+    path.join(process.cwd(), 'openapi-docs.yml'),
+    'utf8',
+  );
+  const swaggerDocument = YAML.parse(file);
 
   const app = express();
 
@@ -61,14 +71,9 @@ const boostrapServer = async () => {
       store: redisStore,
     }),
   );
+
   // Middleware to serve static files
   app.use(express.static(path.join(__dirname, '..', 'public')));
-
-  // Route to send static file via response to socket.io
-  app.get('/socket', (_, res) => {
-    const filePath = path.join(__dirname, '..', 'public', 'index.html');
-    res.sendFile(filePath);
-  });
 
   app.use(cookieParser());
 
@@ -81,6 +86,7 @@ const boostrapServer = async () => {
   }
 
   app.use('/api', apiRoutes);
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
   const serverAdapter = new ExpressAdapter();
   serverAdapter.setBasePath('/admin/queues');
