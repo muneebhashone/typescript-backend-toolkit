@@ -17,7 +17,7 @@ export const canAccess =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     req: Request<any, any, any, any>,
     res: Response,
-    next: NextFunction,
+    next?: NextFunction,
   ) => {
     try {
       const requestUser = req?.user as JwtPayload;
@@ -29,10 +29,7 @@ export const canAccess =
           StatusCodes.UNAUTHORIZED,
         );
       }
-      const currentUser = await getUserById(
-        { id: requestUser.sub },
-        requestUser.role,
-      );
+      const currentUser = await getUserById({ id: requestUser.sub });
 
       if (!currentUser) {
         return errorResponse(res, 'Login again', StatusCodes.UNAUTHORIZED);
@@ -102,5 +99,5 @@ export const canAccess =
       );
     }
 
-    next();
+    next?.();
   };
