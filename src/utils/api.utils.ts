@@ -9,11 +9,12 @@ export const errorResponse = (
   statusCode?: StatusCodes,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload?: any,
-) => {
+): void => {
   try {
-    return res
+    res
       .status(statusCode ?? StatusCodes.BAD_REQUEST)
       .json({ status: 'error', message: message, data: payload });
+    return;
   } catch (err) {
     logger.error(err);
   }
@@ -25,11 +26,12 @@ export const successResponse = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload?: Record<any, any>,
   statusCode: StatusCodes = StatusCodes.OK,
-) => {
+): void => {
   try {
-    return res
+    res
       .status(statusCode)
       .json({ status: 'success', message: message, data: payload });
+    return;
   } catch (err) {
     logger.error(err);
   }

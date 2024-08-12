@@ -1,3 +1,7 @@
+import { z } from 'zod';
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+extendZodWithOpenApi(z);
+
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
@@ -20,17 +24,12 @@ import { useSocketIo } from './lib/realtime.server';
 import path from 'path';
 
 import swaggerUi from 'swagger-ui-express';
+
+import { convertDocumentationToYaml } from './openapi/swagger-doc-generator';
 import YAML from 'yaml';
-import fs from 'node:fs/promises';
 
 const boostrapServer = async () => {
   await connectDatabase();
-
-  const file = await fs.readFile(
-    path.join(process.cwd(), 'openapi-docs.yml'),
-    'utf8',
-  );
-  const swaggerDocument = YAML.parse(file);
 
   const app = express();
 
@@ -86,6 +85,8 @@ const boostrapServer = async () => {
   }
 
   app.use('/api', apiRoutes);
+
+  const swaggerDocument = YAML.parse(convertDocumentationToYaml());
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
   const serverAdapter = new ExpressAdapter();
