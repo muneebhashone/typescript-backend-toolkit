@@ -10,6 +10,7 @@ import {
 } from './openapi.utils';
 import { bearerAuth, registry } from './swagger-instance';
 import { canAccess } from '../middlewares/can-access.middleware';
+import responseInterceptor from '../utils/responseInterceptor';
 
 type Method =
   | 'get'
@@ -76,6 +77,15 @@ export class MagicRouter {
       : null;
 
     const hasSecurity = middlewares.some((m) => m.name === canAccess().name);
+
+    const attachResponseModelMiddleware = (
+      _: RequestAny,
+      res: ResponseAny,
+      next: NextFunction,
+    ) => {
+      res.locals.validateSchema = requestAndResponseType.responseModel;
+      next();
+    };
 
     registry.registerPath({
       method: method,
@@ -144,12 +154,20 @@ export class MagicRouter {
     if (Object.keys(requestType).length) {
       this.router[method](
         path,
+        attachResponseModelMiddleware,
         validateZodSchema(requestType),
         ...middlewares,
+        responseInterceptor,
         controller,
       );
     } else {
-      this.router[method](path, ...middlewares, controller);
+      this.router[method](
+        path,
+        attachResponseModelMiddleware,
+        ...middlewares,
+        responseInterceptor,
+        controller,
+      );
     }
   }
 
