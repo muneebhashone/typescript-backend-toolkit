@@ -1,4 +1,3 @@
-import { ConflictError } from '../errors/errors.service';
 import User, { IUser, IUserDocument } from './user.model';
 import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
@@ -43,7 +42,7 @@ export const seedManyUsers = async (
         isUserExist = await User.findOne({ email: payload.email });
 
         if (isUserExist) {
-          throw new ConflictError(
+          throw new Error(
             `User ${payload.email} already exists with the same email address`,
           );
         }
@@ -51,7 +50,7 @@ export const seedManyUsers = async (
         isUserExist = await User.findOne({ phoneNo: payload.phoneNo });
 
         if (isUserExist) {
-          throw new ConflictError(
+          throw new Error(
             `User ${payload.phoneNo} already exists with the same phone number`,
           );
         }

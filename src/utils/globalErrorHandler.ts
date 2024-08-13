@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import config from '../config/config.service';
 import logger from '../lib/logger.service';
+import { errorResponse } from './api.utils';
 
 interface CustomError extends Error {
   status?: number;
@@ -18,13 +19,13 @@ export const globalErrorHandler = (
 
   logger.error(`${statusCode}: ${errorMessage}`);
 
-  res.status(statusCode).json({
-    success: false,
-    error: {
-      message: errorMessage,
-      ...(config.NODE_ENV === 'development' && { stack: err.stack }),
-    },
-  });
+  return errorResponse(
+    res,
+    errorMessage,
+    statusCode,
+    err,
+    config.NODE_ENV === 'development' && err.stack,
+  );
 };
 
 export default globalErrorHandler;

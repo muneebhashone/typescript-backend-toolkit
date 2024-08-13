@@ -1,6 +1,4 @@
-import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { z } from 'zod';
-extendZodWithOpenApi(z);
+import './openapi/zod-extend';
 
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
@@ -108,6 +106,7 @@ const boostrapServer = async () => {
   server.listen(config.PORT, () => {
     logger.info(`Server is running on http://localhost:${config.PORT}`);
     logger.info(`RESTful API: http://localhost:${config.PORT}/api`);
+    logger.info(`Swagger API Docs: http://localhost:${config.PORT}/api-docs`);
     logger.info(`BullBoard: http://localhost:${config.PORT}/admin/queues`);
     logger.info(`Client-side url set to: ${config.CLIENT_SIDE_URL}`);
   });

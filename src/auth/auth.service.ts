@@ -1,8 +1,4 @@
 import { ROLE_ENUM, RoleType, SOCIAL_ACCOUNT_ENUM } from '../enums';
-import {
-  InvalidCredentialseError,
-  NotFoundError,
-} from '../errors/errors.service';
 import { SendOtpEmailQueue } from '../queues/email.queue';
 import { GoogleCallbackQuery, UserType } from '../types';
 import User from '../user/user.model';
@@ -166,7 +162,7 @@ export const changePassword = async (
   }).select('+password');
 
   if (!user || !user.password) {
-    throw new NotFoundError('User is not found');
+    throw new Error('User is not found');
   }
 
   const isCurrentPassowordCorrect = await compareHash(
@@ -263,7 +259,7 @@ export const loginUserByEmail = async (
   );
 
   if (!user || !(await compareHash(String(user.password), payload.password))) {
-    throw new InvalidCredentialseError('Invalid email or password');
+    throw new Error('Invalid email or password');
   }
 
   canUserAuthorize(user.toObject());
@@ -288,7 +284,7 @@ export const loginUserByPhoneAndPassword = async (
   }).select('+password  +otp');
 
   if (!user || !(await compareHash(String(user.password), payload.password))) {
-    throw new InvalidCredentialseError('Invalid phone no. or password');
+    throw new Error('Invalid phone no. or password');
   }
 
   await canUserAuthorize(user.toObject());
