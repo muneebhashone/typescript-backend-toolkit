@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import asyncHandler from 'express-async-handler';
-import { ZodTypeAny } from 'zod';
+import { z, ZodTypeAny } from 'zod';
 import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
 import { RequestZodSchemaType } from '../types';
 import {
@@ -33,6 +33,13 @@ export type RequestAndResponseType = {
   responseModel?: ZodTypeAny;
 };
 
+export const errorResponseSchema = z.object({
+  message: z.string(),
+  success: z.boolean().default(false),
+  data: z.record(z.string(), z.any()),
+  stack: z.string().optional(),
+});
+
 export class MagicRouter {
   private router: Router;
   private rootRoute: string;
@@ -47,7 +54,6 @@ export class MagicRouter {
   }
 
   private wrapper(
-     
     method: Method,
     path: string,
     requestAndResponseType: RequestAndResponseType,
@@ -99,6 +105,30 @@ export class MagicRouter {
           content: {
             'application/json': {
               schema: responseType,
+            },
+          },
+        },
+        400: {
+          description: 'API Error Response',
+          content: {
+            'application/json': {
+              schema: errorResponseSchema,
+            },
+          },
+        },
+        404: {
+          description: 'API Error Response',
+          content: {
+            'application/json': {
+              schema: errorResponseSchema,
+            },
+          },
+        },
+        500: {
+          description: 'API Error Response',
+          content: {
+            'application/json': {
+              schema: errorResponseSchema,
             },
           },
         },
