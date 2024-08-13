@@ -10,7 +10,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
-      - mongodb_city_link:/data/db
+      - mongodb_typescript_backend_toolkit:/data/db
 
   redis:
     image: redis:latest
@@ -20,6 +20,6 @@ services:
       - redis:/data
 
 volumes:
-  mongodb_city_link:
+  mongodb_typescript_backend_toolkit:
     external: true
   redis:
