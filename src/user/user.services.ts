@@ -1,6 +1,5 @@
 import { FilterQuery } from 'mongoose';
 import { SendOtpEmailQueue } from '../queues/email.queue';
-import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
 import { generateRandomNumbers } from '../utils/common.utils';
 import { getPaginator } from '../utils/getPaginator';
@@ -12,6 +11,7 @@ import {
   UserIdSchemaType,
   VerifyUpdateOtpSchemaType,
 } from './user.schema';
+import { UserType } from './user.dto';
 export const activeToggle = async (userId: UserIdSchemaType) => {
   const { id } = userId;
   const user = await User.findOne({ _id: id });

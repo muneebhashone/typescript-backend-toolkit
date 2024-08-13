@@ -1,16 +1,24 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import asyncHandler from 'express-async-handler';
-import { z, ZodTypeAny } from 'zod';
+import { ZodTypeAny } from 'zod';
+import {
+  errorResponseSchema,
+  successResponseSchema,
+} from '../common/common.schema';
+import { canAccess } from '../middlewares/can-access.middleware';
 import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
-import { RequestZodSchemaType } from '../types';
+import {
+  RequestExtended,
+  RequestZodSchemaType,
+  ResponseExtended,
+} from '../types';
+import responseInterceptor from '../utils/responseInterceptor';
 import {
   camelCaseToTitleCase,
   parseRouteString,
   routeToClassName,
 } from './openapi.utils';
 import { bearerAuth, registry } from './swagger-instance';
-import { canAccess } from '../middlewares/can-access.middleware';
-import responseInterceptor from '../utils/responseInterceptor';
 
 type Method =
   | 'get'
@@ -33,13 +41,6 @@ export type RequestAndResponseType = {
   requestType?: RequestZodSchemaType;
   responseModel?: ZodTypeAny;
 };
-
-export const errorResponseSchema = z.object({
-  message: z.string(),
-  success: z.boolean().default(false),
-  data: z.record(z.string(), z.any()),
-  stack: z.string().optional(),
-});
 
 export class MagicRouter {
   private router: Router;
@@ -65,7 +66,8 @@ export class MagicRouter {
     const bodyType = requestAndResponseType.requestType?.body;
     const paramsType = requestAndResponseType.requestType?.params;
     const queryType = requestAndResponseType.requestType?.query;
-    const responseType = requestAndResponseType.responseModel ?? {};
+    const responseType =
+      requestAndResponseType.responseModel ?? successResponseSchema;
 
     const className = routeToClassName(this.rootRoute);
     const title = camelCaseToTitleCase(
@@ -149,15 +151,27 @@ export class MagicRouter {
 
     const controller = asyncHandler(middlewares[middlewares.length - 1]);
 
+    const responseInterceptorWrapper = (
+      req: RequestAny | RequestExtended,
+      res: ResponseAny | ResponseExtended,
+      next: NextFunction,
+    ) => {
+      return responseInterceptor(
+        req as RequestExtended,
+        res as ResponseExtended,
+        next,
+      );
+    };
+
     middlewares.pop();
 
     if (Object.keys(requestType).length) {
       this.router[method](
         path,
         attachResponseModelMiddleware,
+        responseInterceptorWrapper,
         validateZodSchema(requestType),
         ...middlewares,
-        responseInterceptor,
         controller,
       );
     } else {
@@ -165,7 +179,7 @@ export class MagicRouter {
         path,
         attachResponseModelMiddleware,
         ...middlewares,
-        responseInterceptor,
+        responseInterceptorWrapper,
         controller,
       );
     }

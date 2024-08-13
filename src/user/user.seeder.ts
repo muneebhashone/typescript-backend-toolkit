@@ -1,10 +1,10 @@
-import User, { IUser, IUserDocument } from './user.model';
-import { UserType } from '../types';
+import User, { IUserDocument } from './user.model';
 import { hashPassword } from '../utils/auth.utils';
 import { createUser } from './user.services';
+import { UserType } from './user.dto';
 
 export type SeedUsersReturn = {
-  superAdmin: IUser;
+  superAdmin: UserType;
 };
 export const seedUsers = async (): Promise<SeedUsersReturn> => {
   const superAdmin = await createUser({
