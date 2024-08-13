@@ -1,11 +1,10 @@
-import { ConflictError } from '../errors/errors.service';
-import User, { IUser, IUserDocument } from './user.model';
-import { UserType } from '../types';
+import User, { IUserDocument } from './user.model';
 import { hashPassword } from '../utils/auth.utils';
 import { createUser } from './user.services';
+import { UserType } from './user.dto';
 
 export type SeedUsersReturn = {
-  superAdmin: IUser;
+  superAdmin: UserType;
 };
 export const seedUsers = async (): Promise<SeedUsersReturn> => {
   const superAdmin = await createUser({
@@ -43,7 +42,7 @@ export const seedManyUsers = async (
         isUserExist = await User.findOne({ email: payload.email });
 
         if (isUserExist) {
-          throw new ConflictError(
+          throw new Error(
             `User ${payload.email} already exists with the same email address`,
           );
         }
@@ -51,7 +50,7 @@ export const seedManyUsers = async (
         isUserExist = await User.findOne({ phoneNo: payload.phoneNo });
 
         if (isUserExist) {
-          throw new ConflictError(
+          throw new Error(
             `User ${payload.phoneNo} already exists with the same phone number`,
           );
         }

@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'city-link-api',
+      name: 'typescript-backend-toolkit',
       script: './dist/main.js',
     },
   ],

@@ -1,3 +1,5 @@
+import './openapi/zod-extend';
+
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
@@ -10,14 +12,20 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { createServer } from 'node:http';
 import process from 'node:process';
+import path from 'path';
 import config from './config/config.service';
+import { connectDatabase } from './lib/database';
 import logger, { httpLogger } from './lib/logger.service';
+import { useSocketIo } from './lib/realtime.server';
 import redisStore from './lib/session.store';
 import { extractJwt } from './middlewares/extract-jwt-schema.middleware';
 import apiRoutes from './routes/routes';
-import { connectDatabase } from './lib/database';
-import { useSocketIo } from './lib/realtime.server';
-import path from 'path';
+
+import swaggerUi from 'swagger-ui-express';
+
+import YAML from 'yaml';
+import { convertDocumentationToYaml } from './openapi/swagger-doc-generator';
+import globalErrorHandler from './utils/globalErrorHandler';
 
 const boostrapServer = async () => {
   await connectDatabase();
@@ -61,14 +69,9 @@ const boostrapServer = async () => {
       store: redisStore,
     }),
   );
+
   // Middleware to serve static files
   app.use(express.static(path.join(__dirname, '..', 'public')));
-
-  // Route to send static file via response to socket.io
-  app.get('/socket', (_, res) => {
-    const filePath = path.join(__dirname, '..', 'public', 'index.html');
-    res.sendFile(filePath);
-  });
 
   app.use(cookieParser());
 
@@ -82,6 +85,9 @@ const boostrapServer = async () => {
 
   app.use('/api', apiRoutes);
 
+  const swaggerDocument = YAML.parse(convertDocumentationToYaml());
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
   const serverAdapter = new ExpressAdapter();
   serverAdapter.setBasePath('/admin/queues');
   createBullBoard({
@@ -94,9 +100,13 @@ const boostrapServer = async () => {
   // Dashbaord for BullMQ
   app.use('/admin/queues', serverAdapter.getRouter());
 
+  // Global Error Handler
+  app.use(globalErrorHandler);
+
   server.listen(config.PORT, () => {
     logger.info(`Server is running on http://localhost:${config.PORT}`);
     logger.info(`RESTful API: http://localhost:${config.PORT}/api`);
+    logger.info(`Swagger API Docs: http://localhost:${config.PORT}/api-docs`);
     logger.info(`BullBoard: http://localhost:${config.PORT}/admin/queues`);
     logger.info(`Client-side url set to: ${config.CLIENT_SIDE_URL}`);
   });

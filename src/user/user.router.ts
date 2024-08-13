@@ -1,6 +1,6 @@
-import { Router } from 'express';
+import z from 'zod';
 import { canAccess } from '../middlewares/can-access.middleware';
-import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
+import MagicRouter from '../openapi/magic-router';
 import {
   handleClearUsers,
   handleCreateSuperAdmin,
@@ -22,64 +22,71 @@ import {
   userIdSchema,
   verifyUpdateOtpSchema,
 } from './user.schema';
+import { usersPaginatedSchema } from './user.dto';
 
 export const USER_ROUTER_ROOT = '/users';
 
-const userRouter = Router();
-
-userRouter.get('/seed', handleUserSeeder);
-
-userRouter.delete('/_clear', handleClearUsers);
+const userRouter = new MagicRouter(USER_ROUTER_ROOT);
 
 userRouter.get(
   '/:id/toggle-active',
+  {
+    requestType: { params: userIdSchema, body: createUserSchema },
+    responseModel: z.string(),
+  },
   canAccess(),
-  validateZodSchema({ params: userIdSchema }),
   handleToggleActive,
 );
 
+userRouter.get('/seed', {}, handleUserSeeder);
+
+userRouter.delete('/_clear', {}, handleClearUsers);
+
 userRouter.put(
   '/user',
+  { requestType: { body: updateUserSchema } },
   canAccess('roles', ['DEFAULT_USER']),
-  validateZodSchema({ body: updateUserSchema }),
   handleUpdateUser,
 );
 
 userRouter.get(
   '/',
+  {
+    requestType: { query: getUsersSchema },
+    responseModel: usersPaginatedSchema,
+  },
   canAccess(),
-  validateZodSchema({ query: getUsersSchema }),
   handleGetUsers,
 );
 
 userRouter.post(
   '/user',
+  { requestType: { body: createUserSchema } },
   canAccess('roles', ['SUPER_ADMIN']),
-  validateZodSchema({ body: createUserSchema }),
   handleCreateUser,
 );
 
-userRouter.post('/_super-admin', handleCreateSuperAdmin);
+userRouter.post('/_super-admin', {}, handleCreateSuperAdmin);
 
 userRouter.post(
   '/update/email',
+  { requestType: { body: updateUserEmailSchema } },
   canAccess(),
-  validateZodSchema({ body: updateUserEmailSchema }),
   handleUpdateUserEmail,
 );
 
 userRouter.post(
   '/update/phone',
+  { requestType: { body: updateUserPhoneNoSchema } },
   canAccess(),
-  validateZodSchema({ body: updateUserPhoneNoSchema }),
   handleUpdateUserPhone,
 );
 
 userRouter.post(
   '/verify/update-code',
+  { requestType: { body: verifyUpdateOtpSchema } },
   canAccess(),
-  validateZodSchema({ body: verifyUpdateOtpSchema }),
   handleVerifyUpdateOtp,
 );
 
-export default userRouter;
+export default userRouter.getRouter();
