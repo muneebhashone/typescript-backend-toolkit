@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+import { z } from 'zod';
 extendZodWithOpenApi(z);
 
 import { createBullBoard } from '@bull-board/api';
@@ -14,19 +14,20 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { createServer } from 'node:http';
 import process from 'node:process';
+import path from 'path';
 import config from './config/config.service';
+import { connectDatabase } from './lib/database';
 import logger, { httpLogger } from './lib/logger.service';
+import { useSocketIo } from './lib/realtime.server';
 import redisStore from './lib/session.store';
 import { extractJwt } from './middlewares/extract-jwt-schema.middleware';
 import apiRoutes from './routes/routes';
-import { connectDatabase } from './lib/database';
-import { useSocketIo } from './lib/realtime.server';
-import path from 'path';
 
 import swaggerUi from 'swagger-ui-express';
 
-import { convertDocumentationToYaml } from './openapi/swagger-doc-generator';
 import YAML from 'yaml';
+import { convertDocumentationToYaml } from './openapi/swagger-doc-generator';
+import globalErrorHandler from './utils/globalErrorHandler';
 
 const boostrapServer = async () => {
   await connectDatabase();
@@ -100,6 +101,9 @@ const boostrapServer = async () => {
 
   // Dashbaord for BullMQ
   app.use('/admin/queues', serverAdapter.getRouter());
+
+  // Global Error Handler
+  app.use(globalErrorHandler);
 
   server.listen(config.PORT, () => {
     logger.info(`Server is running on http://localhost:${config.PORT}`);

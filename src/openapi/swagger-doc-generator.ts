@@ -4,6 +4,7 @@ import * as yaml from 'yaml';
 
 import type { OpenAPIObject } from 'openapi3-ts/oas30';
 import { registry } from './swagger-instance';
+import config from '../config/config.service';
 
 export const getOpenApiDocumentation = (): OpenAPIObject => {
   const generator = new OpenApiGeneratorV3(registry.definitions);
@@ -11,11 +12,12 @@ export const getOpenApiDocumentation = (): OpenAPIObject => {
   return generator.generateDocument({
     openapi: '3.0.0',
     info: {
-      version: '1.0.0',
-      title: 'My API',
-      description: 'This is the API',
+      version: config.APP_VERSION!,
+      title: config.APP_NAME!,
+      description:
+        "Robust backend boilerplate designed for scalability, flexibility, and ease of development. It's packed with modern technologies and best practices to kickstart your next backend project",
     },
-    servers: [{ url: 'v1' }],
+    servers: [{ url: '/api' }],
   });
 };
 
