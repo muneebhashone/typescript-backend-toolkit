@@ -23,9 +23,7 @@ type Method =
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type IDontKnow = unknown | never | any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type MaybePromise = void | Promise<void>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RequestAny = Request<IDontKnow, IDontKnow, IDontKnow, IDontKnow>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ResponseAny = Response<IDontKnow, Record<string, any>>;
@@ -49,7 +47,7 @@ export class MagicRouter {
   }
 
   private wrapper(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     method: Method,
     path: string,
     requestAndResponseType: RequestAndResponseType,
@@ -63,8 +61,13 @@ export class MagicRouter {
     const responseType = requestAndResponseType.responseModel ?? {};
 
     const className = routeToClassName(this.rootRoute);
+    const title = camelCaseToTitleCase(
+      middlewares[middlewares.length - 1]?.name,
+    );
 
-    const bodySchema = bodyType ? registry.register(className, bodyType) : null;
+    const bodySchema = bodyType
+      ? registry.register(`${title} Input`, bodyType)
+      : null;
 
     const hasSecurity = middlewares.some((m) => m.name === canAccess().name);
 
@@ -73,10 +76,8 @@ export class MagicRouter {
       tags: [className],
       path: this.getPath(path),
       security: hasSecurity ? [{ [bearerAuth.name]: ['bearer'] }] : [],
-      description: camelCaseToTitleCase(
-        middlewares[middlewares.length - 1]?.name,
-      ),
-      summary: camelCaseToTitleCase(middlewares[middlewares.length - 1]?.name),
+      description: title,
+      summary: title,
       request: {
         params: paramsType,
         query: queryType,

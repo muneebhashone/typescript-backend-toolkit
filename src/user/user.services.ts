@@ -1,5 +1,4 @@
 import { FilterQuery } from 'mongoose';
-import { ConflictError } from '../errors/errors.service';
 import { SendOtpEmailQueue } from '../queues/email.queue';
 import { UserType } from '../types';
 import { hashPassword } from '../utils/auth.utils';
@@ -253,13 +252,13 @@ export const createUser = async (
       isUserExist = await User.findOne({ email: payload.email });
 
       if (isUserExist) {
-        throw new ConflictError('User already exists with same email address');
+        throw new Error('User already exists with same email address');
       }
     } else if (payload.phoneNo) {
       isUserExist = await User.findOne({ phoneNo: payload.phoneNo });
 
       if (isUserExist) {
-        throw new ConflictError('User already exists with same phone number');
+        throw new Error('User already exists with same phone number');
       }
     }
   }

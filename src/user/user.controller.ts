@@ -148,12 +148,13 @@ export const handleCreateSuperAdmin = async (
     role: 'SUPER_ADMIN',
     phoneNo: '123456789',
     dob: new Date(),
+    otp: null,
   });
 
   return successResponse(
     res,
     'Super Admin has been created',
-    user,
+    { email: user.email, password },
     StatusCodes.CREATED,
   );
 };
