@@ -1,6 +1,5 @@
 import z from 'zod';
 import { canAccess } from '../middlewares/can-access.middleware';
-import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
 import MagicRouter from '../openapi/magic-router';
 import {
   handleClearUsers,
@@ -28,10 +27,6 @@ export const USER_ROUTER_ROOT = '/users';
 
 const userRouter = new MagicRouter(USER_ROUTER_ROOT);
 
-userRouter.get('/seed', {}, handleUserSeeder);
-
-userRouter.delete('/_clear', {}, handleClearUsers);
-
 userRouter.get(
   '/:id/toggle-active',
   {
@@ -42,11 +37,14 @@ userRouter.get(
   handleToggleActive,
 );
 
+userRouter.get('/seed', {}, handleUserSeeder);
+
+userRouter.delete('/_clear', {}, handleClearUsers);
+
 userRouter.put(
   '/user',
-  {},
+  { requestType: { body: updateUserSchema } },
   canAccess('roles', ['DEFAULT_USER']),
-  validateZodSchema({ body: updateUserSchema }),
   handleUpdateUser,
 );
 
