@@ -14,14 +14,26 @@ export const errorResponse = (
   stack?: any,
 ): void => {
   try {
-    (res as ResponseExtended)
-      .status(statusCode ?? StatusCodes.BAD_REQUEST)
-      .jsonValidate({
-        success: false,
-        message: message,
-        data: payload,
-        stack: stack,
-      });
+    if ('jsonValidate' in res) {
+      (res as ResponseExtended)
+        .status(statusCode ?? StatusCodes.BAD_REQUEST)
+        .jsonValidate({
+          success: false,
+          message: message,
+          data: payload,
+          stack: stack,
+        });
+    } else {
+      (res as ResponseExtended)
+        .status(statusCode ?? StatusCodes.BAD_REQUEST)
+        .json({
+          success: false,
+          message: message,
+          data: payload,
+          stack: stack,
+        });
+    }
+
     return;
   } catch (err) {
     logger.error(err);
@@ -36,9 +48,16 @@ export const successResponse = (
   statusCode: StatusCodes = StatusCodes.OK,
 ): void => {
   try {
-    (res as ResponseExtended)
-      .status(statusCode)
-      .jsonValidate({ success: true, message: message, data: payload });
+    if ('jsonValidate' in res) {
+      (res as ResponseExtended)
+        .status(statusCode)
+        .jsonValidate({ success: true, message: message, data: payload });
+    } else {
+      (res as ResponseExtended)
+        .status(statusCode)
+        .json({ success: true, message: message, data: payload });
+    }
+
     return;
   } catch (err) {
     logger.error(err);
