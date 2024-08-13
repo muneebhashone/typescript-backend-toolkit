@@ -22,6 +22,7 @@ import {
   userIdSchema,
   verifyUpdateOtpSchema,
 } from './user.schema';
+import { usersPaginatedSchema } from './user.dto';
 
 export const USER_ROUTER_ROOT = '/users';
 
@@ -52,6 +53,7 @@ userRouter.get(
   '/',
   {
     requestType: { query: getUsersSchema },
+    responseModel: usersPaginatedSchema,
   },
   canAccess(),
   handleGetUsers,

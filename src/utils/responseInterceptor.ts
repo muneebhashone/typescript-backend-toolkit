@@ -1,20 +1,17 @@
-import { Request, Response, NextFunction } from 'express';
-import { ZodSchema, ZodError } from 'zod';
-
-export interface ExtendedResponse extends Response {
-  locals: { validateSchema?: ZodSchema };
-}
+import { NextFunction } from 'express';
+import { ZodError } from 'zod';
+import { RequestExtended, ResponseExtended } from '../types';
 
 const responseInterceptor = (
-  _: Request,
-  res: ExtendedResponse,
+  _: RequestExtended,
+  res: ResponseExtended,
   next: NextFunction,
 ) => {
   const originalJson = res.json;
   const originalSend = res.send;
   const validateSchema = res.locals.validateSchema ?? null;
 
-  res.json = function (body) {
+  res.jsonValidate = function (body) {
     if (validateSchema) {
       try {
         validateSchema.parse(body);
@@ -33,7 +30,7 @@ const responseInterceptor = (
     return originalJson.call(this, body);
   };
 
-  res.send = function (body) {
+  res.sendValidate = function (body) {
     if (validateSchema) {
       try {
         validateSchema.parse(body);

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import config from '../config/config.service';
 import logger from '../lib/logger.service';
 import { errorResponse } from './api.utils';
+import { RequestExtended, ResponseExtended } from '../types';
 
 interface CustomError extends Error {
   status?: number;
@@ -10,8 +11,8 @@ interface CustomError extends Error {
 
 export const globalErrorHandler = (
   err: CustomError,
-  _: Request,
-  res: Response,
+  _: RequestExtended | Request,
+  res: ResponseExtended | Response,
   __: NextFunction,
 ): void => {
   const statusCode = err.status || 500;
@@ -20,7 +21,7 @@ export const globalErrorHandler = (
   logger.error(`${statusCode}: ${errorMessage}`);
 
   return errorResponse(
-    res,
+    res as ResponseExtended,
     errorMessage,
     statusCode,
     err,
