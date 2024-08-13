@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { prepareSetPasswordAndSendEmail } from '../auth/auth.service';
-import { ConflictError } from '../errors/errors.service';
-import { errorResponse, successResponse } from '../utils/api.utils';
+import { successResponse } from '../utils/api.utils';
 import { generateRandomPassword, JwtPayload } from '../utils/auth.utils';
 import {
   CreateUserSchemaType,
@@ -27,205 +26,148 @@ import {
 } from './user.services';
 
 export const handleVerifyUpdateOtp = async (
-  req: Request<never, never, VerifyUpdateOtpSchemaType>,
+  req: Request<unknown, unknown, VerifyUpdateOtpSchemaType>,
   res: Response,
 ) => {
-  try {
-    const currentUser = req.user;
+  const currentUser = req.user;
 
-    await verifyUpdateOtp(req.body, { id: currentUser.sub });
+  await verifyUpdateOtp(req.body, { id: currentUser.sub });
 
-    return successResponse(res, `${req.body.for} has been updated`);
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
+  return successResponse(res, `${req.body.for} has been updated`);
 };
 
 export const handleUpdateUserEmail = async (
-  req: Request<never, never, UpdateUserEmailSchemaType>,
+  req: Request<unknown, unknown, UpdateUserEmailSchemaType>,
   res: Response,
 ) => {
-  try {
-    const currentUser = req.user as JwtPayload;
+  const currentUser = req.user as JwtPayload;
 
-    await updateUserEmail(req.body, { id: currentUser.sub });
+  await updateUserEmail(req.body, { id: currentUser.sub });
 
-    return successResponse(
-      res,
-      `Verification code has been successfuly sent to ${req.body.email}`,
-    );
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
+  return successResponse(
+    res,
+    `Verification code has been successfuly sent to ${req.body.email}`,
+  );
 };
 
 export const handleUpdateUserPhone = async (
-  req: Request<never, never, UpdateUserPhoneSchemaType>,
+  req: Request<unknown, unknown, UpdateUserPhoneSchemaType>,
   res: Response,
 ) => {
-  try {
-    const currentUser = req.user as JwtPayload;
+  const currentUser = req.user as JwtPayload;
 
-    await updateUserPhone(req.body, { id: currentUser.sub });
+  await updateUserPhone(req.body, { id: currentUser.sub });
 
-    const phoneNo = `********${req.body.phoneNo.slice(-3)}`;
+  const phoneNo = `********${req.body.phoneNo.slice(-3)}`;
 
-    return successResponse(
-      res,
-      `Verification code has been successfuly sent to ${phoneNo}`,
-    );
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
+  return successResponse(
+    res,
+    `Verification code has been successfuly sent to ${phoneNo}`,
+  );
 };
 
 export const handleToggleActive = async (
   req: Request<UserIdSchemaType>,
   res: Response,
 ) => {
-  try {
-    const status = await activeToggle({ id: req.params.id });
+  const status = await activeToggle({ id: req.params.id });
 
-    return successResponse(
-      res,
-      `Status changed to ${status ? 'Active' : 'Disabled'}`,
-    );
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
+  return successResponse(
+    res,
+    `Status changed to ${status ? 'Active' : 'Disabled'}`,
+  );
 };
 
 export const handleUserSeeder = async (_: Request, res: Response) => {
-  try {
-    // const result = await seedUsers();
-    const result = await seedManyUsers(USERS_TO_SEED);
-
-    return successResponse(res, 'Data seeded successfully', result);
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
+  const result = await seedManyUsers(USERS_TO_SEED);
+  return successResponse(res, 'Data seeded successfully', result);
 };
 
 export const handleDeleteUser = async (
-  req: Request<UserIdSchemaType, never>,
+  req: Request<UserIdSchemaType, unknown>,
   res: Response,
 ) => {
-  try {
-    await deleteUser({ id: req.params.id });
+  await deleteUser({ id: req.params.id });
 
-    return successResponse(res, 'User has been deleted');
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
+  return successResponse(res, 'User has been deleted');
 };
 
 export const handleClearUsers = async (_: Request, res: Response) => {
-  try {
-    await clearUsers();
+  await clearUsers();
 
-    return successResponse(res, 'Users table is cleared');
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
+  return successResponse(res, 'Users table is cleared');
 };
 
 export const handleUpdateUser = async (
-  req: Request<never, never, UpdateUserSchemaType>,
+  req: Request<unknown, unknown, UpdateUserSchemaType>,
   res: Response,
 ) => {
-  try {
-    const currentUser = req.user as JwtPayload;
-    const body = { ...req.body, dob: new Date(req.body.dob as string) };
-    const updatedUser = await updateUser(body, { id: currentUser.sub });
+  const currentUser = req.user as JwtPayload;
+  const body = { ...req.body, dob: new Date(req.body.dob as string) };
+  const updatedUser = await updateUser(body, { id: currentUser.sub });
 
-    return successResponse(res, 'Profile has been updated', updatedUser);
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
+  return successResponse(res, 'Profile has been updated', updatedUser);
 };
 
 export const handleCreateUser = async (
-  req: Request<never, never, CreateUserSchemaType>,
+  req: Request<unknown, unknown, CreateUserSchemaType>,
   res: Response,
 ) => {
-  try {
-    const data = req.body;
+  const data = req.body;
 
-    const user = await createUser({
-      ...data,
-      password: generateRandomPassword(),
-      isActive: true,
-      role: 'DEFAULT_USER',
-      ...(req.body?.dob ? { dob: new Date(req.body.dob) } : {}),
-    });
+  const user = await createUser({
+    ...data,
+    password: generateRandomPassword(),
+    isActive: true,
+    role: 'DEFAULT_USER',
+    ...(req.body?.dob ? { dob: new Date(req.body.dob) } : {}),
+  });
 
-    await prepareSetPasswordAndSendEmail(user);
+  await prepareSetPasswordAndSendEmail(user);
 
-    return res
-      .status(StatusCodes.CREATED)
-      .json({ message: 'Email has been sent to the user', data: user });
-  } catch (err) {
-    if (err instanceof ConflictError) {
-      return errorResponse(res, err.message, StatusCodes.CONFLICT);
-    }
-
-    return errorResponse(
-      res,
-      (err as Error).message,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-    );
-  }
+  return successResponse(
+    res,
+    'Email has been sent to the user',
+    user,
+    StatusCodes.CREATED,
+  );
 };
 
 export const handleCreateSuperAdmin = async (
-  _: Request<never, never, never>,
+  _: Request<unknown, unknown, unknown>,
   res: Response,
 ) => {
-  try {
-    const password = 'Pa$$w0rd!';
+  const password = 'Pa$$w0rd!';
 
-    const user = await createUser({
-      email: 'admin@mailinator.com',
-      firstName: 'Super',
-      lastName: 'Admin',
-      password: password,
-      isActive: true,
-      role: 'SUPER_ADMIN',
-      phoneNo: '123456789',
-      dob: new Date(),
-    });
+  const user = await createUser({
+    email: 'admin@mailinator.com',
+    firstName: 'Super',
+    lastName: 'Admin',
+    password: password,
+    isActive: true,
+    role: 'SUPER_ADMIN',
+    phoneNo: '123456789',
+    dob: new Date(),
+  });
 
-    return res.status(StatusCodes.CREATED).json({
-      message: 'Super Admin has been created',
-      data: { email: user.email, password: password },
-    });
-  } catch (err) {
-    if (err instanceof ConflictError) {
-      return errorResponse(res, err.message, StatusCodes.CONFLICT);
-    }
-
-    return errorResponse(
-      res,
-      (err as Error).message,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-    );
-  }
+  return successResponse(
+    res,
+    'Super Admin has been created',
+    user,
+    StatusCodes.CREATED,
+  );
 };
 
 export const handleGetUsers = async (
-  req: Request<never, never, never, GetUsersSchemaType>,
+  req: Request<unknown, unknown, unknown, GetUsersSchemaType>,
   res: Response,
 ) => {
-  try {
-    const { results, paginatorInfo } = await getUsers(
-      {
-        id: req.user.sub,
-      },
-      req.query,
-    );
+  const { results, paginatorInfo } = await getUsers(
+    {
+      id: req.user.sub,
+    },
+    req.query,
+  );
 
-    return res.json({ paginatorInfo: paginatorInfo, results: results });
-  } catch (err) {
-    return errorResponse(res, (err as Error).message);
-  }
+  return successResponse(res, undefined, { results, paginatorInfo });
 };

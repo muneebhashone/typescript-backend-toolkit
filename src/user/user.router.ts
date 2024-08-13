@@ -1,6 +1,7 @@
-import { Router } from 'express';
+import z from 'zod';
 import { canAccess } from '../middlewares/can-access.middleware';
 import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
+import MagicRouter from '../openapi/magic-router';
 import {
   handleClearUsers,
   handleCreateSuperAdmin,
@@ -22,68 +23,70 @@ import {
   userIdSchema,
   verifyUpdateOtpSchema,
 } from './user.schema';
-import MagicRouter from '../openapi/magic-router';
-import z from 'zod';
 
 export const USER_ROUTER_ROOT = '/users';
 
-// const userRouter = Router();
 const userRouter = new MagicRouter(USER_ROUTER_ROOT);
 
-// userRouter.get('/seed', handleUserSeeder);
+userRouter.get('/seed', {}, handleUserSeeder);
 
-userRouter.delete('/_clear', handleClearUsers);
+userRouter.delete('/_clear', {}, handleClearUsers);
 
 userRouter.get(
   '/:id/toggle-active',
-  { params: userIdSchema, body: createUserSchema },
-  z.string(),
+  {
+    requestType: { params: userIdSchema, body: createUserSchema },
+    responseModel: z.string(),
+  },
   canAccess(),
   handleToggleActive,
 );
 
-// userRouter.put(
-//   '/user',
-//   canAccess('roles', ['DEFAULT_USER']),
-//   validateZodSchema({ body: updateUserSchema }),
-//   handleUpdateUser,
-// );
+userRouter.put(
+  '/user',
+  {},
+  canAccess('roles', ['DEFAULT_USER']),
+  validateZodSchema({ body: updateUserSchema }),
+  handleUpdateUser,
+);
 
-// userRouter.get(
-//   '/',
-//   canAccess(),
-//   validateZodSchema({ query: getUsersSchema }),
-//   handleGetUsers,
-// );
+userRouter.get(
+  '/',
+  {
+    requestType: { query: getUsersSchema },
+  },
+  canAccess(),
+  handleGetUsers,
+);
 
-// userRouter.post(
-//   '/user',
-//   canAccess('roles', ['SUPER_ADMIN']),
-//   validateZodSchema({ body: createUserSchema }),
-//   handleCreateUser,
-// );
+userRouter.post(
+  '/user',
+  { requestType: { body: createUserSchema } },
+  canAccess('roles', ['SUPER_ADMIN']),
+  handleCreateUser,
+);
 
-// userRouter.post('/_super-admin', handleCreateSuperAdmin);
+userRouter.post('/_super-admin', {}, handleCreateSuperAdmin);
 
-// userRouter.post(
-//   '/update/email',
-//   canAccess(),
-//   validateZodSchema({ body: updateUserEmailSchema }),
-//   handleUpdateUserEmail,
-// );
+userRouter.post(
+  '/update/email',
+  { requestType: { body: updateUserEmailSchema } },
+  canAccess(),
+  handleUpdateUserEmail,
+);
 
-// userRouter.post(
-//   '/update/phone',
-//   canAccess(),
-//   validateZodSchema({ body: updateUserPhoneNoSchema }),
-//   handleUpdateUserPhone,
-// );
+userRouter.post(
+  '/update/phone',
+  { requestType: { body: updateUserPhoneNoSchema } },
+  canAccess(),
+  handleUpdateUserPhone,
+);
 
-// userRouter.post(
-//   '/verify/update-code',
-//   canAccess(),
-//   validateZodSchema({ body: verifyUpdateOtpSchema }),
-//   handleVerifyUpdateOtp,
-// );
+userRouter.post(
+  '/verify/update-code',
+  { requestType: { body: verifyUpdateOtpSchema } },
+  canAccess(),
+  handleVerifyUpdateOtp,
+);
 
 export default userRouter.getRouter();
