@@ -24,14 +24,12 @@ Before you get started, make sure you have the following installed on your machi
      ```sh
      docker compose up -d
      ```
-
 2. **Install Dependencies**:
 
    - Use pnpm to install all the necessary dependencies:
      ```sh
      pnpm i
      ```
-
 3. **Configure Environment Variables**:
 
    - Create a `.env` file in the root directory.
@@ -83,3 +81,7 @@ Before you get started, make sure you have the following installed on your machi
 ## Contributions
 
 Feel free to contribute to this project by submitting issues or pull requests. Let's build something amazing together!
+
+## **License**
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.

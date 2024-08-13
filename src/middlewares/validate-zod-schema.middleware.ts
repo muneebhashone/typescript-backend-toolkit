@@ -3,21 +3,16 @@ import { StatusCodes } from 'http-status-codes';
 import { ZodError, ZodSchema } from 'zod';
 import { errorResponse } from '../utils/api.utils';
 import { sanitizeRecord } from '../utils/common.utils';
-
-export type ValidateZodSchemaType = {
-  params?: ZodSchema;
-  query?: ZodSchema;
-  body?: ZodSchema;
-};
+import { RequestZodSchemaType } from '../types';
 
 export const validateZodSchema =
-  (payload: ValidateZodSchemaType) =>
+  (payload: RequestZodSchemaType) =>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (req: Request<any, any, any, any>, res: Response, next: NextFunction) => {
+  (req: Request<any, any, any, any>, res: Response, next?: NextFunction) => {
     let error: ZodError | null = null;
 
     Object.entries(payload).forEach((prop) => {
-      const [key, value] = prop as [keyof ValidateZodSchemaType, ZodSchema];
+      const [key, value] = prop as [keyof RequestZodSchemaType, ZodSchema];
 
       const parsed = value.safeParse(req[key]);
 
@@ -40,6 +35,6 @@ export const validateZodSchema =
         error,
       );
     } else {
-      next();
+      next?.();
     }
   };

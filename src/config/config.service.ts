@@ -26,6 +26,8 @@ const configSchema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_REDIRECT_URI: z.string(),
+  APP_NAME: z.string().default('API V1').optional(),
+  APP_VERSION: z.string().default('1.0.0').optional(),
 });
 
 export type Config = z.infer<typeof configSchema>;
