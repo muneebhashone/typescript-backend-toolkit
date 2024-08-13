@@ -27,7 +27,10 @@ const responseInterceptor = (
       }
     }
 
-    return originalJson.call(this, body);
+    return originalJson.call(
+      this,
+      validateSchema ? validateSchema.parse(body) : body,
+    );
   };
 
   res.sendValidate = function (body) {
@@ -46,7 +49,10 @@ const responseInterceptor = (
       }
     }
 
-    return originalSend.call(this, body);
+    return originalSend.call(
+      this,
+      validateSchema ? validateSchema.parse(body) : body,
+    );
   };
 
   next();
