@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "mattpocock.ts-error-translator",
+    "yoavbls.pretty-ts-errors",
+    "prisma.prisma",
+    "esbenp.prettier-vscode",
+    "christian-kohler.path-intellisense",
+    "dbaeumer.vscode-eslint",
+    "ms-azuretools.vscode-docker",
+    "digitalbrainstem.javascript-ejs-support",
+    "j69.ejs-beautify",
+    "dbaeumer.vscode-eslint"
+  ]
+}
