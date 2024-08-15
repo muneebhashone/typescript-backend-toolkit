@@ -7,26 +7,16 @@ import {
   handleGoogleCallback,
   handleGoogleLogin,
   handleLoginByEmail,
-  handleLoginByPhone,
-  handleLoginByPhoneAndPassword,
   handleLogout,
   handleRegisterUser,
   handleResetPassword,
-  handleSetPassword,
-  handleValidateLoginCode,
-  handleVerifyOtp,
 } from './auth.controller';
 import {
   changePasswordSchema,
   forgetPasswordSchema,
-  loginByPhoneAndPasswordSchema,
   loginUserByEmailSchema,
-  loginUserByPhoneSchema,
   registerUserByEmailSchema,
   resetPasswordSchema,
-  setPasswordSchema,
-  validateLoginOtpSchema,
-  verifyOtpSchema,
 } from './auth.schema';
 
 export const AUTH_ROUTER_ROOT = '/auth';
@@ -43,30 +33,6 @@ authRouter.post(
   '/login/email',
   { requestType: { body: loginUserByEmailSchema } },
   handleLoginByEmail,
-);
-
-authRouter.post(
-  '/login/phone-password',
-  { requestType: { body: loginByPhoneAndPasswordSchema } },
-  handleLoginByPhoneAndPassword,
-);
-
-authRouter.post(
-  '/login/phone',
-  { requestType: { body: loginUserByPhoneSchema } },
-  handleLoginByPhone,
-);
-
-authRouter.post(
-  '/verify-otp',
-  { requestType: { body: verifyOtpSchema } },
-  handleVerifyOtp,
-);
-
-authRouter.post(
-  '/verify-code',
-  { requestType: { body: validateLoginOtpSchema } },
-  handleValidateLoginCode,
 );
 
 authRouter.post('/logout', {}, handleLogout);
@@ -90,12 +56,6 @@ authRouter.post(
   '/reset-password',
   { requestType: { body: resetPasswordSchema } },
   handleResetPassword,
-);
-
-authRouter.post(
-  '/set-password',
-  { requestType: { body: setPasswordSchema } },
-  handleSetPassword,
 );
 
 authRouter.get('/google', {}, handleGoogleLogin);

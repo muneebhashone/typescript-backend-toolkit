@@ -21,35 +21,22 @@ const socialAccountInfoSchema = z.object({
 });
 
 const userOutSchema = z.object({
-  email: z.string().email().optional(),
+  _id: z.string().optional(),
+  email: z.string().email(),
   avatar: z.string().url().optional(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  name: z.string().optional(),
+  username: z.string(),
   role: RoleTypeZ,
-  dob: z.union([z.date(), z.string()]).optional(),
   phoneNo: z.string().optional(),
-  country: z.string().optional(),
-  state: z.string().optional(),
-  city: z.string().optional(),
-  streetAddress: z.string().optional(),
-  postalCode: z.string().optional(),
-  interest: z.string().optional(),
   socialAccount: z.array(socialAccountInfoSchema).optional(),
   updatedAt: z.date().optional(),
   createdAt: z.date().optional(),
 });
 
 const userSchema = userOutSchema.extend({
-  tempPhoneNo: z.string().optional(),
-  tempEmail: z.string().email().optional(),
   otp: z.string().nullable().optional(),
-  loginOtp: z.string().optional(),
-  updateOtp: z.string().optional(),
-  isActive: z.boolean(),
   password: z.string(),
   passwordResetCode: z.string().optional(),
-  setPasswordCode: z.string().optional(),
-  fcmToken: z.string().optional(),
 });
 
 export const usersPaginatedSchema = definePaginatedResponse(userOutSchema);
