@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { ROLE_ENUM, SOCIAL_ACCOUNT_ENUM } from '../enums'; // Import rolesEnums
-import { SocialAccountInfoType, UserType } from './user.dto';
+import { ROLE_ENUM, SOCIAL_ACCOUNT_ENUM } from '../../enums'; // Import rolesEnums
+import { SocialAccountInfoType, UserModelType, UserType } from './user.dto';
 
 const SocialAccountSchema = new Schema<SocialAccountInfoType>({
   accountType: {
@@ -36,6 +36,6 @@ const UserSchema: Schema<UserType> = new Schema(
 export interface ISocialAccountDocument
   extends SocialAccountInfoType,
     Document {}
-export interface IUserDocument extends UserType, Document<string> {}
+export interface IUserDocument extends Document<string>, UserModelType {}
 const User = mongoose.model<UserType>('User', UserSchema);
 export default User;

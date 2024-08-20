@@ -1,19 +1,50 @@
 import { FilterQuery } from 'mongoose';
-import { hashPassword } from '../utils/auth.utils';
-import { getPaginator } from '../utils/getPaginator';
-import { UserType } from './user.dto';
+import { hashPassword } from '../../utils/auth.utils';
+import { getPaginator } from '../../utils/getPaginator';
+import { UserModelType, UserType } from './user.dto';
 import User, { IUserDocument } from './user.model';
 import { GetUsersSchemaType } from './user.schema';
-import { MongoIdSchemaType } from '../common/common.schema';
-export const getUserById = async (userId: MongoIdSchemaType) => {
+import { MongoIdSchemaType } from '../../common/common.schema';
+
+export const updateUser = async (
+  userId: string,
+  payload: Partial<UserType>,
+): Promise<UserType> => {
+  const user = await User.findOneAndUpdate(
+    {
+      _id: userId,
+    },
+    { $set: { ...payload } },
+    {
+      new: true,
+    },
+  );
+
+  if (!user) throw new Error('User not found');
+
+  return user.toObject();
+};
+
+export const getUserById = async (userId: string, select?: string) => {
   const user = await User.findOne({
-    _id: userId.id,
-  }).select('+otp');
+    _id: userId,
+  }).select(select ?? '');
 
   if (!user) {
     throw new Error('User not found');
   }
 
+  return user.toObject();
+};
+
+export const getUserByEmail = async (
+  email: string,
+  select?: string,
+): Promise<UserType> => {
+  const user = await User.findOne({ email }).select(select ?? '');
+  if (!user) {
+    throw new Error('User not found');
+  }
   return user.toObject();
 };
 
@@ -70,7 +101,7 @@ export const getUsers = async (
 };
 
 export const createUser = async (
-  payload: UserType & { password: string },
+  payload: UserModelType & { password: string },
   checkExist: boolean = true,
 ): Promise<UserType> => {
   if (checkExist) {

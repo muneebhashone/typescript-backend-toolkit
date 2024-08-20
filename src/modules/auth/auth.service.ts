@@ -1,8 +1,5 @@
-import { ROLE_ENUM, RoleType, SOCIAL_ACCOUNT_ENUM } from '../enums';
-import { GoogleCallbackQuery } from '../types';
-import { UserType } from '../user/user.dto';
-import User from '../user/user.model';
-import { createUser } from '../user/user.services';
+import { ROLE_ENUM, RoleType, SOCIAL_ACCOUNT_ENUM } from '../../enums';
+import { GoogleCallbackQuery } from '../../types';
 import {
   compareHash,
   fetchGoogleTokens,
@@ -10,8 +7,15 @@ import {
   hashPassword,
   JwtPayload,
   signToken,
-} from '../utils/auth.utils';
-import { generateRandomNumbers } from '../utils/common.utils';
+} from '../../utils/auth.utils';
+import { generateRandomNumbers } from '../../utils/common.utils';
+import { UserType } from '../user/user.dto';
+import {
+  createUser,
+  getUserByEmail,
+  getUserById,
+  updateUser,
+} from '../user/user.services';
 import {
   ChangePasswordSchemaType,
   ForgetPasswordSchemaType,
@@ -21,11 +25,9 @@ import {
 } from './auth.schema';
 
 export const resetPassword = async (payload: ResetPasswordSchemaType) => {
-  const user = User.findOne({
-    _id: payload.userId,
-    passwordResetCode: payload.code,
-  });
-  if (!user) {
+  const user = await getUserById(payload.userId);
+
+  if (!user || user.passwordResetCode !== payload.code) {
     throw new Error('token is not valid or expired, please try again');
   }
 
@@ -35,25 +37,16 @@ export const resetPassword = async (payload: ResetPasswordSchemaType) => {
 
   const hashedPassword = await hashPassword(payload.password);
 
-  await User.updateOne(
-    {
-      _id: payload.userId,
-    },
-    {
-      $set: {
-        password: hashedPassword,
-        passwordResetCode: null,
-      },
-    },
-  );
+  await updateUser(payload.userId, {
+    password: hashedPassword,
+    passwordResetCode: null,
+  });
 };
 
 export const forgetPassword = async (
   payload: ForgetPasswordSchemaType,
 ): Promise<UserType> => {
-  const user = await User.findOne({
-    phoneNo: payload.email,
-  });
+  const user = await getUserByEmail(payload.email);
 
   if (!user) {
     throw new Error("user doesn't exists");
@@ -61,25 +54,16 @@ export const forgetPassword = async (
 
   const code = generateRandomNumbers(4);
 
-  await User.updateOne(
-    {
-      _id: user._id,
-    },
-    {
-      $set: { passwordResetCode: code },
-    },
-  );
+  await updateUser(user._id, { passwordResetCode: code });
 
-  return user.toObject();
+  return user;
 };
 
 export const changePassword = async (
   userId: string,
   payload: ChangePasswordSchemaType,
 ): Promise<void> => {
-  const user = await User.findOne({
-    _id: userId,
-  }).select('+password');
+  const user = await getUserById(userId, '+password');
 
   if (!user || !user.password) {
     throw new Error('User is not found');
@@ -96,15 +80,13 @@ export const changePassword = async (
 
   const hashedPassword = await hashPassword(payload.newPassword);
 
-  await User.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
+  await updateUser(userId, { password: hashedPassword });
 };
 
 export const registerUserByEmail = async (
   payload: RegisterUserByEmailSchemaType,
 ): Promise<UserType> => {
-  const userExistByEmail = await User.findOne({
-    email: payload.email,
-  });
+  const userExistByEmail = await getUserByEmail(payload.email);
 
   if (userExistByEmail) {
     throw new Error('Account already exist with same email address');
@@ -120,7 +102,7 @@ export const registerUserByEmail = async (
 export const loginUserByEmail = async (
   payload: LoginUserByEmailSchemaType,
 ): Promise<string> => {
-  const user = await User.findOne({ email: payload.email }).select('+password');
+  const user = await getUserByEmail(payload.email, '+password');
 
   if (!user || !(await compareHash(String(user.password), payload.password))) {
     throw new Error('Invalid email or password');
@@ -143,6 +125,7 @@ export const googleLogin = async (
   payload: GoogleCallbackQuery,
 ): Promise<UserType> => {
   const { code, error } = payload;
+
   if (error) {
     throw new Error(error);
   }
@@ -157,9 +140,11 @@ export const googleLogin = async (
   const userInfoResponse = await getUserInfo(access_token);
 
   const { id, email, name, picture } = userInfoResponse;
-  const existingUser = await User.findOne({ email });
-  if (!existingUser) {
-    return await createUser({
+
+  const user = await getUserByEmail(email);
+
+  if (!user) {
+    const newUser = await createUser({
       email,
       username: name,
       avatar: picture,
@@ -175,8 +160,12 @@ export const googleLogin = async (
         },
       ],
     });
-  } else {
-    existingUser.socialAccount = [
+
+    return newUser;
+  }
+
+  const updatedUser = await updateUser(user._id, {
+    socialAccount: [
       {
         refreshToken: refresh_token,
         tokenExpiry: new Date(Date.now() + expires_in * 1000),
@@ -184,9 +173,8 @@ export const googleLogin = async (
         accessToken: access_token,
         accountID: id,
       },
-    ];
-    await existingUser.save();
-  }
+    ],
+  });
 
-  return existingUser.toObject();
+  return updatedUser;
 };

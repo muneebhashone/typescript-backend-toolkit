@@ -1,5 +1,5 @@
 import { CookieOptions } from 'express';
-import config from '../config/config.service';
+import config from '../../config/config.service';
 
 const clientSideUrl = new URL(config.CLIENT_SIDE_URL);
 

@@ -1,5 +1,5 @@
-import { canAccess } from '../middlewares/can-access.middleware';
-import MagicRouter from '../openapi/magic-router';
+import { canAccess } from '../../middlewares/can-access.middleware';
+import MagicRouter from '../../openapi/magic-router';
 import {
   handleChangePassword,
   handleForgetPassword,
