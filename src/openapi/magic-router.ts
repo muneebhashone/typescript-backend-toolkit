@@ -36,10 +36,11 @@ export type MaybePromise = void | Promise<void>;
 export type RequestAny = Request<IDontKnow, IDontKnow, IDontKnow, IDontKnow>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ResponseAny = Response<IDontKnow, Record<string, any>>;
+export type MagicPathType = `/${string}`;
 export type MagicRoutePType<PathSet extends boolean> = PathSet extends true
   ? [reqAndRes: RequestAndResponseType, ...handlers: MagicMiddleware[]]
   : [
-      path: string,
+      path: MagicPathType,
       reqAndRes: RequestAndResponseType,
       ...handlers: MagicMiddleware[],
     ];
@@ -61,9 +62,9 @@ export type RequestAndResponseType = {
 export class MagicRouter<PathSet extends boolean = false> {
   private router: Router;
   private rootRoute: string;
-  private currentPath?: string;
+  private currentPath?: MagicPathType;
 
-  constructor(rootRoute: string, currentPath?: string) {
+  constructor(rootRoute: string, currentPath?: MagicPathType) {
     this.router = Router();
     this.rootRoute = rootRoute;
     this.currentPath = currentPath;
@@ -75,7 +76,7 @@ export class MagicRouter<PathSet extends boolean = false> {
 
   private wrapper(
     method: Method,
-    path: string,
+    path: MagicPathType,
     requestAndResponseType: RequestAndResponseType,
     ...middlewares: Array<MagicMiddleware>
   ): void {
@@ -202,102 +203,49 @@ export class MagicRouter<PathSet extends boolean = false> {
   }
 
   public get(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
-    if (this.currentPath) {
-      console.log(this.currentPath);
-      const [reqAndRes, ...handlers] = args as [
-        RequestAndResponseType,
-        ...MagicMiddleware[],
-      ];
-      this.wrapper('get', this.currentPath, reqAndRes, ...handlers);
-    } else {
-      const [path, reqAndRes, ...handlers] = args as [
-        string,
-        RequestAndResponseType,
-        ...MagicMiddleware[],
-      ];
-      this.wrapper('get', path, reqAndRes, ...handlers);
-    }
-    return this;
+    return this.routeHandler('get', ...args);
   }
 
   public post(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
-    if (this.currentPath) {
-      const [reqAndRes, ...handlers] = args as [
-        RequestAndResponseType,
-        ...MagicMiddleware[],
-      ];
-      this.wrapper('post', this.currentPath, reqAndRes, ...handlers);
-    } else {
-      const [path, reqAndRes, ...handlers] = args as [
-        string,
-        RequestAndResponseType,
-        ...MagicMiddleware[],
-      ];
-      this.wrapper('post', path, reqAndRes, ...handlers);
-    }
-    return this;
+    return this.routeHandler('post', ...args);
   }
 
   public delete(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
-    if (this.currentPath) {
-      const [reqAndRes, ...handlers] = args as [
-        RequestAndResponseType,
-        ...MagicMiddleware[],
-      ];
-      this.wrapper('delete', this.currentPath, reqAndRes, ...handlers);
-    } else {
-      const [path, reqAndRes, ...handlers] = args as [
-        string,
-        RequestAndResponseType,
-        ...MagicMiddleware[],
-      ];
-      this.wrapper('delete', path, reqAndRes, ...handlers);
-    }
-    return this;
+    return this.routeHandler('delete', ...args);
   }
 
   public patch(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
-    if (this.currentPath) {
-      const [reqAndRes, ...handlers] = args as [
-        RequestAndResponseType,
-        ...MagicMiddleware[],
-      ];
-      this.wrapper('patch', this.currentPath, reqAndRes, ...handlers);
-    } else {
-      const [path, reqAndRes, ...handlers] = args as [
-        string,
-        RequestAndResponseType,
-        ...MagicMiddleware[],
-      ];
-      this.wrapper('patch', path, reqAndRes, ...handlers);
-    }
-    return this;
+    return this.routeHandler('patch', ...args);
   }
 
   public put(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
-    if (this.currentPath) {
-      const [reqAndRes, ...handlers] = args as [
-        RequestAndResponseType,
-        ...MagicMiddleware[],
-      ];
-      this.wrapper('put', this.currentPath, reqAndRes, ...handlers);
-    } else {
-      const [path, reqAndRes, ...handlers] = args as [
-        string,
-        RequestAndResponseType,
-        ...MagicMiddleware[],
-      ];
-      this.wrapper('put', path, reqAndRes, ...handlers);
-    }
-    return this;
+    return this.routeHandler('put', ...args);
   }
 
   public use(...args: Parameters<Router['use']>): void {
     this.router.use(...args);
   }
 
-  public route(path: string): MagicRouteRType<true> {
+  public route(path: MagicPathType): MagicRouteRType<true> {
     return new MagicRouter<true>(this.rootRoute, path);
+  }
+
+  private routeHandler(method: Method, ...args: MagicRoutePType<PathSet>) {
+    if (this.currentPath) {
+      const [reqAndRes, ...handlers] = args as [
+        RequestAndResponseType,
+        ...MagicMiddleware[],
+      ];
+      this.wrapper(method, this.currentPath, reqAndRes, ...handlers);
+    } else {
+      const [path, reqAndRes, ...handlers] = args as [
+        MagicPathType,
+        RequestAndResponseType,
+        ...MagicMiddleware[],
+      ];
+      this.wrapper(method, path, reqAndRes, ...handlers);
+    }
+    return this;
   }
 
   // Method to get the router instance
