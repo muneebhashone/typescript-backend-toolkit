@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import config from '../config/config.service';
-import { GoogleCallbackQuery } from '../types';
-import { successResponse } from '../utils/api.utils';
-import { JwtPayload } from '../utils/auth.utils';
+import config from '../../config/config.service';
+import { GoogleCallbackQuery } from '../../types';
+import { successResponse } from '../../utils/api.utils';
+import { JwtPayload } from '../../utils/auth.utils';
 import { AUTH_COOKIE_KEY, COOKIE_CONFIG } from './auth.constants';
 import {
   ChangePasswordSchemaType,

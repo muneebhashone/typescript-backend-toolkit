@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { MongoIdSchemaType } from '../common/common.schema';
-import { successResponse } from '../utils/api.utils';
-import { generateRandomPassword } from '../utils/auth.utils';
+import { MongoIdSchemaType } from '../../common/common.schema';
+import { successResponse } from '../../utils/api.utils';
+import { generateRandomPassword } from '../../utils/auth.utils';
 import { CreateUserSchemaType, GetUsersSchemaType } from './user.schema';
 import { createUser, deleteUser, getUsers } from './user.services';
 

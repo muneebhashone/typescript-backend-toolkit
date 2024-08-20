@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { RoleType } from '../enums';
-import { getUserById } from '../user/user.services';
+import { getUserById } from '../modules/user/user.services';
 import { errorResponse } from '../utils/api.utils';
 import { JwtPayload } from '../utils/auth.utils';
 
@@ -29,7 +29,7 @@ export const canAccess =
           StatusCodes.UNAUTHORIZED,
         );
       }
-      const currentUser = await getUserById({ id: requestUser.sub });
+      const currentUser = await getUserById(requestUser.sub);
 
       if (!currentUser) {
         return errorResponse(res, 'Login again', StatusCodes.UNAUTHORIZED);
@@ -39,14 +39,6 @@ export const canAccess =
         return errorResponse(
           res,
           'Your account is not verified',
-          StatusCodes.UNAUTHORIZED,
-        );
-      }
-
-      if (!currentUser.isActive) {
-        return errorResponse(
-          res,
-          'Your account has been disabled',
           StatusCodes.UNAUTHORIZED,
         );
       }

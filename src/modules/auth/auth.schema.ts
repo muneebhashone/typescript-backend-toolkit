@@ -1,6 +1,6 @@
 import z from 'zod';
 import validator from 'validator';
-import { passwordValidationSchema } from '../common/common.schema';
+import { passwordValidationSchema } from '../../common/common.schema';
 import { baseCreateUser } from '../user/user.schema';
 
 export const resetPasswordSchema = z.object({

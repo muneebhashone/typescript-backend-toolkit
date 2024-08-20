@@ -1,7 +1,7 @@
 import * as z from 'zod';
-import { passwordValidationSchema } from '../common/common.schema';
-import { ROLE_ENUM, RoleType } from '../enums';
-import { isValidUsername } from '../utils/isUsername';
+import { passwordValidationSchema } from '../../common/common.schema';
+import { ROLE_ENUM, RoleType } from '../../enums';
+import { isValidUsername } from '../../utils/isUsername';
 
 export const baseCreateUser = z.object({
   email: z
