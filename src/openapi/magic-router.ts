@@ -61,11 +61,12 @@ export type RequestAndResponseType = {
 export class MagicRouter<PathSet extends boolean = false> {
   private router: Router;
   private rootRoute: string;
-  private currentPath: string | null = null;
+  private currentPath?: string;
 
-  constructor(rootRoute: string) {
+  constructor(rootRoute: string, currentPath?: string) {
     this.router = Router();
     this.rootRoute = rootRoute;
+    this.currentPath = currentPath;
   }
 
   private getPath(path: string) {
@@ -201,7 +202,8 @@ export class MagicRouter<PathSet extends boolean = false> {
   }
 
   public get(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
-    if (this.currentPath !== null) {
+    if (this.currentPath) {
+      console.log(this.currentPath);
       const [reqAndRes, ...handlers] = args as [
         RequestAndResponseType,
         ...MagicMiddleware[],
@@ -219,7 +221,7 @@ export class MagicRouter<PathSet extends boolean = false> {
   }
 
   public post(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
-    if (this.currentPath !== null) {
+    if (this.currentPath) {
       const [reqAndRes, ...handlers] = args as [
         RequestAndResponseType,
         ...MagicMiddleware[],
@@ -237,7 +239,7 @@ export class MagicRouter<PathSet extends boolean = false> {
   }
 
   public delete(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
-    if (this.currentPath !== null) {
+    if (this.currentPath) {
       const [reqAndRes, ...handlers] = args as [
         RequestAndResponseType,
         ...MagicMiddleware[],
@@ -255,7 +257,7 @@ export class MagicRouter<PathSet extends boolean = false> {
   }
 
   public patch(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
-    if (this.currentPath !== null) {
+    if (this.currentPath) {
       const [reqAndRes, ...handlers] = args as [
         RequestAndResponseType,
         ...MagicMiddleware[],
@@ -273,7 +275,7 @@ export class MagicRouter<PathSet extends boolean = false> {
   }
 
   public put(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
-    if (this.currentPath !== null) {
+    if (this.currentPath) {
       const [reqAndRes, ...handlers] = args as [
         RequestAndResponseType,
         ...MagicMiddleware[],
@@ -295,8 +297,7 @@ export class MagicRouter<PathSet extends boolean = false> {
   }
 
   public route(path: string): MagicRouteRType<true> {
-    this.currentPath = path;
-    return this as MagicRouteRType<true>;
+    return new MagicRouter<true>(this.rootRoute, path);
   }
 
   // Method to get the router instance
