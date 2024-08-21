@@ -1,5 +1,6 @@
 import { canAccess } from '../../middlewares/can-access.middleware';
 import MagicRouter from '../../openapi/magic-router';
+import RouteRoots from '../../routes/roots';
 import {
   handleCreateSuperAdmin,
   handleCreateUser,
@@ -8,9 +9,7 @@ import {
 import { usersPaginatedSchema } from './user.dto';
 import { createUserSchema, getUsersSchema } from './user.schema';
 
-export const USER_ROUTER_ROOT = '/users';
-
-const userRouter = new MagicRouter(USER_ROUTER_ROOT);
+const userRouter = new MagicRouter(RouteRoots.USER);
 
 userRouter.get(
   '/',

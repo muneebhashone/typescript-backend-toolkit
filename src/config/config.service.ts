@@ -12,7 +12,7 @@ const configSchema = z.object({
   MONGO_DATABASE_URL: z.string().url(),
   SMTP_HOST: z.string().min(1).optional(),
   SMTP_PORT: z.string().regex(/^\d+$/).transform(Number).optional(),
-  SMTP_USERNAME: z.string().email().optional(),
+  SMTP_USERNAME: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
   SMTP_FROM: z.string().min(1).optional(),
   SMTP_PASSWORD: z.string().min(1).optional(),
