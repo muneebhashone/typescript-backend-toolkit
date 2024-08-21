@@ -36,19 +36,38 @@ export type MaybePromise = void | Promise<void>;
 export type RequestAny = Request<IDontKnow, IDontKnow, IDontKnow, IDontKnow>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ResponseAny = Response<IDontKnow, Record<string, any>>;
+export type MagicPathType = `/${string}`;
+export type MagicRoutePType<PathSet extends boolean> = PathSet extends true
+  ? [reqAndRes: RequestAndResponseType, ...handlers: MagicMiddleware[]]
+  : [
+      path: MagicPathType,
+      reqAndRes: RequestAndResponseType,
+      ...handlers: MagicMiddleware[],
+    ];
+export type MagicRouteRType<PathSet extends boolean> = Omit<
+  MagicRouter<PathSet>,
+  'route' | 'getRouter' | 'use'
+>;
+export type MagicMiddleware = (
+  req: RequestAny,
+  res: ResponseAny,
+  next?: NextFunction,
+) => MaybePromise;
 
 export type RequestAndResponseType = {
   requestType?: RequestZodSchemaType;
   responseModel?: ZodTypeAny;
 };
 
-export class MagicRouter {
+export class MagicRouter<PathSet extends boolean = false> {
   private router: Router;
   private rootRoute: string;
+  private currentPath?: MagicPathType;
 
-  constructor(rootRoute: string) {
+  constructor(rootRoute: string, currentPath?: MagicPathType) {
     this.router = Router();
     this.rootRoute = rootRoute;
+    this.currentPath = currentPath;
   }
 
   private getPath(path: string) {
@@ -57,11 +76,9 @@ export class MagicRouter {
 
   private wrapper(
     method: Method,
-    path: string,
+    path: MagicPathType,
     requestAndResponseType: RequestAndResponseType,
-    ...middlewares: Array<
-      (req: RequestAny, res: ResponseAny, next?: NextFunction) => MaybePromise
-    >
+    ...middlewares: Array<MagicMiddleware>
   ): void {
     const bodyType = requestAndResponseType.requestType?.body;
     const paramsType = requestAndResponseType.requestType?.params;
@@ -185,57 +202,50 @@ export class MagicRouter {
     }
   }
 
-  public get(
-    path: string,
-    requestAndResponseType: RequestAndResponseType,
-    ...middlewares: Array<
-      (req: RequestAny, res: ResponseAny, next?: NextFunction) => MaybePromise
-    >
-  ): void {
-    this.wrapper('get', path, requestAndResponseType, ...middlewares);
+  public get(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
+    return this.routeHandler('get', ...args);
   }
 
-  public post(
-    path: string,
-    requestAndResponseType: RequestAndResponseType,
-    ...middlewares: Array<
-      (req: RequestAny, res: ResponseAny, next?: NextFunction) => MaybePromise
-    >
-  ): void {
-    this.wrapper('post', path, requestAndResponseType, ...middlewares);
+  public post(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
+    return this.routeHandler('post', ...args);
   }
 
-  public delete(
-    path: string,
-    requestAndResponseType: RequestAndResponseType,
-    ...middlewares: Array<
-      (req: RequestAny, res: ResponseAny, next?: NextFunction) => MaybePromise
-    >
-  ): void {
-    this.wrapper('delete', path, requestAndResponseType, ...middlewares);
+  public delete(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
+    return this.routeHandler('delete', ...args);
   }
 
-  public patch(
-    path: string,
-    requestAndResponseType: RequestAndResponseType,
-    ...middlewares: Array<
-      (req: RequestAny, res: ResponseAny, next?: NextFunction) => MaybePromise
-    >
-  ): void {
-    this.wrapper('patch', path, requestAndResponseType, ...middlewares);
+  public patch(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
+    return this.routeHandler('patch', ...args);
   }
 
-  public put(
-    path: string,
-    requestAndResponseType: RequestAndResponseType,
-    ...middlewares: Array<
-      (req: RequestAny, res: ResponseAny, next?: NextFunction) => MaybePromise
-    >
-  ): void {
-    this.wrapper('put', path, requestAndResponseType, ...middlewares);
+  public put(...args: MagicRoutePType<PathSet>): MagicRouteRType<PathSet> {
+    return this.routeHandler('put', ...args);
   }
+
   public use(...args: Parameters<Router['use']>): void {
     this.router.use(...args);
+  }
+
+  public route(path: MagicPathType): MagicRouteRType<true> {
+    return new MagicRouter<true>(this.rootRoute, path);
+  }
+
+  private routeHandler(method: Method, ...args: MagicRoutePType<PathSet>) {
+    if (this.currentPath) {
+      const [reqAndRes, ...handlers] = args as [
+        RequestAndResponseType,
+        ...MagicMiddleware[],
+      ];
+      this.wrapper(method, this.currentPath, reqAndRes, ...handlers);
+    } else {
+      const [path, reqAndRes, ...handlers] = args as [
+        MagicPathType,
+        RequestAndResponseType,
+        ...MagicMiddleware[],
+      ];
+      this.wrapper(method, path, reqAndRes, ...handlers);
+    }
+    return this;
   }
 
   // Method to get the router instance
