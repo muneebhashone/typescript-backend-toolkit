@@ -15,7 +15,7 @@ services:
   redis:
     image: redis:latest
     ports:
-      - 6380:6379
+      - 6379:6379
     volumes:
       - redis_typescript_backend_toolkit:/data
 
@@ -32,8 +32,5 @@ services:
 
 volumes:
   mongodb_typescript_backend_toolkit:
-    external: true
   redis_typescript_backend_toolkit:
-    external: true
   postgres_typescript_backend_toolkit:
-    external: true

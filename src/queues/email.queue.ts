@@ -19,7 +19,7 @@ export const ResetPasswordQueue = Queue<SendResetPasswordTypePayload>(
     } catch (err) {
       if (err instanceof Error) logger.error(err.message);
 
-      throw err;
+      throw new Error((err as Error).message);
     }
   },
 );

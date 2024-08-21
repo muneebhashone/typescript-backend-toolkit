@@ -1,17 +1,16 @@
 import express from 'express';
-import authRouter, { AUTH_ROUTER_ROOT } from '../modules/auth/auth.router';
+import authRouter from '../modules/auth/auth.router';
 
-import healthCheckRouter, {
-  HEALTH_ROUTER_ROOT,
-} from '../healthcheck/healthcheck.routes';
-import uploadRouter, { UPLOAD_ROUTER_ROOT } from '../upload/upload.router';
-import userRouter, { USER_ROUTER_ROOT } from '../modules/user/user.router';
+import healthCheckRouter from '../healthcheck/healthcheck.routes';
+import userRouter from '../modules/user/user.router';
+import uploadRouter from '../modules/upload/upload.router';
+import RouteRoots from './roots';
 
 const router = express.Router();
 
-router.use(HEALTH_ROUTER_ROOT, healthCheckRouter);
-router.use(USER_ROUTER_ROOT, userRouter);
-router.use(AUTH_ROUTER_ROOT, authRouter);
-router.use(UPLOAD_ROUTER_ROOT, uploadRouter);
+router.use(RouteRoots.HEALTHCHECK, healthCheckRouter);
+router.use(RouteRoots.USER, userRouter);
+router.use(RouteRoots.AUTH, authRouter);
+router.use(RouteRoots.UPLOAD, uploadRouter);
 
 export default router;

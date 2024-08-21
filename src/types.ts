@@ -30,3 +30,7 @@ export interface ResponseExtended extends Response {
   jsonValidate: Response['json'];
   sendValidate: Response['send'];
 }
+
+export type WithEmail<T extends Record<string, string>> = T & {
+  email: string;
+};

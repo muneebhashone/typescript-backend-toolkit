@@ -1,5 +1,6 @@
 import { canAccess } from '../../middlewares/can-access.middleware';
 import MagicRouter from '../../openapi/magic-router';
+import RouteRoots from '../../routes/roots';
 import {
   handleChangePassword,
   handleForgetPassword,
@@ -19,9 +20,7 @@ import {
   resetPasswordSchema,
 } from './auth.schema';
 
-export const AUTH_ROUTER_ROOT = '/auth';
-
-const authRouter = new MagicRouter(AUTH_ROUTER_ROOT);
+const authRouter = new MagicRouter(RouteRoots.AUTH);
 
 authRouter.post(
   '/register/user',

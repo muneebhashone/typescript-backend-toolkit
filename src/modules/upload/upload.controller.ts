@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { errorResponse, successResponse } from '../utils/api.utils';
+import { errorResponse, successResponse } from '../../utils/api.utils';
 import { updateUser } from '../user/user.services';
-import { UserType } from '../types';
+import { UserType } from '../user/user.dto';
 
 export const handleProfileUpload = async (req: Request, res: Response) => {
   try {
@@ -12,10 +12,9 @@ export const handleProfileUpload = async (req: Request, res: Response) => {
       return errorResponse(res, 'File not uploaded, Please try again');
     }
 
-    const user = await updateUser(
-      { avatar: String(file.location) },
-      { id: String(currentUser._id) },
-    );
+    const user = await updateUser(String(currentUser._id), {
+      avatar: String(file.location),
+    });
 
     return successResponse(res, 'Profile picture has been uploaded', user);
   } catch (err) {
