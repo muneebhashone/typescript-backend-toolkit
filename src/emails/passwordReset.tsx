@@ -4,22 +4,17 @@ import {
   Container,
   Head,
   Html,
-  Img,
   Link,
   Preview,
   Section,
   Text,
   render,
 } from '@react-email/components';
-import * as React from 'react';
-import config from '../config/config.service';
 
 export interface DropboxResetPasswordEmailProps {
   userFirstname?: string;
   resetPasswordLink?: string;
 }
-
-const baseUrl = config.CLIENT_SIDE_URL || '';
 
 export const DropboxResetPasswordEmail = ({
   userFirstname,
@@ -58,6 +53,11 @@ export const DropboxResetPasswordEmail = ({
     </Html>
   );
 };
+
+DropboxResetPasswordEmail.PreviewProps = {
+  userFirstname: 'Alan',
+  resetPasswordLink: 'https://dropbox.com',
+} as DropboxResetPasswordEmailProps;
 
 export default DropboxResetPasswordEmail;
 
