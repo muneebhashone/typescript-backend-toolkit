@@ -1,10 +1,27 @@
 import pluginJs from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import react from 'eslint-plugin-react';
 
 export default [
   {
-    languageOptions: { globals: globals.node },
+    files: ['**/*.{jsx,tsx}'],
+    plugins: {
+      react,
+    },
+    languageOptions: {
+      globals: { ...globals.browser },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+  },
+  {
+    languageOptions: {
+      globals: { ...globals.node },
+    },
   },
   {
     ignores: [

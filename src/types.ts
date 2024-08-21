@@ -31,6 +31,6 @@ export interface ResponseExtended extends Response {
   sendValidate: Response['send'];
 }
 
-export type WithEmail<T extends Record<string, string>> = T & {
+export type WithEmail<T> = T & {
   email: string;
 };
