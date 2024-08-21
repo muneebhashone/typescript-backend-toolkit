@@ -1,7 +1,7 @@
 import {
   SendResetPasswordTypePayload,
   sendResetPasswordEmail,
-} from '../email/email.service';
+} from '../emails/email.service';
 import logger from '../lib/logger.service';
 import { Queue } from '../lib/queue.server';
 
@@ -19,7 +19,7 @@ export const ResetPasswordQueue = Queue<SendResetPasswordTypePayload>(
     } catch (err) {
       if (err instanceof Error) logger.error(err.message);
 
-      throw new Error((err as Error).message);
+      throw err;
     }
   },
 );

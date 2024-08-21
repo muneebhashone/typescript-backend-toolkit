@@ -1,4 +1,6 @@
+import config from '../../config/config.service';
 import { ROLE_ENUM, RoleType, SOCIAL_ACCOUNT_ENUM } from '../../enums';
+import { ResetPasswordQueue } from '../../queues/email.queue';
 import { GoogleCallbackQuery } from '../../types';
 import {
   compareHash,
@@ -34,6 +36,13 @@ export const resetPassword = async (payload: ResetPasswordSchemaType) => {
   if (payload.confirmPassword !== payload.password) {
     throw new Error('Password and confirm password must be same');
   }
+
+  await ResetPasswordQueue.add(user.id, {
+    email: user.email,
+    resetPasswordLink:
+      config.CLIENT_SIDE_URL + '/reset-password/' + user.passwordResetCode,
+    userFirstname: user.username,
+  });
 
   const hashedPassword = await hashPassword(payload.password);
 
