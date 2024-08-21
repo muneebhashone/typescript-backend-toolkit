@@ -3,17 +3,9 @@ import fs from 'fs';
 import path from 'node:path';
 
 export type EmailTemplates = {
-  'set-password': {
-    name: string;
-    passwordSetLink: string;
-  };
   'reset-password': {
     resetLink: string;
     userName: string;
-  };
-  otp: {
-    userName: string;
-    otpCode: string;
   };
 };
 

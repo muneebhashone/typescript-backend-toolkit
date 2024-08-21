@@ -15,11 +15,25 @@ services:
   redis:
     image: redis:latest
     ports:
-      - 6379:6379
+      - 6380:6379
     volumes:
-      - redis:/data
+      - redis_typescript_backend_toolkit:/data
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: root
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_typescript_backend_toolkit:/var/lib/postgresql/data
 
 volumes:
   mongodb_typescript_backend_toolkit:
-    # external: true
-  redis:
+    external: true
+  redis_typescript_backend_toolkit:
+    external: true
+  postgres_typescript_backend_toolkit:
+    external: true
