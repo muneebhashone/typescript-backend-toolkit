@@ -24,16 +24,18 @@ Before you get started, make sure you have the following installed on your machi
      ```sh
      docker compose up -d
      ```
+
 2. **Install Dependencies**:
 
    - Use pnpm to install all the necessary dependencies:
      ```sh
      pnpm i
      ```
+
 3. **Configure Environment Variables**:
 
-   - Create a `.env` file in the root directory.
-   - Use the provided `.env.sample` as a template to enter all the required environment variables.
+   - Create `.env.development` and `.env.production` files in the root directory.
+   - Use the provided `.env.sample` as a template to set up the environment variables in these files.
 
 ## What's Included
 
