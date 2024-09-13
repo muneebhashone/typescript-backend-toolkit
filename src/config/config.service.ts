@@ -1,7 +1,7 @@
-import dotenv from 'dotenv';
+import dotenvx from '@dotenvx/dotenvx';
 import { z } from 'zod';
 
-dotenv.config();
+dotenvx.config();
 
 // Remove .optional() from requried schema properties
 

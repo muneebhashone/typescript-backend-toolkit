@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/main.js",
   "scripts": {
-    "dev": "dotenv -e .env -- ts-node-dev --transpile-only ./src/main.ts",
+    "dev": "dotenvx run -- ts-node-dev --transpile-only ./src/main.ts",
     "seeder": "ts-node --transpile-only ./src/seeder.ts",
     "build": "tsup --config build.ts",
     "start:prod": "dotenv -e .env -- node ./dist/main.js",
@@ -55,6 +55,7 @@
     "@aws-sdk/client-s3": "^3.606.0",
     "@bull-board/api": "^5.19.0",
     "@bull-board/express": "^5.16.0",
+    "@dotenvx/dotenvx": "^1.14.0",
     "@prisma/client": "^5.13.0",
     "@types/compression": "^1.7.2",
     "argon2": "^0.30.3",
