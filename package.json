@@ -4,7 +4,8 @@
   "description": "",
   "main": "dist/main.js",
   "scripts": {
-    "dev": "dotenvx run -- ts-node-dev --transpile-only ./src/main.ts",
+    "dev": "dotenvx run -f .env.development -- ts-node-dev --transpile-only ./src/main.ts",
+    "prod": "dotenvx run -f .env.production  -- ts-node-dev --transpile-only ./src/main.ts",
     "seeder": "ts-node --transpile-only ./src/seeder.ts",
     "build": "tsup --config build.ts",
     "start:prod": "dotenv -e .env -- node ./dist/main.js",
