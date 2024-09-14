@@ -1,7 +1,19 @@
-import dotenv from 'dotenv';
-import { z } from 'zod';
+import dotenvx from '@dotenvx/dotenvx';
+import { z, ZodError } from 'zod';
 
-dotenv.config();
+dotenvx.config();
+
+const prettyPrintErrors = (errors: ZodError) => {
+  const formattedError = errors.flatten().fieldErrors;
+  Object.entries(formattedError).forEach(([key, value]) => {
+    console.log(`${key}:`);
+    if (Array.isArray(value)) {
+      value.forEach((errorMessage: string) => {
+        console.log(`  - ${errorMessage}`);
+      });
+    }
+  });
+};
 
 // Remove .optional() from requried schema properties
 
@@ -33,6 +45,14 @@ const configSchema = z.object({
 
 export type Config = z.infer<typeof configSchema>;
 
-const config = configSchema.parse(process.env);
+const config = configSchema.safeParse(process.env);
 
-export default config;
+if (!config.success) {
+  console.log('------------------------------------------------');
+  console.log('There is an error with the environment variables');
+  console.log('------------------------------------------------');
+  console.log(prettyPrintErrors(config.error));
+  process.exit(1);
+}
+
+export default config.data;
