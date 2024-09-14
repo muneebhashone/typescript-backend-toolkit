@@ -3,16 +3,14 @@ import { z, ZodError } from 'zod';
 
 dotenvx.config();
 
-const prettyPrintErrors = (errObj: ZodError) => {
-  const formattedError = errObj.format();
+const prettyPrintErrors = (errors: ZodError) => {
+  const formattedError = errors.flatten().fieldErrors;
   Object.entries(formattedError).forEach(([key, value]) => {
-    if (key !== '_errors') {
-      console.log(`${key}:`);
-      if (Array.isArray(value?._errors)) {
-        value._errors.forEach((errorMessage: string) => {
-          console.log(`  - ${errorMessage}`);
-        });
-      }
+    console.log(`${key}:`);
+    if (Array.isArray(value)) {
+      value.forEach((errorMessage: string) => {
+        console.log(`  - ${errorMessage}`);
+      });
     }
   });
 };
