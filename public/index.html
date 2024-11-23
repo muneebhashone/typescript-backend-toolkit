@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript Backend Toolkit</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="logo.webp" alt="TypeScript Backend Toolkit Logo">
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#prerequisites">Prerequisites</a>
+                <a href="#roadmap">Roadmap</a>
+                <a href="https://github.com/muneebhashone/typescript-backend-toolkit" class="github-link">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>TypeScript Backend Toolkit</h1>
+                <p class="hero-description">
+                    A robust backend boilerplate designed for scalability, flexibility, and ease of development. 
+                    Packed with modern technologies and best practices to kickstart your next backend project.
+                </p>
+                <div class="cta-buttons">
+                    <a href="#getting-started" class="cta-primary">
+                        <i class="fas fa-rocket"></i>
+                        Get Started
+                    </a>
+                    <a href="https://github.com/muneebhashone/typescript-backend-toolkit" class="cta-secondary">
+                        <i class="fab fa-github"></i>
+                        View on GitHub
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="code-preview">
+                    <div class="code-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <pre><code># Start MongoDB and Redis
+docker compose up -d
+
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm run dev
+
+🚀 Server running at http://localhost:3000
+📚 API Docs: http://localhost:3000/api-docs
+📊 Queue Dashboard: http://localhost:3000/admin/queues</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <h2>What's Included</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-book"></i>
+                    <h3>OpenAPI Docs</h3>
+                    <p>Auto-generated Swagger documentation through MagicRouter API and Zod for perfect type safety</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-lock"></i>
+                    <h3>Auth Module</h3>
+                    <p>Complete authentication system with Google Sign-In support and JWT handling</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-users"></i>
+                    <h3>User Management</h3>
+                    <p>Comprehensive user management with role-based access control and profile handling</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-upload"></i>
+                    <h3>File Upload</h3>
+                    <p>Seamless file uploads with Multer and Amazon S3 integration for scalable storage</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Data Validation</h3>
+                    <p>Type-safe data validation and serialization powered by Zod</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-cogs"></i>
+                    <h3>Config Management</h3>
+                    <p>Environment configuration with dotenv-cli and Zod validation for type safety</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="prerequisites" class="prerequisites">
+            <h2>Before You Start</h2>
+            <p class="section-description">
+                To ensure a smooth development experience, make sure you have these essential tools installed. 
+                They form the foundation of your development environment and are crucial for running the project efficiently.
+            </p>
+            <div class="prerequisites-list">
+                <div class="prerequisite-item">
+                    <i class="fab fa-docker"></i>
+                    <h3>Docker + Docker Compose</h3>
+                    <p>Required for running MongoDB and Redis services in isolated containers</p>
+                </div>
+                <div class="prerequisite-item">
+                    <i class="fas fa-box"></i>
+                    <h3>PNPM</h3>
+                    <p>Fast, disk space efficient package manager for managing dependencies</p>
+                </div>
+                <div class="prerequisite-item">
+                    <i class="fab fa-node-js"></i>
+                    <h3>Node.js 20+ (LTS)</h3>
+                    <p>Latest LTS version for optimal performance and security</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="roadmap" class="roadmap">
+            <h2>What's Next</h2>
+            <p class="section-description">
+                Our development roadmap outlines exciting features and improvements planned for future releases. 
+                These additions will enhance scalability, developer experience, and deployment options.
+            </p>
+            <div class="roadmap-grid">
+                <div class="roadmap-item">
+                    <i class="fas fa-plug"></i>
+                    <h3>Real-time Support</h3>
+                    <p>Socket.io integration with Redis adapter for scalable real-time communication</p>
+                </div>
+                <div class="roadmap-item">
+                    <i class="fas fa-bell"></i>
+                    <h3>Advanced Notifications</h3>
+                    <p>FCM & Novu integration for powerful, multi-channel notifications</p>
+                </div>
+                <div class="roadmap-item">
+                    <i class="fas fa-server"></i>
+                    <h3>Server Automation</h3>
+                    <p>Ansible playbooks for automated server provisioning and configuration</p>
+                </div>
+                <div class="roadmap-item">
+                    <i class="fab fa-aws"></i>
+                    <h3>Cloud Infrastructure</h3>
+                    <p>AWS CDK support for infrastructure as code and easy cloud deployment</p>
+                </div>
+                <div class="roadmap-item">
+                    <i class="fas fa-code-branch"></i>
+                    <h3>Monorepo Structure</h3>
+                    <p>Turborepo integration for efficient monorepo management</p>
+                </div>
+                <div class="roadmap-item">
+                    <i class="fas fa-cloud"></i>
+                    <h3>Serverless Ready</h3>
+                    <p>Support for AWS Lambda and Cloudflare Workers deployment</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>Licensed under MIT License</p>
+            <div class="social-links">
+                <a href="https://github.com/muneebhashone/typescript-backend-toolkit" aria-label="GitHub Repository">
+                    <i class="fab fa-github"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
