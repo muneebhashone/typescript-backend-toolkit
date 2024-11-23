@@ -79,7 +79,13 @@ export const handleGetCurrentUser = async (req: Request, res: Response) => {
   return successResponse(res, undefined, user);
 };
 export const handleGoogleLogin = async (_: Request, res: Response) => {
-  const googleAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&scope=email profile`;
+  if (!config.GOOGLE_CLIENT_ID || !config.GOOGLE_REDIRECT_URI) {
+    throw new Error('Google credentials are not set');
+  } 
+
+  const googleAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${config.GOOGLE_CLIENT_ID}&redirect_uri=${config.GOOGLE_REDIRECT_URI}&scope=email profile`;
+
+  
   res.redirect(googleAuthURL);
 };
 export const handleGoogleCallback = async (
