@@ -47,7 +47,7 @@ Before you get started, make sure you have the following installed on your machi
   - **Authorization**: Built-in authorization middleware.
   - **Zod Schema Validation**: Ensures your API inputs are correctly validated.
   - **JWT Extraction**: Easily extract and verify JWT tokens.
-- **Type-safe Email Handling**: Emails are managed using Nodemailer with EJS templating.
+- **Type-safe Email Handling**: Emails are managed using React Email and Mailgun for dynamic and flexible email handling.
 - **Queues**: Powered by BullMQ with Redis for handling background jobs.
 - **ESLint Setup**: Pre-configured ESLint setup for consistent code quality.
   ```sh
@@ -67,13 +67,12 @@ Before you get started, make sure you have the following installed on your machi
 
 - **Socket.io Support:** Adding support for Redis adapter and a chat module.
 - **Notification Infrastructure**: Notifications via FCM and Novu.
-- **React-Email and Mailgun Support** : Improve email management with React-Email and Mailgun for more dynamic and flexible email handling.
 - **Ansible Playbook** : Create an Ansible playbook for server configuration to set up a basic environment quickly and consistently.
 - **AWS CDK Support** : Integrate AWS CDK for infrastructure management, making it easier to deploy and manage cloud resources.
 - **Monorepo Support** : Implement monorepo architecture using Turborepo and Pnpm for better project organization and scalability.
 - **AWS Lambda Support** : Add support for deploying serverless functions on AWS Lambda.
 - **Cloudflare Workers Support** : Enable Cloudflare Workers support for edge computing and faster request handling.
-- **Postgres Support with Prisma** : Add support for PostgreSQL using Prisma ORM for better relational database management.
+- **Postgres Support with Drizzle** : Add support for PostgreSQL using Drizzle ORM for better relational database management.
 - **Containerization with Docker** : Implement containerization to ensure the project can be easily deployed to any environment using Docker.
 - **Kubernetes Support** : Integrate Kubernetes for container orchestration, enabling scalable and automated deployment of the application.
 - **CI/CD with GitHub Actions** : Implement a CI/CD pipeline using GitHub Actions to automate testing, building, and deployment processes.
