@@ -227,7 +227,30 @@ export class MagicRouter<PathSet extends boolean = false> {
   }
 
   public route(path: MagicPathType): MagicRouteRType<true> {
-    return new MagicRouter<true>(this.rootRoute, path);
+    // Create a proxy object that will use the same router instance
+    const proxy = {
+      get: (...args: [RequestAndResponseType, ...MagicMiddleware[]]) => {
+        this.wrapper('get', path, ...args);
+        return proxy;
+      },
+      post: (...args: [RequestAndResponseType, ...MagicMiddleware[]]) => {
+        this.wrapper('post', path, ...args);
+        return proxy;
+      },
+      put: (...args: [RequestAndResponseType, ...MagicMiddleware[]]) => {
+        this.wrapper('put', path, ...args);
+        return proxy;
+      },
+      delete: (...args: [RequestAndResponseType, ...MagicMiddleware[]]) => {
+        this.wrapper('delete', path, ...args);
+        return proxy;
+      },
+      patch: (...args: [RequestAndResponseType, ...MagicMiddleware[]]) => {
+        this.wrapper('patch', path, ...args);
+        return proxy;
+      }
+    };
+    return proxy;
   }
 
   private routeHandler(method: Method, ...args: MagicRoutePType<PathSet>) {
