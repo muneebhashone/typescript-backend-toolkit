@@ -96,15 +96,19 @@ export const generateRandomPassword = (length: number = 16): string => {
 export const fetchGoogleTokens = async (
   params: GoogleTokensRequestParams,
 ): Promise<GoogleTokenResponse> => {
+  if (!config.GOOGLE_CLIENT_ID || !config.GOOGLE_CLIENT_SECRET || !config.GOOGLE_REDIRECT_URI) {
+    throw new Error('Google credentials are not set');
+  }
+  
   const url = 'https://oauth2.googleapis.com/token';
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       code: params.code,
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+      client_id: config.GOOGLE_CLIENT_ID,
+      client_secret: config.GOOGLE_CLIENT_SECRET,
+      redirect_uri: config.GOOGLE_REDIRECT_URI,
       grant_type: 'authorization_code',
     }),
   });

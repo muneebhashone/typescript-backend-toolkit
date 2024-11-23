@@ -8,26 +8,18 @@ import {
   handleGoogleLogin,
   handleLoginByEmail,
   handleLogout,
-  handleRegisterUser,
-  handleResetPassword,
+  handleResetPassword
 } from './auth.controller';
 import {
   changePasswordSchema,
   forgetPasswordSchema,
   loginUserByEmailSchema,
-  registerUserByEmailSchema,
-  resetPasswordSchema,
+  resetPasswordSchema
 } from './auth.schema';
 
 export const AUTH_ROUTER_ROOT = '/auth';
 
 const authRouter = new MagicRouter(AUTH_ROUTER_ROOT);
-
-authRouter.post(
-  '/register/user',
-  { requestType: { body: registerUserByEmailSchema } },
-  handleRegisterUser,
-);
 
 authRouter.post(
   '/login/email',
