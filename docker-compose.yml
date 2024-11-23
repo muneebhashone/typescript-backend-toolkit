@@ -32,8 +32,5 @@ services:
 
 volumes:
   mongodb_typescript_backend_toolkit:
-    external: true
   redis_typescript_backend_toolkit:
-    external: true
   postgres_typescript_backend_toolkit:
-    external: true
