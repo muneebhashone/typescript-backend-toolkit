@@ -5,7 +5,7 @@ services:
     image: mongo:5.0.2
     restart: 'unless-stopped'
     ports:
-      - '27018:27017'
+      - '27017:27017'
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example

@@ -40,12 +40,10 @@ export const getUserById = async (userId: string, select?: string) => {
 export const getUserByEmail = async (
   email: string,
   select?: string,
-): Promise<UserType> => {
+): Promise<UserType | null> => {
   const user = await User.findOne({ email }).select(select ?? '');
-  if (!user) {
-    throw new Error('User not found');
-  }
-  return user.toObject();
+
+  return user?.toObject() ?? null;
 };
 
 export const deleteUser = async (userId: MongoIdSchemaType) => {

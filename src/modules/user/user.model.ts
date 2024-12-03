@@ -20,6 +20,7 @@ const UserSchema: Schema<UserType> = new Schema(
     avatar: { type: String },
     username: { type: String, required: true, unique: true },
     name: { type: String },
+    otp: { type: String },
     role: {
       type: String,
       required: true,
