@@ -94,7 +94,11 @@ export const registerUserByEmail = async (
 
   const { confirmPassword, ...rest } = payload;
 
-  const user = await createUser({ ...rest, role: 'DEFAULT_USER' }, false);
+  // OTP is null for now - it will set user as verified
+  const user = await createUser(
+    { ...rest, role: 'DEFAULT_USER', otp: null },
+    false,
+  );
 
   return user;
 };
@@ -109,7 +113,7 @@ export const loginUserByEmail = async (
   }
 
   const jwtPayload: JwtPayload = {
-    sub: String(user.id),
+    sub: String(user._id),
     email: user?.email,
     phoneNo: user?.phoneNo,
     role: String(user.role) as RoleType,
