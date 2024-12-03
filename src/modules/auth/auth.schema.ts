@@ -43,7 +43,12 @@ export const registerUserByEmailSchema = z
     return true;
   }, 'Password and confirm password must be same');
 
-export const loginUserByEmailSchema = baseCreateUser;
+export const loginUserByEmailSchema = z.object({
+  email: z
+    .string({ required_error: 'Email is required' })
+    .email({ message: 'Email is not valid' }),
+  password: passwordValidationSchema('Password'),
+});
 
 export type RegisterUserByEmailSchemaType = z.infer<
   typeof registerUserByEmailSchema
