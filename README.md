@@ -64,7 +64,7 @@ Before you get started, make sure you have the following installed on your machi
 - **PM2 Support**: Out-of-the-box support for PM2 to manage your production processes.
 
 ## Folder Structure
-
+```plaintext
 ├── build.ts
 ├── docker-compose.yml
 ├── docs
@@ -153,6 +153,7 @@ Before you get started, make sure you have the following installed on your machi
 │       ├── isUsername.ts
 │       └── responseInterceptor.ts
 └── tsconfig.json
+```
 
 ## Roadmap
 
