@@ -63,6 +63,97 @@ Before you get started, make sure you have the following installed on your machi
   ```
 - **PM2 Support**: Out-of-the-box support for PM2 to manage your production processes.
 
+## Folder Structure
+
+├── build.ts
+├── docker-compose.yml
+├── docs
+│   └── EMAIL.md
+├── ecosystem.config.js
+├── eslint.config.mjs
+├── firebase-adminsdk-creds.json
+├── LICENSE
+├── logo.webp
+├── modules.d.ts
+├── package.json
+├── pnpm-lock.yaml
+├── public
+│   ├── index.html
+│   ├── logo.webp
+│   ├── script.js
+│   └── styles.css
+├── README.md
+├── src
+│   ├── common
+│   │   ├── common.schema.ts
+│   │   └── common.utils.ts
+│   ├── config
+│   │   └── config.service.ts
+│   ├── email
+│   │   ├── email.service.ts
+│   │   └── templates
+│   │       └── ResetPassword.tsx
+│   ├── enums.ts
+│   ├── healthcheck
+│   │   ├── healthcheck.controller.ts
+│   │   └── healthcheck.routes.ts
+│   ├── lib
+│   │   ├── aws.service.ts
+│   │   ├── common.schema.ts
+│   │   ├── database.ts
+│   │   ├── email.server.ts
+│   │   ├── firebase-admin.service.ts
+│   │   ├── logger.service.ts
+│   │   ├── mailgun.server.ts
+│   │   ├── queue.server.ts
+│   │   ├── realtime.server.ts
+│   │   ├── redis.server.ts
+│   │   └── session.store.ts
+│   ├── main.ts
+│   ├── middlewares
+│   │   ├── can-access.middleware.ts
+│   │   ├── extract-jwt-schema.middleware.ts
+│   │   ├── multer-s3.middleware.ts
+│   │   └── validate-zod-schema.middleware.ts
+│   ├── modules
+│   │   ├── auth
+│   │   │   ├── auth.constants.ts
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.router.ts
+│   │   │   ├── auth.schema.ts
+│   │   │   └── auth.service.ts
+│   │   └── user
+│   │       ├── user.controller.ts
+│   │       ├── user.dto.ts
+│   │       ├── user.model.ts
+│   │       ├── user.router.ts
+│   │       ├── user.schema.ts
+│   │       └── user.services.ts
+│   ├── openapi
+│   │   ├── magic-router.ts
+│   │   ├── openapi.utils.ts
+│   │   ├── swagger-doc-generator.ts
+│   │   ├── swagger-instance.ts
+│   │   └── zod-extend.ts
+│   ├── queues
+│   │   └── email.queue.ts
+│   ├── routes
+│   │   └── routes.ts
+│   ├── types.ts
+│   ├── upload
+│   │   ├── upload.controller.ts
+│   │   └── upload.router.ts
+│   └── utils
+│       ├── api.utils.ts
+│       ├── auth.utils.ts
+│       ├── common.utils.ts
+│       ├── email.utils.ts
+│       ├── getPaginator.ts
+│       ├── globalErrorHandler.ts
+│       ├── isUsername.ts
+│       └── responseInterceptor.ts
+└── tsconfig.json
+
 ## Roadmap
 
 - **Socket.io Support:** Adding support for Redis adapter and a chat module.
