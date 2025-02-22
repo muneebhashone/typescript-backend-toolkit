@@ -35,7 +35,8 @@ type Method =
 	| "options"
 	| "trace";
 
-export type IDontKnow = unknown | never;
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+export type IDontKnow = unknown | never | any;
 export type MaybePromise = void | Promise<void>;
 export type RequestAny = Request<IDontKnow, IDontKnow, IDontKnow, IDontKnow>;
 export type ResponseAny = Response<IDontKnow, Record<string, unknown>>;

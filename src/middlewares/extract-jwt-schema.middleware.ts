@@ -1,9 +1,10 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction } from "express";
 import { type JwtPayload, verifyToken } from "../utils/auth.utils";
+import type { RequestAny, ResponseAny } from "../openapi/magic-router";
 
 export const extractJwt = async (
-	req: Request,
-	_: Response,
+	req: RequestAny,
+	_: ResponseAny,
 	next: NextFunction,
 ) => {
 	try {

@@ -1,10 +1,11 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import multer from "multer";
 import multerS3 from "multer-s3";
 import s3, { BUCKET_NAME } from "../lib/aws.service";
 import { errorResponse } from "../utils/api.utils";
 import { checkFiletype } from "../utils/common.utils";
+import type { RequestAny, ResponseAny } from "../openapi/magic-router";
 
 const storageEngineProfile: multer.StorageEngine = multerS3({
 	s3: s3,
@@ -12,7 +13,7 @@ const storageEngineProfile: multer.StorageEngine = multerS3({
 	metadata: (_, file, cb) => {
 		cb(null, { fieldName: file.fieldname });
 	},
-	key: (req: Request, file, cb) => {
+	key: (req: RequestAny, file, cb) => {
 		const key = `user-${req.user.id}/profile/${file.originalname}`;
 
 		if (checkFiletype(file)) {
@@ -24,8 +25,8 @@ const storageEngineProfile: multer.StorageEngine = multerS3({
 });
 
 export const uploadProfile = (
-	req: Request,
-	res: Response,
+	req: RequestAny,
+	res: ResponseAny,
 	next: NextFunction,
 ) => {
 	const upload = multer({
