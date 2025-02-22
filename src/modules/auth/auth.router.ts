@@ -37,7 +37,7 @@ authRouter.post(
 
 authRouter.post("/logout", {}, handleLogout);
 
-authRouter.get("/user", {}, canAccess(), handleGetCurrentUser);
+authRouter.get("/me", {}, canAccess(), handleGetCurrentUser);
 
 authRouter.post(
 	"/forget-password",

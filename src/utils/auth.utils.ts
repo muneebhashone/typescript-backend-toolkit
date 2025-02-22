@@ -124,14 +124,14 @@ export const fetchGoogleTokens = async (
 	return data;
 };
 export interface GoogleUserInfo {
-	id: string; // User's unique Google ID
-	email: string; // User's email address
-	verified_email: boolean; // Whether the email is verified
-	name: string; // User's full name
-	given_name: string; // User's given name
-	family_name: string; // User's family name
-	picture: string; // URL of the user's profile picture
-	locale: string; // User's locale
+	id: string;
+	email: string;
+	verified_email: boolean;
+	name: string;
+	given_name: string;
+	family_name: string;
+	picture: string;
+	locale: string;
 }
 
 export const getUserInfo = async (accessToken: string) => {
@@ -145,4 +145,8 @@ export const getUserInfo = async (accessToken: string) => {
 		throw new Error("Error fetching user info");
 	}
 	return userInfoResponse.json();
+};
+
+export const generateOTP = (length = 6): string => {
+	return crypto.randomBytes(length).toString("hex").slice(0, length);
 };

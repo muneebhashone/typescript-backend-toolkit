@@ -53,6 +53,10 @@ export const handleRegisterUser = async (
 ) => {
 	const user = await registerUserByEmail(req.body);
 
+	if (config.OTP_VERIFICATION_ENABLED) {
+		return successResponse(res, "Please check your email for OTP", user);
+	}
+
 	return successResponse(res, "User has been reigstered", user);
 };
 
