@@ -71,7 +71,6 @@ Before you get started, make sure you have the following installed on your machi
 │   └── EMAIL.md
 ├── ecosystem.config.js
 ├── eslint.config.mjs
-├── firebase-adminsdk-creds.json
 ├── LICENSE
 ├── logo.webp
 ├── modules.d.ts
@@ -102,7 +101,6 @@ Before you get started, make sure you have the following installed on your machi
 │   │   ├── common.schema.ts
 │   │   ├── database.ts
 │   │   ├── email.server.ts
-│   │   ├── firebase-admin.service.ts
 │   │   ├── logger.service.ts
 │   │   ├── mailgun.server.ts
 │   │   ├── queue.server.ts
@@ -164,7 +162,6 @@ Before you get started, make sure you have the following installed on your machi
 - **Monorepo Support** : Implement monorepo architecture using Turborepo and Pnpm for better project organization and scalability.
 - **AWS Lambda Support** : Add support for deploying serverless functions on AWS Lambda.
 - **Cloudflare Workers Support** : Enable Cloudflare Workers support for edge computing and faster request handling.
-- **Postgres Support with Drizzle** : Add support for PostgreSQL using Drizzle ORM for better relational database management.
 - **Containerization with Docker** : Implement containerization to ensure the project can be easily deployed to any environment using Docker.
 - **Kubernetes Support** : Integrate Kubernetes for container orchestration, enabling scalable and automated deployment of the application.
 - **CI/CD with GitHub Actions** : Implement a CI/CD pipeline using GitHub Actions to automate testing, building, and deployment processes.
