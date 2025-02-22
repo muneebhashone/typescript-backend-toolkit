@@ -12,3 +12,8 @@ export const connectDatabase = async () => {
 		process.exit(1);
 	}
 };
+
+export const disconnectDatabase = async () => {
+	await mongoose.disconnect();
+	logger.info("Database disconnected");
+};
