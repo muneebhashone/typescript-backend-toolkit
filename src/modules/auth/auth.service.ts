@@ -1,9 +1,11 @@
+import config from "../../config/config.service";
 import { ROLE_ENUM, type RoleType, SOCIAL_ACCOUNT_ENUM } from "../../enums";
 import type { GoogleCallbackQuery } from "../../types";
 import {
 	type JwtPayload,
 	compareHash,
 	fetchGoogleTokens,
+	generateOTP,
 	getUserInfo,
 	hashPassword,
 	signToken,
@@ -94,9 +96,10 @@ export const registerUserByEmail = async (
 
 	const { confirmPassword, ...rest } = payload;
 
-	// OTP is null for now - it will set user as verified
+	const otp = config.OTP_VERIFICATION_ENABLED ? generateOTP() : null;
+
 	const user = await createUser(
-		{ ...rest, role: "DEFAULT_USER", otp: null },
+		{ ...rest, role: "DEFAULT_USER", otp },
 		false,
 	);
 

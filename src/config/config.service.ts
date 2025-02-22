@@ -41,6 +41,7 @@ const configSchema = z.object({
 	MAILGUN_FROM_EMAIL: z.string().email(),
 	ADMIN_EMAIL: z.string().email(),
 	ADMIN_PASSWORD: z.string().min(1),
+	OTP_VERIFICATION_ENABLED: z.string().transform((value) => !!Number(value)),
 });
 
 export type Config = z.infer<typeof configSchema>;
