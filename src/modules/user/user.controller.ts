@@ -40,6 +40,7 @@ export const handleCreateSuperAdmin = async (
 	_: Request<unknown, unknown, unknown>,
 	res: Response,
 ) => {
+	
 	const user = await createUser({
 		email: config.ADMIN_EMAIL,
 		name: "Super Admin",
