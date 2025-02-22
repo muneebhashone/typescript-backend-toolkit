@@ -48,7 +48,7 @@ export const compareHash = async (
 };
 export const signToken = async (payload: JwtPayload): Promise<string> => {
 	return sign(payload, String(config.JWT_SECRET), {
-		expiresIn: Number(config.JWT_EXPIRES_IN),
+		expiresIn: Number(config.JWT_EXPIRES_IN) * 1000,
 	});
 };
 
@@ -56,7 +56,7 @@ export const signPasswordResetToken = async (
 	payload: PasswordResetTokenPayload,
 ) => {
 	return sign(payload, String(config.JWT_SECRET), {
-		expiresIn: config.PASSWORD_RESET_TOKEN_EXPIRES_IN,
+		expiresIn: config.PASSWORD_RESET_TOKEN_EXPIRES_IN * 1000,
 	});
 };
 

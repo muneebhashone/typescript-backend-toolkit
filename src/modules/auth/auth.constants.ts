@@ -9,6 +9,6 @@ export const COOKIE_CONFIG: CookieOptions = {
 	httpOnly: true,
 	sameSite: "lax",
 	secure: config.NODE_ENV === "production",
-	maxAge: config.SESSION_EXPIRES_IN,
+	maxAge: config.SESSION_EXPIRES_IN * 1000,
 	domain: clientSideUrl.hostname,
 };
