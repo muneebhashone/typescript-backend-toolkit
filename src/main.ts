@@ -29,11 +29,11 @@ import globalErrorHandler from "./utils/globalErrorHandler";
 
 const app = express();
 
-	app.set("trust proxy", true);
+app.set("trust proxy", true);
 
-	const server = createServer(app);
+const server = createServer(app);
 
-	const io = useSocketIo(server);
+const io = useSocketIo(server);
 
 const boostrapServer = async () => {
 	await connectDatabase();
@@ -90,6 +90,7 @@ const boostrapServer = async () => {
 
 	const serverAdapter = new ExpressAdapter();
 	serverAdapter.setBasePath("/admin/queues");
+
 	createBullBoard({
 		queues: Object.entries(global.__registeredQueues || {}).map(
 			([, values]) => new BullMQAdapter(values.queue),
@@ -129,4 +130,7 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 	});
 }
 
-
+process.on("uncaughtException", (err) => {
+	logger.error(err.message);
+	process.exit(1);
+});
