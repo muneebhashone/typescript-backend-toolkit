@@ -47,7 +47,7 @@ export const loginUserByEmailSchema = z.object({
 	email: z
 		.string({ required_error: "Email is required" })
 		.email({ message: "Email is not valid" }),
-	password: passwordValidationSchema("Password"),
+	password: z.string().min(1, "Password is required"),
 });
 
 export type RegisterUserByEmailSchemaType = z.infer<

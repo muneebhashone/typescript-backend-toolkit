@@ -17,10 +17,10 @@ const configSchema = z.object({
 	SMTP_PASSWORD: z.string().min(1).optional(),
 	CLIENT_SIDE_URL: z.string().url(),
 	JWT_SECRET: z.string().min(1),
-	JWT_EXPIRES_IN: z.string().regex(/^(\d+d|\d+h|\d+m|\d+s)$/),
-	SESSION_EXPIRES_IN: z.string().min(1).transform(Number),
-	PASSWORD_RESET_TOKEN_EXPIRES_IN: z.string().min(1).transform(Number),
-	SET_PASSWORD_TOKEN_EXPIRES_IN: z.string().min(1).transform(Number),
+	JWT_EXPIRES_IN: z.string().default("86400").transform(Number),
+	SESSION_EXPIRES_IN: z.string().default("86400").transform(Number),
+	PASSWORD_RESET_TOKEN_EXPIRES_IN: z.string().default("86400").transform(Number),
+	SET_PASSWORD_TOKEN_EXPIRES_IN: z.string().default("86400").transform(Number),
 	STATIC_OTP: z.enum(["1", "0"]).transform(Number).optional(),
 	NODE_ENV: z
 		.union([z.literal("production"), z.literal("development")])
