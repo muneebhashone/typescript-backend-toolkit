@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typescript Backend Toolkit - Google Auth Test</title>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        h1 {
+            color: #0ea5e9;
+            margin-bottom: 1.5rem;
+        }
+        .logo {
+            width: 120px;
+            margin-bottom: 1rem;
+        }
+        .auth-section {
+            margin: 2rem 0;
+        }
+        .response-container {
+            margin-top: 2rem;
+            text-align: left;
+            background-color: #f1f5f9;
+            border-radius: 6px;
+            padding: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .response-container pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        .auth-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .auth-method {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        .auth-method h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: #334155;
+        }
+        .status {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .status-active {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .status-deprecated {
+            background-color: #fee2e2;
+            color: #991b1b;
+            text-decoration: line-through;
+        }
+        .loading {
+            display: none;
+            margin-top: 1rem;
+        }
+        .loading.visible {
+            display: block;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0ea5e9;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Typescript Backend Toolkit Google Auth Test</h1>
+
+        <div class="auth-methods">
+            <div class="auth-method">
+                <h2>Google Identity Services (New)</h2>
+                <span class="status status-active">Active</span>
+                <p>Uses the newer Google Identity Services API with improved security and UX:</p>
+
+                <div class="button-container">
+
+                    <div id="g_id_onload"
+                        data-client_id="274550079892-hfm5aqq2ar4mcqcnfm50d17flgtqj6qg.apps.googleusercontent.com"
+                        data-context="signin"
+                        data-ux_mode="popup"
+                        data-callback="handleCredentialResponse"
+                        data-auto_prompt="false">
+                    </div>
+
+
+                    <div class="g_id_signin"
+                        data-type="standard"
+                        data-shape="rectangular"
+                        data-theme="outline"
+                        data-text="signin_with"
+                        data-size="large"
+                        data-logo_alignment="left">
+                    </div>
+                </div>
+
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Processing authentication...</p>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="response-container">
+            <h3>Response:</h3>
+            <pre id="response">Sign in to see the response...</pre>
+        </div>
+    </div>
+
+    <script>
+
+        function handleCredentialResponse(response) {
+            const idToken = response.credential;
+            const responseElement = document.getElementById('response');
+            const loadingElement = document.getElementById('loading');
+
+            loadingElement.classList.add('visible');
+
+            const tokenPreview = idToken.substring(0, 20) + '...' + idToken.substring(idToken.length - 10);
+            responseElement.textContent = 'Google ID Token received: ' + tokenPreview + '\n\nSending to backend...';
+
+            // Note: The endpoint path should match your API route configuration
+            fetch('/auth/google/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`Server responded with status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                loadingElement.classList.remove('visible');
+
+                responseElement.textContent = 'Success! Backend response:\n' + JSON.stringify(data, null, 2);
+
+                if (data.data && data.data.token) {
+                    localStorage.setItem('_auth_token_', data.data.token);
+                    console.log('Authentication token stored in localStorage');
+                }
+            })
+            .catch(error => {
+                loadingElement.classList.remove('visible');
+
+                responseElement.textContent = 'Error: ' + error.message;
+                console.error('Authentication error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
