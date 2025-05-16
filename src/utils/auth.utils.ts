@@ -101,7 +101,6 @@ export const generateOTP = (length = 6): string => {
 
 export const verifyGoogleIdToken = async (idToken: string) => {
   try {
-    console.log(idToken, 'ID TOKEN');
     const ticket = await client.verifyIdToken({
       idToken,
       audience: config.GOOGLE_CLIENT_ID,
