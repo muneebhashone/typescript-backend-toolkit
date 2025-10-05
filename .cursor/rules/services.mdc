@@ -1,0 +1,357 @@
+---
+globs: *.service.ts,*.services.ts
+description: Service layer patterns for business logic and data access
+---
+
+# Service Layer Patterns
+
+## Core Principle
+
+Services contain business logic, database operations, external API calls, and complex computations. They should be framework-agnostic (no Express req/res).
+
+## Service Template
+
+```typescript
+import { Model } from './module.model';
+import { logger } from '@/lib/logger.service';
+import type { CreateInput, UpdateInput } from './module.dto';
+
+/**
+ * Find item by ID
+ */
+export const findById = async (id: string) => {
+  const item = await Model.findById(id);
+  return item;
+};
+
+/**
+ * Find all items with pagination
+ */
+export const findAll = async (options: {
+  page: number;
+  limit: number;
+  search?: string;
+}) => {
+  const { page, limit, search } = options;
+  const skip = (page - 1) * limit;
+
+  const query = search ? { name: { $regex: search, $options: 'i' } } : {};
+
+  const [items, total] = await Promise.all([
+    Model.find(query).skip(skip).limit(limit).lean(),
+    Model.countDocuments(query),
+  ]);
+
+  return {
+    data: items,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
+/**
+ * Create new item
+ */
+export const create = async (data: CreateInput) => {
+  const item = await Model.create(data);
+
+  logger.info('Item created', { itemId: item._id });
+
+  return item.toObject();
+};
+
+/**
+ * Update item
+ */
+export const update = async (
+  id: string,
+  data: UpdateInput,
+  userId?: string,
+) => {
+  const item = await Model.findById(id);
+
+  if (!item) {
+    return null;
+  }
+
+  // Business logic: Check permissions
+  if (item.createdBy?.toString() !== userId) {
+    const error = new Error('Forbidden') as any;
+    error.statusCode = 403;
+    throw error;
+  }
+
+  Object.assign(item, data);
+  await item.save();
+
+  logger.info('Item updated', { itemId: id, userId });
+
+  return item.toObject();
+};
+
+/**
+ * Delete item
+ */
+export const remove = async (id: string, userId?: string) => {
+  const item = await Model.findById(id);
+
+  if (!item) {
+    return false;
+  }
+
+  // Business logic: Check permissions
+  if (item.createdBy?.toString() !== userId) {
+    const error = new Error('Forbidden') as any;
+    error.statusCode = 403;
+    throw error;
+  }
+
+  await item.deleteOne();
+
+  logger.info('Item deleted', { itemId: id, userId });
+
+  return true;
+};
+
+/**
+ * Complex business logic example
+ */
+export const performComplexOperation = async (input: {
+  userId: string;
+  data: any;
+}) => {
+  // 1. Validate business rules
+  const user = await UserModel.findById(input.userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // 2. Perform operations
+  const result = await Model.create({
+    ...input.data,
+    userId: input.userId,
+  });
+
+  // 3. Trigger background jobs if needed
+  await triggerEmailJob(user.email, result);
+
+  // 4. Return result
+  return result;
+};
+
+/**
+ * Trigger background job
+ */
+const triggerEmailJob = async (email: string, data: any) => {
+  const { emailQueue } = await import('@/queues/email.queue');
+  await emailQueue.add('sendNotification', { email, data });
+};
+```
+
+## Key Patterns
+
+### Database Operations
+
+Use Mongoose models from `module.model.ts`:
+
+```typescript
+// Find
+const item = await Model.findById(id);
+const items = await Model.find({ status: 'active' });
+
+// Create
+const item = await Model.create({ name: 'Test' });
+
+// Update
+const item = await Model.findByIdAndUpdate(id, { name: 'New' }, { new: true });
+
+// Delete
+await Model.findByIdAndDelete(id);
+
+// Count
+const count = await Model.countDocuments({ status: 'active' });
+
+// Use .lean() for better performance (returns plain objects)
+const items = await Model.find().lean();
+```
+
+### Pagination Helper
+
+Use pagination utility from [getPaginator.ts](mdc:src/utils/getPaginator.ts) if available, or implement manually:
+
+```typescript
+const skip = (page - 1) * limit;
+const items = await Model.find().skip(skip).limit(limit);
+const total = await Model.countDocuments();
+```
+
+### Background Jobs
+
+Queue background tasks using BullMQ:
+
+```typescript
+import { emailQueue } from '@/queues/email.queue';
+
+await emailQueue.add(
+  'jobName',
+  { data },
+  {
+    delay: 5000, // Optional: delay in ms
+    attempts: 3, // Optional: retry attempts
+  },
+);
+```
+
+### Email Sending
+
+Send emails through queue system:
+
+```typescript
+import { sendEmail } from '@/email/email.service';
+
+await sendEmail({
+  to: user.email,
+  subject: 'Welcome',
+  template: 'Welcome',
+  data: { name: user.name },
+});
+```
+
+### File Storage (S3)
+
+Use AWS service from [aws.service.ts](mdc:src/lib/aws.service.ts):
+
+```typescript
+import { s3Client, uploadToS3, deleteFromS3 } from '@/lib/aws.service';
+
+// Upload is handled by multer middleware
+// Just save the URL returned in controller
+
+// Delete file
+await deleteFromS3(fileKey);
+```
+
+### Authentication & Tokens
+
+Use auth utilities from [auth.utils.ts](mdc:src/utils/auth.utils.ts):
+
+```typescript
+import {
+  generateToken,
+  verifyToken,
+  hashPassword,
+  comparePassword,
+} from '@/utils/auth.utils';
+
+// Generate JWT
+const token = generateToken({ userId: user._id });
+
+// Verify JWT
+const payload = verifyToken(token);
+
+// Hash password
+const hashed = await hashPassword(plainPassword);
+
+// Compare password
+const isValid = await comparePassword(plainPassword, hashedPassword);
+```
+
+### Error Handling
+
+Throw errors with status codes:
+
+```typescript
+// Not found
+const error = new Error('Item not found') as any;
+error.statusCode = 404;
+throw error;
+
+// Forbidden
+const error = new Error('Insufficient permissions') as any;
+error.statusCode = 403;
+throw error;
+
+// Bad request
+const error = new Error('Invalid input') as any;
+error.statusCode = 400;
+throw error;
+
+// Internal server error (default)
+throw new Error('Something went wrong'); // 500
+```
+
+### Logging
+
+Use Pino logger:
+
+```typescript
+import { logger } from '@/lib/logger.service';
+
+logger.info('Operation performed', { userId, itemId });
+logger.error('Error occurred', { error: err.message, stack: err.stack });
+logger.warn('Warning', { data });
+logger.debug('Debug info', { data });
+```
+
+## Service Organization
+
+- One service file per module: `module.service.ts`
+- Export individual functions (not a class)
+- Keep functions focused and single-purpose
+- Use TypeScript types from `module.dto.ts`
+
+## Common Patterns
+
+### Transaction Support (if needed)
+
+```typescript
+import { startSession } from 'mongoose';
+
+const session = await startSession();
+session.startTransaction();
+
+try {
+  await Model1.create([data1], { session });
+  await Model2.create([data2], { session });
+
+  await session.commitTransaction();
+} catch (error) {
+  await session.abortTransaction();
+  throw error;
+} finally {
+  session.endSession();
+}
+```
+
+### Caching with Redis
+
+```typescript
+import { redisClient } from '@/lib/redis.server';
+
+// Get from cache
+const cached = await redisClient.get(`key:${id}`);
+if (cached) {
+  return JSON.parse(cached);
+}
+
+// Set cache
+await redisClient.set(`key:${id}`, JSON.stringify(data), 'EX', 3600); // 1 hour
+```
+
+## Common Mistakes to Avoid
+
+❌ DON'T import Express types (Request, Response)
+✅ DO keep services framework-agnostic
+
+❌ DON'T handle HTTP status codes in services (except throwing errors)
+✅ DO let controllers handle HTTP concerns
+
+❌ DON'T perform heavy operations synchronously
+✅ DO use background jobs for heavy tasks
+
+❌ DON'T forget to log important operations
+✅ DO log creates, updates, deletes, and errors

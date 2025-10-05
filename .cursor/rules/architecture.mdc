@@ -1,0 +1,79 @@
+---
+alwaysApply: true
+description: Core architecture and patterns for the TypeScript backend toolkit
+---
+
+# Architecture Overview
+
+This is a TypeScript Express.js backend toolkit with a modular, type-safe architecture.
+
+## Core Patterns
+
+### MagicRouter System
+
+- All routes MUST use MagicRouter from [magic-router.ts](mdc:src/openapi/magic-router.ts)
+- MagicRouter automatically generates OpenAPI/Swagger documentation from Zod schemas
+- Never use plain Express `app.get()` or `router.get()` - always use MagicRouter
+
+### Module Structure
+
+Modules live in [src/modules/](mdc:src/modules/) and follow this structure:
+
+```
+module-name/
+  ├── module.controller.ts    # Business logic handlers
+  ├── module.router.ts        # MagicRouter route definitions
+  ├── module.service.ts       # Database and external service interactions
+  ├── module.schema.ts        # Zod schemas for validation
+  ├── module.model.ts         # Mongoose models
+  └── module.dto.ts           # TypeScript types/interfaces
+```
+
+### Validation & Type Safety
+
+- ALWAYS use Zod schemas for request/response validation
+- Runtime validation via [validate-zod-schema.middleware.ts](mdc:src/middlewares/validate-zod-schema.middleware.ts)
+- Extend Zod with OpenAPI metadata using `.openapi()` method from [zod-extend.ts](mdc:src/openapi/zod-extend.ts)
+- Use TypeScript strict mode - no `any` types
+
+### Configuration
+
+- All config in [config.service.ts](mdc:src/config/config.service.ts)
+- Environment variables validated with Zod
+- Time values are in milliseconds (converted from strings like "1d" or "7d")
+
+### Database
+
+- MongoDB with Mongoose ODM
+- Connection managed in [database.ts](mdc:src/lib/database.ts)
+- Models defined per module (e.g., [user.model.ts](mdc:src/modules/user/user.model.ts))
+
+### Background Jobs & Queues
+
+- BullMQ with Redis for all background jobs
+- Email queue in [email.queue.ts](mdc:src/queues/email.queue.ts)
+- Admin dashboard at `/admin/queues`
+
+### Error Handling
+
+- Global error handler in [globalErrorHandler.ts](mdc:src/utils/globalErrorHandler.ts)
+- Throw errors with proper HTTP status codes
+- Errors are automatically caught and formatted
+
+## Technology Stack
+
+- **Runtime**: Node.js with TypeScript
+- **Framework**: Express.js
+- **Validation**: Zod
+- **Database**: MongoDB + Mongoose
+- **Cache/Queue**: Redis + BullMQ
+- **Auth**: JWT (with optional OTP)
+- **Storage**: AWS S3
+- **Email**: React Email + Mailgun
+- **Real-time**: Socket.io
+- **API Docs**: Swagger/OpenAPI (auto-generated)
+- **Logger**: Pino
+
+## Package Manager
+
+ALWAYS use `pnpm` - never npm or yarn
