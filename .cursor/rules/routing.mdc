@@ -1,0 +1,319 @@
+---
+globs: *.router.ts,*.routes.ts
+description: Routing patterns using MagicRouter for automatic OpenAPI generation
+---
+
+# Routing with MagicRouter
+
+## Core Principle
+
+NEVER use plain Express routing. ALWAYS use MagicRouter from [magic-router.ts](mdc:src/openapi/magic-router.ts).
+
+## Pattern Template
+
+```typescript
+import MagicRouter from '@/openapi/magic-router';
+import { canAccess } from '@/middlewares/can-access.middleware';
+import { handleAction, handleGetById, handleCreate } from './module.controller';
+import { actionSchema, createSchema } from './module.schema';
+
+export const MODULE_ROUTER_ROOT = '/module';
+
+const moduleRouter = new MagicRouter(MODULE_ROUTER_ROOT);
+
+// Public route with schema validation
+moduleRouter.post(
+  '/action',
+  { requestType: { body: actionSchema } },
+  handleAction,
+);
+
+// Protected route with authentication
+moduleRouter.get('/me', {}, canAccess(), handleGetById);
+
+// Protected route with schema and auth
+moduleRouter.post(
+  '/create',
+  { requestType: { body: createSchema } },
+  canAccess(),
+  handleCreate,
+);
+
+// Route with params
+moduleRouter.get(
+  '/:id',
+  { requestType: { params: idParamsSchema } },
+  handleGetById,
+);
+
+// Route with query params
+moduleRouter.get(
+  '/search',
+  { requestType: { query: searchQuerySchema } },
+  handleSearch,
+);
+
+export default moduleRouter.getRouter();
+```
+
+## MagicRouter API
+
+### Router Instantiation
+
+```typescript
+const router = new MagicRouter(ROUTER_ROOT);
+```
+
+- Create router instance with root path (e.g., `/auth`, `/user`)
+- Root path used for route grouping and OpenAPI tag generation
+
+### Route Definition Signature
+
+```typescript
+router.method(path, requestType, ...handlers);
+```
+
+**Parameters:**
+
+1. `path`: Route path string (e.g., `/login`, `/:id`)
+2. `requestType`: Schema configuration object
+3. `...handlers`: Middleware functions and controller (spread arguments)
+
+### Request Type Object
+
+```typescript
+{
+  requestType?: {
+    body?: ZodSchema,      // Request body validation
+    params?: ZodSchema,    // URL params validation
+    query?: ZodSchema,     // Query string validation
+  },
+  contentType?: string,       // 'application/json' | 'multipart/form-data' | etc.
+}
+```
+
+- Use empty object `{}` when no validation needed
+- Can combine `body`, `params`, and `query` in same route
+
+### Handler Order
+
+The last handler in the spread is treated as the **controller**. All preceding handlers are **middleware**.
+
+```typescript
+// Public route
+router.post('/action', { requestType: { body: schema } }, controller);
+
+// With one middleware
+router.get('/me', {}, canAccess(), controller);
+
+// With multiple middleware
+router.post('/upload', {}, middleware1(), middleware2(), controller);
+```
+
+## Authentication
+
+### Public Routes
+
+No authentication required - just pass the controller:
+
+```typescript
+router.post('/login', { requestType: { body: loginSchema } }, handleLogin);
+```
+
+### Protected Routes
+
+Add `canAccess()` middleware before the controller:
+
+```typescript
+import { canAccess } from '@/middlewares/can-access.middleware';
+
+router.get('/me', {}, canAccess(), handleGetCurrentUser);
+```
+
+- Security is auto-detected in OpenAPI by presence of `canAccess()` middleware
+- JWT payload available as `req.jwtPayload` in controller (via `canAccess()`)
+
+## Common Route Patterns
+
+### Body Validation
+
+```typescript
+router.post('/create', { requestType: { body: createSchema } }, handleCreate);
+```
+
+### Params Validation
+
+```typescript
+router.get('/:id', { requestType: { params: idParamsSchema } }, handleGetById);
+```
+
+### Query Validation
+
+```typescript
+router.get(
+  '/search',
+  { requestType: { query: searchQuerySchema } },
+  handleSearch,
+);
+```
+
+### Combined Validation
+
+```typescript
+router.put(
+  '/:id',
+  {
+    requestType: {
+      params: idParamsSchema,
+      body: updateSchema,
+    },
+  },
+  canAccess(),
+  handleUpdate,
+);
+```
+
+### No Validation
+
+```typescript
+router.post('/logout', {}, handleLogout);
+```
+
+## File Uploads
+
+Add multer middleware before controller:
+
+```typescript
+import { multerS3 } from '@/middlewares/multer-s3.middleware';
+
+router.post(
+  '/upload',
+  { contentType: 'multipart/form-data' },
+  canAccess(),
+  multerS3.single('file'),
+  handleUpload,
+);
+```
+
+## Available HTTP Methods
+
+- `router.get()`
+- `router.post()`
+- `router.put()`
+- `router.patch()`
+- `router.delete()`
+
+## Route Organization
+
+### File Structure
+
+```
+module/
+  ├── module.controller.ts  # Export named controller functions
+  ├── module.router.ts      # Define routes
+  ├── module.schema.ts      # Zod schemas
+  ├── module.service.ts     # Business logic
+  └── module.model.ts       # Database models
+```
+
+### Router Export Pattern
+
+```typescript
+export const MODULE_ROUTER_ROOT = '/module';
+const moduleRouter = new MagicRouter(MODULE_ROUTER_ROOT);
+
+// ... define routes ...
+
+export default moduleRouter.getRouter();
+```
+
+### Register in Routes
+
+Add router to [routes.ts](mdc:src/routes/routes.ts):
+
+```typescript
+import moduleRouter from './modules/module/module.router';
+
+app.use(moduleRouter);
+```
+
+## OpenAPI Generation
+
+MagicRouter automatically generates OpenAPI documentation:
+
+- **Tags**: Auto-generated from router root path
+- **Summary**: Auto-generated from controller function name
+- **Security**: Auto-detected from `canAccess()` middleware
+- **Schemas**: Generated from Zod schemas in `requestType`
+- **Responses**: 200, 400, 404, 500 automatically configured
+
+## Common Mistakes to Avoid
+
+❌ **DON'T** use plain Express routing
+
+```typescript
+router.get('/path', handler); // Wrong
+```
+
+✅ **DO** use MagicRouter signature
+
+```typescript
+router.get('/path', {}, handler); // Correct
+```
+
+❌ **DON'T** forget the request type object
+
+```typescript
+router.post('/create', handleCreate); // Wrong
+```
+
+✅ **DO** always include it (use `{}` if no validation)
+
+```typescript
+router.post('/create', {}, handleCreate); // Correct
+```
+
+❌ **DON'T** use array syntax for handlers
+
+```typescript
+router.get('/me', {}, [canAccess(), handler]); // Wrong
+```
+
+✅ **DO** use spread arguments
+
+```typescript
+router.get('/me', {}, canAccess(), handler); // Correct
+```
+
+❌ **DON'T** forget to call `.getRouter()`
+
+```typescript
+export default moduleRouter; // Wrong
+```
+
+✅ **DO** call `.getRouter()` on export
+
+```typescript
+export default moduleRouter.getRouter(); // Correct
+```
+
+❌ **DON'T** use wrong schema object structure
+
+```typescript
+{
+  schema: bodySchema;
+} // Wrong
+{
+  body: bodySchema;
+} // Wrong
+```
+
+✅ **DO** use correct nesting
+
+```typescript
+{
+  requestType: {
+    body: bodySchema;
+  }
+} // Correct
+```

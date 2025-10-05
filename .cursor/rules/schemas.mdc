@@ -1,0 +1,287 @@
+---
+globs: *.schema.ts
+description: Zod schema patterns for validation and OpenAPI documentation
+---
+
+# Zod Schema Patterns
+
+## Core Principle
+
+Every module should have a schema file that defines request/response validation using Zod schemas.
+
+## Import Pattern
+
+```typescript
+import validator from 'validator';
+import z from 'zod';
+// OR
+import * as z from 'zod';
+```
+
+## Schema Structure
+
+Schemas are exported directly, NOT wrapped in request/response objects:
+
+```typescript
+import validator from 'validator';
+import z from 'zod';
+
+export const createItemSchema = z.object({
+  name: z.string({ required_error: 'Name is required' }).min(1).max(100),
+  description: z
+    .string({ required_error: 'Description is required' })
+    .min(10)
+    .max(500),
+  status: z.enum(['active', 'inactive']).default('active'),
+  categoryId: z
+    .string({ required_error: 'Category ID is required' })
+    .refine((value) => validator.isMongoId(value), 'Category ID must be valid'),
+});
+
+export const updateItemSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().min(10).max(500).optional(),
+  status: z.enum(['active', 'inactive']).optional(),
+});
+```
+
+## Common Patterns
+
+### String Validation with Required Error
+
+```typescript
+z.string({ required_error: 'Field name is required' }).min(1).max(64);
+```
+
+### Email Validation
+
+```typescript
+z.string({ required_error: 'Email is required' }).email({
+  message: 'Email is not valid',
+});
+```
+
+### MongoDB ObjectId Validation
+
+Use validator package, NOT regex:
+
+```typescript
+z.string({ required_error: 'ID is required' })
+  .min(1)
+  .refine((value) => validator.isMongoId(value), 'ID must be valid');
+```
+
+### Alphanumeric Validation
+
+```typescript
+z.string({ required_error: 'Code is required' })
+  .min(4)
+  .max(4)
+  .refine((value) => validator.isAlphanumeric(value), 'Code must be valid');
+```
+
+### Query Parameters with Transform
+
+```typescript
+export const listItemsQuerySchema = z.object({
+  searchString: z.string().optional(),
+  limitParam: z
+    .string()
+    .default('10')
+    .refine(
+      (value) => !Number.isNaN(Number(value)) && Number(value) >= 0,
+      'Input must be positive integer',
+    )
+    .transform(Number),
+  pageParam: z
+    .string()
+    .default('1')
+    .refine(
+      (value) => !Number.isNaN(Number(value)) && Number(value) >= 0,
+      'Input must be positive integer',
+    )
+    .transform(Number),
+  filterByStatus: z.enum(['active', 'inactive', 'archived']).optional(),
+});
+```
+
+### Enum Validation
+
+```typescript
+// From enum object keys
+z.enum(Object.keys(STATUS_ENUM) as [StatusType]).optional();
+
+// Direct enum values
+z.enum(['pending', 'approved', 'rejected']).optional();
+```
+
+## Schema Composition
+
+### Merging Schemas
+
+```typescript
+// Base schema
+export const baseItemSchema = z.object({
+  name: z.string({ required_error: 'Name is required' }).min(1),
+  description: z.string().optional(),
+});
+
+// Extended schema
+export const createItemSchema = z
+  .object({
+    categoryId: z.string().refine((value) => validator.isMongoId(value)),
+    tags: z.array(z.string()).optional(),
+  })
+  .merge(baseItemSchema)
+  .strict();
+```
+
+### Cross-Field Validation with .refine()
+
+```typescript
+export const createItemWithConfirmationSchema = z
+  .object({
+    price: z.number().positive(),
+    confirmPrice: z.number().positive(),
+    discountPrice: z.number().positive().optional(),
+  })
+  .refine(
+    ({ price, confirmPrice }) => price === confirmPrice,
+    'Price and confirm price must match',
+  )
+  .refine(
+    ({ price, discountPrice }) => !discountPrice || discountPrice < price,
+    'Discount price must be less than original price',
+  );
+```
+
+### Strict Mode
+
+Use `.strict()` to disallow extra properties:
+
+```typescript
+z.object({
+  name: z.string(),
+  email: z.string().email(),
+}).strict();
+```
+
+## Reusable Schema Patterns
+
+### Password Validation Function
+
+Define in `common.schema.ts`:
+
+```typescript
+export const passwordValidationSchema = (fieldName: string) =>
+  z
+    .string({ required_error: `${fieldName} is required` })
+    .min(8)
+    .max(64)
+    .refine(
+      (value) =>
+        validator.isStrongPassword(value, {
+          minLength: 8,
+          minLowercase: 1,
+          minNumbers: 1,
+          minUppercase: 1,
+          minSymbols: 1,
+        }),
+      'Password is too weak',
+    );
+```
+
+### MongoDB ID Schema
+
+```typescript
+export const mongoIdSchema = z.object({
+  id: z.string().refine((value) => validator.isMongoId(value)),
+});
+```
+
+### Response Schemas
+
+```typescript
+export const successResponseSchema = z.object({
+  success: z.boolean().default(true),
+  message: z.string().optional(),
+  data: z.record(z.string(), z.any()).optional(),
+});
+
+export const errorResponseSchema = z.object({
+  message: z.string(),
+  success: z.boolean().default(false),
+  data: z.record(z.string(), z.any()),
+  stack: z.string().optional(),
+});
+```
+
+### Paginator Schema
+
+```typescript
+export const paginatorSchema = z.object({
+  skip: z.number().min(0),
+  limit: z.number().min(1),
+  currentPage: z.number().min(1),
+  pages: z.number().min(0),
+  hasNextPage: z.boolean(),
+  totalRecords: z.number().min(0),
+  pageSize: z.number().min(1),
+});
+
+export const paginatedResponseSchema = z.object({
+  success: z.boolean().default(true),
+  message: z.string().optional(),
+  data: z
+    .object({
+      items: z.array(z.unknown()),
+      paginator: paginatorSchema,
+    })
+    .optional(),
+});
+```
+
+## Custom Validators
+
+Use `.refine()` with custom validation functions:
+
+```typescript
+export const createItemSchema = z.object({
+  slug: z
+    .string({ required_error: 'Slug is required' })
+    .min(1)
+    .refine((value) => isValidSlug(value), 'Slug must be valid'),
+  email: z
+    .string({ required_error: 'Email is required' })
+    .refine((value) => validator.isEmail(value), 'Email must be valid'),
+});
+```
+
+## Type Inference
+
+Export TypeScript types from schemas:
+
+```typescript
+export type CreateItemSchemaType = z.infer<typeof createItemSchema>;
+export type UpdateItemSchemaType = z.infer<typeof updateItemSchema>;
+export type ListItemsQuerySchemaType = z.infer<typeof listItemsQuerySchema>;
+export type ItemParamsSchemaType = z.infer<typeof itemParamsSchema>;
+```
+
+## Key Patterns to Follow
+
+✅ DO import validator from "validator"
+✅ DO use `{ required_error: "message" }` for required fields
+✅ DO use `.min(1)` for required strings
+✅ DO use `.refine()` with validator functions
+✅ DO export schemas directly (not wrapped in objects)
+✅ DO export types using `z.infer<typeof schemaName>`
+✅ DO use `.merge()` to compose schemas
+✅ DO use `.strict()` to disallow extra properties
+✅ DO use `.refine()` for cross-field validation
+✅ DO create reusable schema functions in common.schema.ts
+
+❌ DON'T use `.openapi()` method in schema files
+❌ DON'T wrap schemas in request/response objects (that's for routers)
+❌ DON'T use regex for MongoDB IDs (use validator.isMongoId)
+❌ DON'T forget to handle query parameter transforms with .transform(Number)
