@@ -109,7 +109,6 @@ Before you get started, make sure you have the following installed on your machi
 │   │   ├── queue.server.ts
 │   │   ├── realtime.server.ts
 │   │   ├── redis.server.ts
-│   │   └── session.store.ts
 │   ├── main.ts
 │   ├── middlewares
 │   │   ├── can-access.ts
