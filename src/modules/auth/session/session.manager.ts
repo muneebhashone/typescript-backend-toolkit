@@ -49,10 +49,12 @@ export class SessionManager {
     if (sessions.length >= this.config.maxPerUser) {
       const oldestSession = sessions[sessions.length - 1];
       await this.store.revoke(oldestSession.sessionId);
-      logger.debug(
-        { userId: input.userId, revokedSessionId: oldestSession.sessionId },
-        'Evicted oldest session due to max limit',
-      );
+      if (this.config.debug) {
+        logger.debug(
+          { userId: input.userId, revokedSessionId: oldestSession.sessionId },
+          'Evicted oldest session due to max limit',
+        );
+      }
     }
 
     const session = await this.store.create(input);
@@ -106,7 +108,7 @@ export class SessionManager {
 
   async updateSessionToken(sessionId: string, token: string): Promise<void> {
     await this.store.updateTokenHash(sessionId, token);
-    
+
     if (this.config.debug) {
       logger.info({ sessionId }, 'Session token updated');
     }
@@ -136,7 +138,9 @@ export class SessionManager {
     await this.store.pruneExpired();
   }
 
-  async cleanupSessions(type: 'full' | 'revoked' | 'expired'): Promise<CleanupStats> {
+  async cleanupSessions(
+    type: 'full' | 'revoked' | 'expired',
+  ): Promise<CleanupStats> {
     const stats: CleanupStats = {
       revokedDeleted: 0,
       expiredDeleted: 0,
@@ -153,10 +157,14 @@ export class SessionManager {
     }
 
     if (type === 'full' && this.config.driver === 'redis') {
-      stats.orphanedKeysDeleted = await this.store.cleanupOrphanedKeys?.() || 0;
+      stats.orphanedKeysDeleted =
+        (await this.store.cleanupOrphanedKeys?.()) || 0;
     }
 
-    stats.totalProcessed = stats.revokedDeleted + stats.expiredDeleted + (stats.orphanedKeysDeleted || 0);
+    stats.totalProcessed =
+      stats.revokedDeleted +
+      stats.expiredDeleted +
+      (stats.orphanedKeysDeleted || 0);
 
     if (this.config.debug) {
       logger.info({ stats }, 'Session cleanup stats');
