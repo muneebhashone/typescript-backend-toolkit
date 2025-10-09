@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "openapi": "tsx scripts/gen-openapi.ts",
+    "openapi": "dotenv -e .env.development -- tsx scripts/gen-openapi.ts",
     "seeder": "tsx ./src/seeder.ts",
     "email:dev": "email dev --dir ./src/email/templates",
     "tbk": "tsx bin/tbk"
