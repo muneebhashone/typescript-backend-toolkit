@@ -442,4 +442,103 @@ export default ${moduleName}Router.getRouter();
     }
   });
 
+// Seeder commands
+program
+  .command('seed')
+  .description('Run database seeders')
+  .option('-g, --group <group>', 'Group to run (base|dev|test|demo)', 'dev')
+  .option('--only <names>', 'Comma separated seeder names')
+  .option('--fresh', 'Drop involved collections before seeding')
+  .option('--force', 'Force run in production')
+  .option('--dry-run', 'Do not write, only log actions')
+  .option('--seed <number>', 'Random seed for data generation', (v) => Number(v), 1)
+  .option('--no-transaction', 'Disable transactions')
+  .action(async (opts) => {
+    const { runSeeders } = await import('../src/seeders/runner');
+    const { seeders } = await import('../src/seeders/DatabaseSeeder');
+    const only = opts.only ? String(opts.only).split(',').map((s) => s.trim()) : undefined;
+
+    try {
+      await runSeeders(seeders, {
+        group: opts.group,
+        only,
+        fresh: Boolean(opts.fresh),
+        force: Boolean(opts.force),
+        dryRun: Boolean(opts.dryRun),
+        seed: Number(opts.seed) || 1,
+        transaction: opts.transaction ?? true,
+      });
+      process.exit(0);
+    } catch (error) {
+      console.error('Seeding failed:', error);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('make:seeder <module>/<name>')
+  .description('Scaffold a new module seeder')
+  .action(async (fullName) => {
+    const [module, rawName] = String(fullName).split('/');
+    const seederName = rawName.endsWith('Seeder') ? rawName : `${rawName}Seeder`;
+    const className = seederName;
+    const fs = await import('fs/promises');
+    const path = await import('path');
+
+    const content = `import type { Seeder } from '../../../seeders/types';
+
+export const ${className}: Seeder = {
+  name: '${className}',
+  groups: ['dev'],
+  dependsOn: [],
+  collections: [],
+  async run(ctx) {
+    // TODO: implement seeding logic
+    ctx.logger.info('Running ${className}');
+  },
+};
+`;
+
+    const outputPath = path.join(process.cwd(), 'src', 'modules', module, 'seeders');
+    const filePath = path.join(outputPath, `${className}.ts`);
+    try {
+      await fs.mkdir(outputPath, { recursive: true });
+      await fs.writeFile(filePath, content, 'utf-8');
+      console.log(`✓ Seeder created: ${filePath}`);
+    } catch (error) {
+      console.error('Failed to create seeder:', error);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('make:factory <module>/<name>')
+  .description('Scaffold a new module factory')
+  .action(async (fullName) => {
+    const [module, rawName] = String(fullName).split('/');
+    const baseName = rawName.replace(/\.factory$/i, '');
+    const factoryVar = `${baseName.charAt(0).toLowerCase()}${baseName.slice(1)}Factory`;
+    const fs = await import('fs/promises');
+    const path = await import('path');
+
+    const content = `// Example factory template. Adjust DTO and service imports.
+export const ${factoryVar} = {
+  build(i = 1, overrides: Record<string, unknown> = {}) {
+    return { name: '${baseName} ' + i, ...overrides } as Record<string, unknown>;
+  },
+};
+`;
+
+    const outputPath = path.join(process.cwd(), 'src', 'modules', module, 'factories');
+    const filePath = path.join(outputPath, `${baseName.toLowerCase()}.factory.ts`);
+    try {
+      await fs.mkdir(outputPath, { recursive: true });
+      await fs.writeFile(filePath, content, 'utf-8');
+      console.log(`✓ Factory created: ${filePath}`);
+    } catch (error) {
+      console.error('Failed to create factory:', error);
+      process.exit(1);
+    }
+  });
+
 program.parse();
