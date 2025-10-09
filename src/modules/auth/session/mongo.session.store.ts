@@ -111,6 +111,42 @@ export class MongoSessionStore implements SessionStore {
     }
   }
 
+  async deleteRevoked(): Promise<number> {
+    const result = await SessionModel.deleteMany({ isRevoked: true });
+    const count = result.deletedCount || 0;
+    
+    if (count > 0) {
+      logger.info({ count }, 'Deleted revoked sessions');
+    }
+    
+    return count;
+  }
+
+  async deleteExpired(): Promise<number> {
+    const result = await SessionModel.deleteMany({
+      expiresAt: { $lt: new Date() },
+    });
+    const count = result.deletedCount || 0;
+    
+    if (count > 0) {
+      logger.info({ count }, 'Deleted expired sessions (TTL backup)');
+    }
+    
+    return count;
+  }
+
+  async deleteUserExpiredSessions(userId: string): Promise<number> {
+    const result = await SessionModel.deleteMany({
+      userId,
+      $or: [
+        { isRevoked: true },
+        { expiresAt: { $lt: new Date() } },
+      ],
+    });
+    
+    return result.deletedCount || 0;
+  }
+
   async close(): Promise<void> {
     // MongoDB connection is managed globally, no specific cleanup needed
   }

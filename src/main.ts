@@ -13,9 +13,23 @@ import { createOpsRoutes } from './routes/ops';
 import apiRoutes from './routes/routes';
 import globalErrorHandler from './utils/globalErrorHandler';
 import { getRegisteredQueues } from './lib/queue.server';
+import { scheduleSessionCleanup } from './queues/session-cleanup.queue';
+import { getSessionManager } from './modules/auth/session/session.manager';
 
 const bootstrapServer = async () => {
   await connectDatabase();
+
+  if (config.SET_SESSION) {
+    try {
+      const sessionManager = getSessionManager();
+      const stats = await sessionManager.cleanupSessions('revoked');
+      logger.info({ stats }, 'Startup session cleanup completed');
+    } catch (err) {
+      logger.warn({ err }, 'Startup session cleanup failed');
+    }
+  }
+
+  await scheduleSessionCleanup();
 
   const { app, server } = await initializeApp();
 
