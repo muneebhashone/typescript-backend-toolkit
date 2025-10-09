@@ -16,6 +16,8 @@ export default [
       'dist',
       '.database',
       '.database/*',
+      'public/*',
+      'public/**/*',
     ],
   },
   pluginJs.configs.recommended,

@@ -1,109 +1,109 @@
-import type { Request, Response } from "express";
-import config from "../../config/config.service";
-import type { GoogleCallbackQuery } from "../../types";
-import { successResponse } from "../../utils/api.utils";
-import type { JwtPayload } from "../../utils/auth.utils";
-import { AUTH_COOKIE_KEY, COOKIE_CONFIG } from "./auth.constants";
+import type { Request, Response } from 'express';
+import config from '../../config/env';
+import type { GoogleCallbackQuery } from '../../types';
+import { successResponse } from '../../utils/api.utils';
+import type { JwtPayload } from '../../utils/auth.utils';
+import { AUTH_COOKIE_KEY, COOKIE_CONFIG } from './auth.constants';
 import type {
-	ChangePasswordSchemaType,
-	ForgetPasswordSchemaType,
-	LoginUserByEmailSchemaType,
-	RegisterUserByEmailSchemaType,
-	ResetPasswordSchemaType,
-} from "./auth.schema";
+  ChangePasswordSchemaType,
+  ForgetPasswordSchemaType,
+  LoginUserByEmailSchemaType,
+  RegisterUserByEmailSchemaType,
+  ResetPasswordSchemaType,
+} from './auth.schema';
 import {
-	changePassword,
-	forgetPassword,
-	googleLogin,
-	loginUserByEmail,
-	registerUserByEmail,
-	resetPassword,
-} from "./auth.service";
+  changePassword,
+  forgetPassword,
+  googleLogin,
+  loginUserByEmail,
+  registerUserByEmail,
+  resetPassword,
+} from './auth.service';
 
 export const handleResetPassword = async (
-	req: Request<unknown, unknown, ResetPasswordSchemaType>,
-	res: Response,
+  req: Request<unknown, unknown, ResetPasswordSchemaType>,
+  res: Response,
 ) => {
-	await resetPassword(req.body);
+  await resetPassword(req.body);
 
-	return successResponse(res, "Password successfully reset");
+  return successResponse(res, 'Password successfully reset');
 };
 
 export const handleForgetPassword = async (
-	req: Request<unknown, unknown, ForgetPasswordSchemaType>,
-	res: Response,
+  req: Request<unknown, unknown, ForgetPasswordSchemaType>,
+  res: Response,
 ) => {
-	const user = await forgetPassword(req.body);
+  const user = await forgetPassword(req.body);
 
-	return successResponse(res, "Code has been sent", { userId: user._id });
+  return successResponse(res, 'Code has been sent', { userId: user._id });
 };
 
 export const handleChangePassword = async (
-	req: Request<unknown, unknown, ChangePasswordSchemaType>,
-	res: Response,
+  req: Request<unknown, unknown, ChangePasswordSchemaType>,
+  res: Response,
 ) => {
-	await changePassword((req.user as JwtPayload).sub, req.body);
+  await changePassword((req.user as JwtPayload).sub, req.body);
 
-	return successResponse(res, "Password successfully changed");
+  return successResponse(res, 'Password successfully changed');
 };
 
 export const handleRegisterUser = async (
-	req: Request<unknown, unknown, RegisterUserByEmailSchemaType>,
-	res: Response,
+  req: Request<unknown, unknown, RegisterUserByEmailSchemaType>,
+  res: Response,
 ) => {
-	const user = await registerUserByEmail(req.body);
+  const user = await registerUserByEmail(req.body);
 
-	if (config.OTP_VERIFICATION_ENABLED) {
-		return successResponse(res, "Please check your email for OTP", user);
-	}
+  if (config.OTP_VERIFICATION_ENABLED) {
+    return successResponse(res, 'Please check your email for OTP', user);
+  }
 
-	return successResponse(res, "User has been reigstered", user);
+  return successResponse(res, 'User has been reigstered', user);
 };
 
 export const handleLogout = async (_: Request, res: Response) => {
-	res.cookie(AUTH_COOKIE_KEY, undefined, COOKIE_CONFIG);
+  res.cookie(AUTH_COOKIE_KEY, undefined, COOKIE_CONFIG);
 
-	return successResponse(res, "Logout successful");
+  return successResponse(res, 'Logout successful');
 };
 
 export const handleLoginByEmail = async (
-	req: Request<unknown, unknown, LoginUserByEmailSchemaType>,
-	res: Response,
+  req: Request<unknown, unknown, LoginUserByEmailSchemaType>,
+  res: Response,
 ) => {
-	const token = await loginUserByEmail(req.body);
-	if (config.SET_SESSION) {
-		res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
-	}
-	return successResponse(res, "Login successful", { token: token });
+  const token = await loginUserByEmail(req.body);
+  if (config.SET_SESSION) {
+    res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
+  }
+  return successResponse(res, 'Login successful', { token: token });
 };
 
 export const handleGetCurrentUser = async (req: Request, res: Response) => {
-	const user = req.user;
+  const user = req.user;
 
-	return successResponse(res, undefined, user);
+  return successResponse(res, undefined, user);
 };
 export const handleGoogleLogin = async (_: Request, res: Response) => {
-	if (!config.GOOGLE_CLIENT_ID || !config.GOOGLE_REDIRECT_URI) {
-		throw new Error("Google credentials are not set");
-	}
+  if (!config.GOOGLE_CLIENT_ID || !config.GOOGLE_REDIRECT_URI) {
+    throw new Error('Google credentials are not set');
+  }
 
-	const googleAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${config.GOOGLE_CLIENT_ID}&redirect_uri=${config.GOOGLE_REDIRECT_URI}&scope=email profile`;
+  const googleAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${config.GOOGLE_CLIENT_ID}&redirect_uri=${config.GOOGLE_REDIRECT_URI}&scope=email profile`;
 
-	res.redirect(googleAuthURL);
+  res.redirect(googleAuthURL);
 };
 export const handleGoogleCallback = async (
-	req: Request<unknown, unknown, unknown, GoogleCallbackQuery>,
-	res: Response,
+  req: Request<unknown, unknown, unknown, GoogleCallbackQuery>,
+  res: Response,
 ) => {
-	const user = await googleLogin(req.query);
-	if (!user) throw new Error("Failed to login");
-	res.cookie(
-		AUTH_COOKIE_KEY,
-		user.socialAccount?.[0]?.accessToken,
-		COOKIE_CONFIG,
-	);
+  const user = await googleLogin(req.query);
+  if (!user) throw new Error('Failed to login');
+  res.cookie(
+    AUTH_COOKIE_KEY,
+    user.socialAccount?.[0]?.accessToken,
+    COOKIE_CONFIG,
+  );
 
-	return successResponse(res, "Logged in successfully", {
-		token: user.socialAccount?.[0]?.accessToken,
-	});
+  return successResponse(res, 'Logged in successfully', {
+    token: user.socialAccount?.[0]?.accessToken,
+  });
 };

@@ -132,3 +132,7 @@ dist
 # database
 .database
 .aider*
+
+.claude
+
+.dump

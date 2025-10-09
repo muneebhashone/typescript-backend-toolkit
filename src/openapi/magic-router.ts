@@ -10,8 +10,8 @@ import {
   errorResponseSchema,
   successResponseSchema,
 } from '../common/common.schema';
-import { canAccess } from '../middlewares/can-access.middleware';
-import { validateZodSchema } from '../middlewares/validate-zod-schema.middleware';
+import { canAccess } from '../middlewares/can-access';
+import { validateZodSchema } from '../core/validate';
 import type {
   RequestExtended,
   RequestZodSchemaType,

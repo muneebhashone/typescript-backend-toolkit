@@ -112,10 +112,10 @@ Before you get started, make sure you have the following installed on your machi
 │   │   └── session.store.ts
 │   ├── main.ts
 │   ├── middlewares
-│   │   ├── can-access.middleware.ts
-│   │   ├── extract-jwt-schema.middleware.ts
-│   │   ├── multer-s3.middleware.ts
-│   │   └── validate-zod-schema.middleware.ts
+│   │   ├── can-access.ts
+│   │   ├── extract-jwt-schema.ts
+│   │   ├── multer-s3.ts
+│   │   └── validate-zod-schema.ts
 │   ├── modules
 │   │   ├── auth
 │   │   │   ├── auth.constants.ts
@@ -168,7 +168,7 @@ MagicRouter now supports multipart/form-data file uploads with automatic OpenAPI
 import { z } from 'zod';
 import MagicRouter from './openapi/magic-router';
 import { zFile } from './openapi/zod-extend';
-import { uploadMiddleware } from './middlewares/multer-s3.middleware';
+import { uploadMiddleware } from './middlewares/multer-s3';
 
 const router = new MagicRouter('/api');
 
