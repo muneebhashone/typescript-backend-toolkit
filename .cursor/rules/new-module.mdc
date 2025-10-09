@@ -1,432 +1,290 @@
 ---
-description: Step-by-step guide for creating a new module
+description: Step-by-step guide for creating a new module using the tbk CLI
 ---
 
 # Creating a New Module
 
-Follow these steps to create a new module in the backend toolkit.
+This guide shows how to create a new module using the `tbk` CLI tool and customize it according to project patterns.
 
-## Step 1: Create Module Directory
+## Quick Start
+
+### Step 1: Generate Module Scaffolding
+
+Use the `tbk` CLI to generate all module files automatically:
 
 ```bash
-mkdir -p src/modules/module-name
+pnpm exec tbk generate:module <module-name>
 ```
 
-## Step 2: Create Model (`module.model.ts`)
+Or with custom API path prefix:
+
+```bash
+pnpm exec tbk generate:module <module-name> --path /api/v1
+```
+
+**Example:**
+
+```bash
+pnpm exec tbk generate:module product
+# Creates: src/modules/product/ with all required files
+```
+
+This creates a complete module structure:
+
+```
+src/modules/<module-name>/
+├── <module-name>.dto.ts         # TypeScript types and Zod schemas
+├── <module-name>.model.ts       # Mongoose model
+├── <module-name>.schema.ts      # Request/response validation schemas
+├── <module-name>.services.ts    # Business logic and database operations
+├── <module-name>.controller.ts  # HTTP request handlers
+└── <module-name>.router.ts      # MagicRouter route definitions
+```
+
+### Step 2: Customize Module Files
+
+The generated files follow project patterns but need customization for your specific use case. Refer to these rules for detailed patterns:
+
+#### 2.1 Update Model (`<module-name>.model.ts`)
+
+- **Rule:** `@models`
+- Add/modify fields in the Mongoose schema
+- Define indexes, virtuals, and methods
+- Configure schema options (timestamps, etc.)
+
+#### 2.2 Update DTOs (`<module-name>.dto.ts`)
+
+- Define input/output types using Zod
+- Use `definePaginatedResponse` from `common.utils` for list endpoints
+- Export type definitions for type safety
+
+#### 2.3 Update Validation Schemas (`<module-name>.schema.ts`)
+
+- **Rule:** `@schemas`
+- Add/modify Zod validation for create/update operations
+- Configure query parameter validation (pagination, search, filters)
+- Define proper error messages and transformations
+
+#### 2.4 Update Services (`<module-name>.services.ts`)
+
+- **Rule:** `@services`
+- Implement business logic
+- Handle database operations using the model
+- Use proper error handling (throw errors with descriptive messages)
+- Optimize queries with proper filtering, pagination, and sorting
+
+#### 2.5 Update Controller (`<module-name>.controller.ts`)
+
+- **Rule:** `@controllers`
+- Handle HTTP request/response
+- Use `successResponse` from `utils/api.utils`
+- Use proper HTTP status codes from `http-status-codes`
+- Keep controllers thin - delegate logic to services
+
+#### 2.6 Update Router (`<module-name>.router.ts`)
+
+- **Rule:** `@routing`
+- Configure MagicRouter routes
+- Add proper middleware (authentication, authorization)
+- Use `canAccess()` for protected routes
+- Define request validation schemas
+
+### Step 3: Register Router
+
+Add the router to `src/routes/routes.ts`:
 
 ```typescript
-import { Schema, model, type Document } from 'mongoose';
+import <module-name>Router from '@/modules/<module-name>/<module-name>.router';
 
-export interface IModule extends Document {
-  name: string;
-  description: string;
-  status: 'active' | 'inactive';
-  createdAt: Date;
-  updatedAt: Date;
-}
+// In the registerRoutes function or where routes are registered
+app.use(<module-name>Router);
+```
 
-const schema = new Schema<IModule>(
-  {
-    name: { type: String, required: true },
-    description: { type: String },
-    status: {
-      type: String,
-      enum: ['active', 'inactive'],
-      default: 'active',
-    },
-  },
-  { timestamps: true },
+### Step 4: Test the Module
+
+1. Start development server:
+
+   ```bash
+   pnpm dev
+   ```
+
+2. Visit Swagger UI:
+
+   ```
+   http://localhost:3000/api-docs
+   ```
+
+3. Test all endpoints using the interactive API documentation
+
+4. Verify:
+   - All CRUD operations work correctly
+   - Validation catches invalid inputs
+   - Error responses are properly formatted
+   - OpenAPI documentation is accurate
+
+## Module File Responsibilities
+
+### 1. DTO (`*.dto.ts`)
+
+- Zod schemas for input/output validation
+- TypeScript type definitions
+- Paginated response schemas
+
+### 2. Model (`*.model.ts`)
+
+- Mongoose schema definition
+- Database field types and constraints
+- Indexes and virtuals
+- Model interface extending Document
+
+### 3. Schema (`*.schema.ts`)
+
+- Request validation schemas (create, update, query)
+- Zod transformations and refinements
+- Type exports for controllers
+
+### 4. Services (`*.services.ts`)
+
+- Business logic implementation
+- Database operations (CRUD)
+- Data transformation
+- Error handling
+
+### 5. Controller (`*.controller.ts`)
+
+- HTTP request/response handling
+- Call service methods
+- Return standardized responses
+- Handle HTTP status codes
+
+### 6. Router (`*.router.ts`)
+
+- Route definitions using MagicRouter
+- Middleware configuration
+- Request validation binding
+- OpenAPI metadata
+
+## Best Practices
+
+### Follow Project Patterns
+
+- **Always** use MagicRouter for automatic OpenAPI generation
+- **Never** use plain Express `app.get()` or `router.get()`
+- **Always** validate requests with Zod schemas
+- **Always** use TypeScript strict mode - no `any` types
+
+### Error Handling
+
+- Throw descriptive errors in services
+- Let global error handler format responses
+- Use proper HTTP status codes
+
+### Type Safety
+
+- Export and use TypeScript types from DTOs
+- Use Zod's `.infer` for type generation
+- Keep runtime validation and TypeScript types in sync
+
+### Code Organization
+
+- Keep controllers thin - delegate to services
+- Put business logic in services
+- Use common utilities for shared functionality
+- Follow the single responsibility principle
+
+## Advanced Customization
+
+### Adding Authentication
+
+Use `canAccess()` middleware in router:
+
+```typescript
+import { canAccess } from '@/middlewares/can-access';
+
+router.post(
+  '/',
+  { requestType: { body: createSchema } },
+  canAccess(), // Add authentication
+  handleCreate,
 );
-
-export const ModuleModel = model<IModule>('Module', schema);
 ```
 
-## Step 3: Create DTOs (`module.dto.ts`)
+### Adding Custom Middleware
 
 ```typescript
-export interface CreateModuleInput {
-  name: string;
-  description?: string;
-}
-
-export interface UpdateModuleInput {
-  name?: string;
-  description?: string;
-  status?: 'active' | 'inactive';
-}
-
-export interface ModuleResponse {
-  id: string;
-  name: string;
-  description?: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
+router.get(
+  '/:id',
+  {},
+  canAccess(),
+  customMiddleware, // Your custom middleware
+  handleGetById,
+);
 ```
 
-## Step 4: Create Schemas (`module.schema.ts`)
+### Adding Indexes
+
+In model file:
 
 ```typescript
-import { z } from 'zod';
-import '@/openapi/zod-extend';
-
-const ModuleResponseSchema = z.object({
-  id: z.string().openapi({ example: '507f1f77bcf86cd799439011' }),
-  name: z.string().openapi({ example: 'Module Name' }),
-  description: z.string().optional(),
-  status: z.enum(['active', 'inactive']),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const CreateModuleSchema = z.object({
-  name: z.string().min(2),
-  description: z.string().optional(),
-});
-
-const UpdateModuleSchema = z.object({
-  name: z.string().min(2).optional(),
-  description: z.string().optional(),
-  status: z.enum(['active', 'inactive']).optional(),
-});
-
-const ParamsSchema = z.object({
-  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ID'),
-});
-
-const QuerySchema = z.object({
-  page: z
-    .string()
-    .transform(Number)
-    .pipe(z.number().int().positive())
-    .optional(),
-  limit: z
-    .string()
-    .transform(Number)
-    .pipe(z.number().int().positive())
-    .optional(),
-  search: z.string().optional(),
-});
-
-export const listSchema = {
-  request: { query: QuerySchema },
-  response: {
-    200: z.object({
-      data: z.array(ModuleResponseSchema),
-      pagination: z.object({
-        page: z.number(),
-        limit: z.number(),
-        total: z.number(),
-      }),
-    }),
-  },
-};
-
-export const getSchema = {
-  request: { params: ParamsSchema },
-  response: {
-    200: ModuleResponseSchema,
-    404: z.object({ message: z.string() }),
-  },
-};
-
-export const createSchema = {
-  request: { body: CreateModuleSchema },
-  response: {
-    201: ModuleResponseSchema,
-    400: z.object({ message: z.string() }),
-  },
-};
-
-export const updateSchema = {
-  request: {
-    params: ParamsSchema,
-    body: UpdateModuleSchema,
-  },
-  response: {
-    200: ModuleResponseSchema,
-    404: z.object({ message: z.string() }),
-  },
-};
-
-export const deleteSchema = {
-  request: { params: ParamsSchema },
-  response: {
-    200: z.object({ message: z.string() }),
-    404: z.object({ message: z.string() }),
-  },
-};
+schema.index({ field1: 1, field2: -1 });
+schema.index({ searchField: 'text' }); // Text search
 ```
 
-## Step 5: Create Service (`module.service.ts`)
+### Adding Relationships
 
 ```typescript
-import { ModuleModel } from './module.model';
-import type { CreateModuleInput, UpdateModuleInput } from './module.dto';
+// In model
+field: { type: Schema.Types.ObjectId, ref: 'OtherModel' }
 
-export const findAll = async (options: {
-  page: number;
-  limit: number;
-  search?: string;
-}) => {
-  const { page, limit, search } = options;
-  const skip = (page - 1) * limit;
+// In service
+const result = await Model.find().populate('field');
+```
 
-  const query = search ? { name: { $regex: search, $options: 'i' } } : {};
+## Optional: Add Seeder
 
-  const [data, total] = await Promise.all([
-    ModuleModel.find(query).skip(skip).limit(limit).lean(),
-    ModuleModel.countDocuments(query),
+Create `<module-name>.seeder.ts` for test data:
+
+```typescript
+import Model from './<module-name>.model';
+
+export const seed<ModuleName> = async () => {
+  const count = await Model.countDocuments();
+  if (count > 0) return;
+
+  await Model.create([
+    { /* seed data */ },
   ]);
 
-  return {
-    data: data.map((item) => ({
-      id: item._id.toString(),
-      name: item.name,
-      description: item.description,
-      status: item.status,
-      createdAt: item.createdAt.toISOString(),
-      updatedAt: item.updatedAt.toISOString(),
-    })),
-    pagination: {
-      page,
-      limit,
-      total,
-    },
-  };
-};
-
-export const findById = async (id: string) => {
-  const item = await ModuleModel.findById(id).lean();
-
-  if (!item) {
-    return null;
-  }
-
-  return {
-    id: item._id.toString(),
-    name: item.name,
-    description: item.description,
-    status: item.status,
-    createdAt: item.createdAt.toISOString(),
-    updatedAt: item.updatedAt.toISOString(),
-  };
-};
-
-export const create = async (data: CreateModuleInput) => {
-  const item = await ModuleModel.create(data);
-
-  return {
-    id: item._id.toString(),
-    name: item.name,
-    description: item.description,
-    status: item.status,
-    createdAt: item.createdAt.toISOString(),
-    updatedAt: item.updatedAt.toISOString(),
-  };
-};
-
-export const update = async (id: string, data: UpdateModuleInput) => {
-  const item = await ModuleModel.findByIdAndUpdate(
-    id,
-    { $set: data },
-    { new: true },
-  ).lean();
-
-  if (!item) {
-    return null;
-  }
-
-  return {
-    id: item._id.toString(),
-    name: item.name,
-    description: item.description,
-    status: item.status,
-    createdAt: item.createdAt.toISOString(),
-    updatedAt: item.updatedAt.toISOString(),
-  };
-};
-
-export const remove = async (id: string) => {
-  const item = await ModuleModel.findByIdAndDelete(id);
-  return !!item;
+  console.log('<ModuleName> seeded');
 };
 ```
-
-## Step 6: Create Controller (`module.controller.ts`)
-
-```typescript
-import type { Request, Response } from 'express';
-import * as service from './module.service';
-
-export const list = async (req: Request, res: Response) => {
-  const { page = 1, limit = 10, search } = req.query;
-
-  const result = await service.findAll({
-    page: Number(page),
-    limit: Number(limit),
-    search: search as string,
-  });
-
-  return res.status(200).json(result);
-};
-
-export const getById = async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const item = await service.findById(id);
-
-  if (!item) {
-    return res.status(404).json({ message: 'Item not found' });
-  }
-
-  return res.status(200).json(item);
-};
-
-export const create = async (req: Request, res: Response) => {
-  const data = req.body;
-
-  const item = await service.create(data);
-
-  return res.status(201).json(item);
-};
-
-export const update = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const data = req.body;
-
-  const item = await service.update(id, data);
-
-  if (!item) {
-    return res.status(404).json({ message: 'Item not found' });
-  }
-
-  return res.status(200).json(item);
-};
-
-export const remove = async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const deleted = await service.remove(id);
-
-  if (!deleted) {
-    return res.status(404).json({ message: 'Item not found' });
-  }
-
-  return res.status(200).json({ message: 'Item deleted successfully' });
-};
-```
-
-## Step 7: Create Router (`module.router.ts`)
-
-```typescript
-import { MagicRouter } from '@/openapi/magic-router';
-import { extractJwtSchema } from '@/middlewares/extract-jwt-schema';
-import * as controller from './module.controller';
-import * as schemas from './module.schema';
-
-const router = MagicRouter();
-
-router.get({
-  path: '/modules',
-  schemas: schemas.listSchema,
-  controller: controller.list,
-  tags: ['Module'],
-  summary: 'List all modules',
-  middlewares: [extractJwtSchema],
-});
-
-router.get({
-  path: '/modules/:id',
-  schemas: schemas.getSchema,
-  controller: controller.getById,
-  tags: ['Module'],
-  summary: 'Get module by ID',
-  middlewares: [extractJwtSchema],
-});
-
-router.post({
-  path: '/modules',
-  schemas: schemas.createSchema,
-  controller: controller.create,
-  tags: ['Module'],
-  summary: 'Create new module',
-  middlewares: [extractJwtSchema],
-});
-
-router.put({
-  path: '/modules/:id',
-  schemas: schemas.updateSchema,
-  controller: controller.update,
-  tags: ['Module'],
-  summary: 'Update module',
-  middlewares: [extractJwtSchema],
-});
-
-router.delete({
-  path: '/modules/:id',
-  schemas: schemas.deleteSchema,
-  controller: controller.remove,
-  tags: ['Module'],
-  summary: 'Delete module',
-  middlewares: [extractJwtSchema],
-});
-
-export default router;
-```
-
-## Step 8: Register Router
-
-Add to [src/routes/routes.ts](mdc:src/routes/routes.ts):
-
-```typescript
-import moduleRouter from '@/modules/module-name/module.router';
-
-// In the registerRoutes function
-app.use('/api', moduleRouter);
-```
-
-## Step 9: Test
-
-1. Start the server: `pnpm run dev`
-2. Visit API docs: `http://localhost:3000/api-docs`
-3. Test endpoints using Swagger UI
-
-## Optional: Add to Seeder
-
-If you want seed data, create `module.seeder.ts`:
-
-```typescript
-import { ModuleModel } from './module.model';
-
-export const seedModules = async () => {
-  const count = await ModuleModel.countDocuments();
-
-  if (count > 0) {
-    console.log('Modules already seeded');
-    return;
-  }
-
-  await ModuleModel.create([
-    { name: 'Module 1', description: 'First module' },
-    { name: 'Module 2', description: 'Second module' },
-  ]);
-
-  console.log('Modules seeded');
-};
-```
-
-Register in main seeder script.
 
 ## Checklist
 
-- [ ] Created model with proper schema
-- [ ] Created DTOs for type safety
-- [ ] Created Zod schemas with OpenAPI metadata
-- [ ] Created service with business logic
-- [ ] Created controller with HTTP handling
-- [ ] Created router with MagicRouter
-- [ ] Registered router in routes.ts
-- [ ] Tested in Swagger UI
-- [ ] (Optional) Created seeder
+- [ ] Generated module using `tbk generate:module <name>`
+- [ ] Customized model with proper fields and indexes
+- [ ] Updated validation schemas for your use case
+- [ ] Implemented business logic in services
+- [ ] Added proper error handling
+- [ ] Configured authentication/authorization if needed
+- [ ] Registered router in `routes.ts`
+- [ ] Tested all endpoints in Swagger UI
+- [ ] Verified OpenAPI documentation
+- [ ] (Optional) Created seeder for test data
+
+## Common Commands
+
+```bash
+# Generate new module
+pnpm exec tbk generate:module <name>
+
+# Generate with custom path
+pnpm exec tbk generate:module <name> --path /api/v2
+
+# Aliases also work
+pnpm exec tbk g:module <name>
+
+# Other generators
+pnpm exec tbk generate:plugin <name>
+pnpm exec tbk generate:middleware <name>
+```
