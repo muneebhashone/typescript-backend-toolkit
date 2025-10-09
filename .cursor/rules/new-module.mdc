@@ -322,7 +322,7 @@ export const remove = async (req: Request, res: Response) => {
 
 ```typescript
 import { MagicRouter } from '@/openapi/magic-router';
-import { extractJwtSchema } from '@/middlewares/extract-jwt-schema.middleware';
+import { extractJwtSchema } from '@/middlewares/extract-jwt-schema';
 import * as controller from './module.controller';
 import * as schemas from './module.schema';
 

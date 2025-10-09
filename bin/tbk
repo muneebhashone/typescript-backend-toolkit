@@ -1,0 +1,445 @@
+#!/usr/bin/env tsx
+
+import { Command } from 'commander';
+import fs from 'fs/promises';
+import path from 'path';
+
+const program = new Command();
+
+program
+  .name('tbk')
+  .description('TypeScript Backend Toolkit CLI')
+  .version('1.0.0');
+
+program
+  .command('generate:plugin <name>')
+  .alias('g:plugin')
+  .description('Generate a new plugin')
+  .action(async (name) => {
+    const pluginName = name.toLowerCase();
+    const className = name.charAt(0).toUpperCase() + name.slice(1);
+
+    const pluginContent = `import type { ToolkitPlugin, PluginFactory } from './types';
+
+export interface ${className}Options {
+  enabled?: boolean;
+}
+
+export const ${pluginName}Plugin: PluginFactory<${className}Options> = (
+  options = {},
+): ToolkitPlugin<${className}Options> => {
+  const { enabled = true } = options;
+
+  return {
+    name: '${pluginName}',
+    priority: 50,
+    options,
+    
+    register({ app }) {
+      if (!enabled) {
+        return;
+      }
+
+      // Plugin implementation here
+      console.log('${className} plugin registered');
+    },
+
+    onShutdown: async () => {
+      // Cleanup logic here
+      console.log('${className} plugin shutdown');
+    },
+  };
+};
+
+export default ${pluginName}Plugin;
+`;
+
+    const outputPath = path.join(
+      process.cwd(),
+      'src',
+      'plugins',
+      `${pluginName}.ts`,
+    );
+
+    try {
+      await fs.writeFile(outputPath, pluginContent, 'utf-8');
+      console.log(`✓ Plugin created: ${outputPath}`);
+    } catch (error) {
+      console.error('Failed to create plugin:', error);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('generate:middleware <name>')
+  .alias('g:middleware')
+  .description('Generate a new middleware')
+  .action(async (name) => {
+    const middlewareName = name.toLowerCase();
+
+    const middlewareContent = `import type { Request, Response, NextFunction } from 'express';
+
+export function ${middlewareName}Middleware(
+  req: Request,
+  res: Response,
+  next?: NextFunction,
+): void {
+  // Middleware implementation here
+  next?.();
+}
+
+export default ${middlewareName}Middleware;
+`;
+
+    const outputPath = path.join(
+      process.cwd(),
+      'src',
+      'middlewares',
+      `${middlewareName}.ts`,
+    );
+
+    try {
+      await fs.writeFile(outputPath, middlewareContent, 'utf-8');
+      console.log(`✓ Middleware created: ${outputPath}`);
+    } catch (error) {
+      console.error('Failed to create middleware:', error);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('generate:module <name>')
+  .alias('g:module')
+  .description(
+    'Generate a complete module with all files (dto, model, schema, services, controller, router)',
+  )
+  .option('-p, --path <path>', 'API path prefix', '/api')
+  .action(async (name, options) => {
+    const moduleName = name.toLowerCase();
+    const className = name.charAt(0).toUpperCase() + name.slice(1);
+    const moduleDir = path.join(process.cwd(), 'src', 'modules', moduleName);
+
+    try {
+      // Create module directory
+      await fs.mkdir(moduleDir, { recursive: true });
+
+      // 1. DTO file
+      const dtoContent = `import { z } from "zod";
+import { definePaginatedResponse } from "../../common/common.utils";
+
+export const ${moduleName}OutSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+
+export const ${moduleName}Schema = ${moduleName}OutSchema.extend({
+  // Add internal fields here
+});
+
+export const ${moduleName}sPaginatedSchema = definePaginatedResponse(${moduleName}OutSchema);
+
+export type ${className}ModelType = z.infer<typeof ${moduleName}Schema>;
+export type ${className}Type = z.infer<typeof ${moduleName}Schema> & { id: string; _id: string };
+export type ${className}PaginatedType = z.infer<typeof ${moduleName}sPaginatedSchema>;
+`;
+
+      // 2. Model file
+      const modelContent = `import mongoose, { type Document, Schema } from "mongoose";
+import type { ${className}ModelType, ${className}Type } from "./${moduleName}.dto";
+
+const ${className}Schema: Schema<${className}Type> = new Schema(
+  {
+    name: { type: String, required: true },
+    description: { type: String },
+  },
+  { timestamps: true },
+);
+
+export interface I${className}Document extends Document<string>, ${className}ModelType {}
+const ${className} = mongoose.model<${className}Type>("${className}", ${className}Schema);
+export default ${className};
+`;
+
+      // 3. Schema file (validation)
+      const schemaContent = `import { z } from "zod";
+
+export const create${className}Schema = z.object({
+  name: z.string({ required_error: "Name is required" }).min(1),
+  description: z.string().optional(),
+});
+
+export const update${className}Schema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+});
+
+export const get${className}sSchema = z.object({
+  searchString: z.string().optional(),
+  limitParam: z
+    .string()
+    .default("10")
+    .refine(
+      (value) => !Number.isNaN(Number(value)) && Number(value) >= 0,
+      "Input must be positive integer",
+    )
+    .transform(Number),
+  pageParam: z
+    .string()
+    .default("1")
+    .refine(
+      (value) => !Number.isNaN(Number(value)) && Number(value) >= 0,
+      "Input must be positive integer",
+    )
+    .transform(Number),
+});
+
+export type Create${className}SchemaType = z.infer<typeof create${className}Schema>;
+export type Update${className}SchemaType = z.infer<typeof update${className}Schema>;
+export type Get${className}sSchemaType = z.infer<typeof get${className}sSchema>;
+`;
+
+      // 4. Services file
+      const servicesContent = `import type { FilterQuery } from "mongoose";
+import type { MongoIdSchemaType } from "../../common/common.schema";
+import { getPaginator } from "../../utils/getPaginator";
+import type { ${className}Type } from "./${moduleName}.dto";
+import ${className}, { type I${className}Document } from "./${moduleName}.model";
+import type { Create${className}SchemaType, Get${className}sSchemaType, Update${className}SchemaType } from "./${moduleName}.schema";
+
+export const create${className} = async (
+  payload: Create${className}SchemaType,
+): Promise<${className}Type> => {
+  const created${className} = await ${className}.create(payload);
+  return created${className}.toObject();
+};
+
+export const get${className}ById = async (${moduleName}Id: string): Promise<${className}Type> => {
+  const ${moduleName} = await ${className}.findById(${moduleName}Id);
+  
+  if (!${moduleName}) {
+    throw new Error("${className} not found");
+  }
+  
+  return ${moduleName}.toObject();
+};
+
+export const update${className} = async (
+  ${moduleName}Id: string,
+  payload: Update${className}SchemaType,
+): Promise<${className}Type> => {
+  const ${moduleName} = await ${className}.findByIdAndUpdate(
+    ${moduleName}Id,
+    { $set: payload },
+    { new: true },
+  );
+  
+  if (!${moduleName}) {
+    throw new Error("${className} not found");
+  }
+  
+  return ${moduleName}.toObject();
+};
+
+export const delete${className} = async (${moduleName}Id: MongoIdSchemaType): Promise<void> => {
+  const ${moduleName} = await ${className}.findByIdAndDelete(${moduleName}Id.id);
+  
+  if (!${moduleName}) {
+    throw new Error("${className} not found");
+  }
+};
+
+export const get${className}s = async (
+  payload: Get${className}sSchemaType,
+) => {
+  const conditions: FilterQuery<I${className}Document> = {};
+  
+  if (payload.searchString) {
+    conditions.$or = [
+      { name: { $regex: payload.searchString, $options: "i" } },
+      { description: { $regex: payload.searchString, $options: "i" } },
+    ];
+  }
+  
+  const totalRecords = await ${className}.countDocuments(conditions);
+  const paginatorInfo = getPaginator(
+    payload.limitParam,
+    payload.pageParam,
+    totalRecords,
+  );
+  
+  const results = await ${className}.find(conditions)
+    .limit(paginatorInfo.limit)
+    .skip(paginatorInfo.skip)
+    .exec();
+  
+  return {
+    results,
+    paginatorInfo,
+  };
+};
+`;
+
+      // 5. Controller file
+      const controllerContent = `import type { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
+import type { MongoIdSchemaType } from "../../common/common.schema";
+import { successResponse } from "../../utils/api.utils";
+import type { Create${className}SchemaType, Get${className}sSchemaType, Update${className}SchemaType } from "./${moduleName}.schema";
+import { create${className}, delete${className}, get${className}ById, get${className}s, update${className} } from "./${moduleName}.services";
+
+export const handleCreate${className} = async (
+  req: Request<unknown, unknown, Create${className}SchemaType>,
+  res: Response,
+) => {
+  const ${moduleName} = await create${className}(req.body);
+  return successResponse(
+    res,
+    "${className} created successfully",
+    ${moduleName},
+    StatusCodes.CREATED,
+  );
+};
+
+export const handleGet${className}s = async (
+  req: Request<unknown, unknown, unknown, Get${className}sSchemaType>,
+  res: Response,
+) => {
+  const { results, paginatorInfo } = await get${className}s(req.query);
+  return successResponse(res, undefined, { results, paginatorInfo });
+};
+
+export const handleGet${className}ById = async (
+  req: Request<MongoIdSchemaType>,
+  res: Response,
+) => {
+  const ${moduleName} = await get${className}ById(req.params.id);
+  return successResponse(res, undefined, ${moduleName});
+};
+
+export const handleUpdate${className} = async (
+  req: Request<MongoIdSchemaType, unknown, Update${className}SchemaType>,
+  res: Response,
+) => {
+  const ${moduleName} = await update${className}(req.params.id, req.body);
+  return successResponse(res, "${className} updated successfully", ${moduleName});
+};
+
+export const handleDelete${className} = async (
+  req: Request<MongoIdSchemaType>,
+  res: Response,
+) => {
+  await delete${className}({ id: req.params.id });
+  return successResponse(res, "${className} deleted successfully");
+};
+`;
+
+      // 6. Router file
+      const routerContent = `import { canAccess } from "../../middlewares/can-access";
+import MagicRouter from "../../openapi/magic-router";
+import {
+  handleCreate${className},
+  handleDelete${className},
+  handleGet${className}ById,
+  handleGet${className}s,
+  handleUpdate${className},
+} from "./${moduleName}.controller";
+import { create${className}Schema, get${className}sSchema, update${className}Schema } from "./${moduleName}.schema";
+
+export const ${moduleName.toUpperCase()}_ROUTER_ROOT = "${options.path}/${moduleName}s";
+
+const ${moduleName}Router = new MagicRouter(${moduleName.toUpperCase()}_ROUTER_ROOT);
+
+${moduleName}Router.get(
+  "/",
+  {
+    requestType: { query: get${className}sSchema },
+  },
+  canAccess(),
+  handleGet${className}s,
+);
+
+${moduleName}Router.post(
+  "/",
+  { requestType: { body: create${className}Schema } },
+  canAccess(),
+  handleCreate${className},
+);
+
+${moduleName}Router.get(
+  "/:id",
+  {},
+  canAccess(),
+  handleGet${className}ById,
+);
+
+${moduleName}Router.patch(
+  "/:id",
+  { requestType: { body: update${className}Schema } },
+  canAccess(),
+  handleUpdate${className},
+);
+
+${moduleName}Router.delete(
+  "/:id",
+  {},
+  canAccess(),
+  handleDelete${className},
+);
+
+export default ${moduleName}Router.getRouter();
+`;
+
+      // Write all files
+      await fs.writeFile(
+        path.join(moduleDir, `${moduleName}.dto.ts`),
+        dtoContent,
+        'utf-8',
+      );
+      await fs.writeFile(
+        path.join(moduleDir, `${moduleName}.model.ts`),
+        modelContent,
+        'utf-8',
+      );
+      await fs.writeFile(
+        path.join(moduleDir, `${moduleName}.schema.ts`),
+        schemaContent,
+        'utf-8',
+      );
+      await fs.writeFile(
+        path.join(moduleDir, `${moduleName}.services.ts`),
+        servicesContent,
+        'utf-8',
+      );
+      await fs.writeFile(
+        path.join(moduleDir, `${moduleName}.controller.ts`),
+        controllerContent,
+        'utf-8',
+      );
+      await fs.writeFile(
+        path.join(moduleDir, `${moduleName}.router.ts`),
+        routerContent,
+        'utf-8',
+      );
+
+      console.log(`✓ Module created: ${moduleDir}`);
+      console.log(`  ├── ${moduleName}.dto.ts`);
+      console.log(`  ├── ${moduleName}.model.ts`);
+      console.log(`  ├── ${moduleName}.schema.ts`);
+      console.log(`  ├── ${moduleName}.services.ts`);
+      console.log(`  ├── ${moduleName}.controller.ts`);
+      console.log(`  └── ${moduleName}.router.ts`);
+      console.log();
+      console.log(`Next steps:`);
+      console.log(`  1. Register the router in your main app file`);
+      console.log(`  2. Customize the model fields in ${moduleName}.model.ts`);
+      console.log(`  3. Update validation schemas in ${moduleName}.schema.ts`);
+      console.log(`  4. Add business logic to ${moduleName}.services.ts`);
+    } catch (error) {
+      console.error('Failed to create module:', error);
+      process.exit(1);
+    }
+  });
+
+program.parse();

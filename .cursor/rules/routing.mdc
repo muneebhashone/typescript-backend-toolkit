@@ -13,7 +13,7 @@ NEVER use plain Express routing. ALWAYS use MagicRouter from [magic-router.ts](m
 
 ```typescript
 import MagicRouter from '@/openapi/magic-router';
-import { canAccess } from '@/middlewares/can-access.middleware';
+import { canAccess } from '@/middlewares/can-access';
 import { handleAction, handleGetById, handleCreate } from './module.controller';
 import { actionSchema, createSchema } from './module.schema';
 
@@ -125,7 +125,7 @@ router.post('/login', { requestType: { body: loginSchema } }, handleLogin);
 Add `canAccess()` middleware before the controller:
 
 ```typescript
-import { canAccess } from '@/middlewares/can-access.middleware';
+import { canAccess } from '@/middlewares/can-access';
 
 router.get('/me', {}, canAccess(), handleGetCurrentUser);
 ```
@@ -184,7 +184,7 @@ router.post('/logout', {}, handleLogout);
 Add multer middleware before controller:
 
 ```typescript
-import { multerS3 } from '@/middlewares/multer-s3.middleware';
+import { multerS3 } from '@/middlewares/multer-s3';
 
 router.post(
   '/upload',

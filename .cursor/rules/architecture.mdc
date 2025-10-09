@@ -32,7 +32,7 @@ module-name/
 ### Validation & Type Safety
 
 - ALWAYS use Zod schemas for request/response validation
-- Runtime validation via [validate-zod-schema.middleware.ts](mdc:src/middlewares/validate-zod-schema.middleware.ts)
+- Runtime validation via [validate-zod-schema.ts](mdc:src/middlewares/validate-zod-schema.ts)
 - Extend Zod with OpenAPI metadata using `.openapi()` method from [zod-extend.ts](mdc:src/openapi/zod-extend.ts)
 - Use TypeScript strict mode - no `any` types
 

@@ -177,7 +177,7 @@ Request<{ id: string }, unknown, UpdateUserSchemaType>; // params + body
 
 ### JWT Payload Access
 
-When route uses `extractJwt` middleware from [extract-jwt-schema.middleware.ts](mdc:src/middlewares/extract-jwt-schema.middleware.ts):
+When route uses `extractJwt` middleware from [extract-jwt-schema.ts](mdc:src/middlewares/extract-jwt-schema.ts):
 
 ```typescript
 import type { JwtPayload } from '@/utils/auth.utils';
@@ -206,7 +206,7 @@ type JwtPayload = {
 
 ### File Upload Access
 
-When route uses multer middleware from [multer-s3.middleware.ts](mdc:src/middlewares/multer-s3.middleware.ts):
+When route uses multer middleware from [multer-s3.ts](mdc:src/middlewares/multer-s3.ts):
 
 ```typescript
 const file = req.file; // For single file
