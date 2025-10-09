@@ -61,12 +61,6 @@ export const handleRegisterUser = async (
 };
 
 export const handleLogout = async (req: Request, res: Response) => {
-  console.log({
-    setSession: config.SET_SESSION,
-    session: req.session,
-    sessionManager: req.app.locals.sessionManager,
-  });
-
   if (config.SET_SESSION && req.session && req.app.locals.sessionManager) {
     const sessionManager = req.app.locals.sessionManager;
     await sessionManager.revokeSession(req.session.sessionId);
