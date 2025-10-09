@@ -75,6 +75,15 @@ export class MongoSessionStore implements SessionStore {
     });
   }
 
+  async updateTokenHash(sessionId: string, token: string): Promise<void> {
+    const tokenHash = hashToken(token);
+    await SessionModel.findByIdAndUpdate(sessionId, {
+      tokenHash,
+    });
+    
+    logger.debug({ sessionId }, 'Session token hash updated');
+  }
+
   async revoke(sessionId: string): Promise<void> {
     await SessionModel.findByIdAndUpdate(sessionId, {
       isRevoked: true,

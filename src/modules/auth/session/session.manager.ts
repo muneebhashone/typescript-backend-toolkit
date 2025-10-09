@@ -90,11 +90,6 @@ export class SessionManager {
 
     const tokenHash = hashToken(token);
 
-    console.debug(
-      { tokenHash, sessionTokenHash: session.tokenHash },
-      'Token hash comparison',
-    );
-
     if (session.tokenHash !== tokenHash) {
       return { isValid: false, session, reason: 'invalid' };
     }
@@ -106,6 +101,14 @@ export class SessionManager {
 
   async touchSession(sessionId: string): Promise<void> {
     await this.store.touch(sessionId);
+  }
+
+  async updateSessionToken(sessionId: string, token: string): Promise<void> {
+    await this.store.updateTokenHash(sessionId, token);
+    
+    if (this.config.debug) {
+      logger.info({ sessionId }, 'Session token updated');
+    }
   }
 
   async revokeSession(sessionId: string): Promise<void> {
