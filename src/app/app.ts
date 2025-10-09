@@ -8,10 +8,18 @@ import { extractJwt } from '../middlewares/extract-jwt';
 import { securityPlugin } from '../plugins/security';
 import { observabilityPlugin } from '../plugins/observability';
 import { openApiPlugin } from '../plugins/openapi';
+import { authPlugin } from '../plugins/auth';
 
 export async function initializeApp() {
   const { app, server, plugins } = await createApp({
     plugins: [
+      authPlugin({
+        session: {
+          enabled: config.SET_SESSION,
+          driver: 'mongo',
+          debug: true,
+        },
+      }),
       securityPlugin({
         corsEnabled: config.CORS_ENABLED,
         corsOrigins: [config.CLIENT_SIDE_URL],

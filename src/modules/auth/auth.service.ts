@@ -25,6 +25,7 @@ import type {
   RegisterUserByEmailSchemaType,
   ResetPasswordSchemaType,
 } from './auth.schema';
+import { getSessionManager } from './session/session.manager';
 
 export const resetPassword = async (payload: ResetPasswordSchemaType) => {
   const user = await getUserById(payload.userId);
@@ -43,6 +44,11 @@ export const resetPassword = async (payload: ResetPasswordSchemaType) => {
     password: hashedPassword,
     passwordResetCode: null,
   });
+
+  if (config.SET_SESSION) {
+    const sessionManager = getSessionManager();
+    await sessionManager.revokeAllUserSessions(payload.userId);
+  }
 };
 
 export const forgetPassword = async (
@@ -83,6 +89,11 @@ export const changePassword = async (
   const hashedPassword = await hashPassword(payload.newPassword);
 
   await updateUser(userId, { password: hashedPassword });
+
+  if (config.SET_SESSION) {
+    const sessionManager = getSessionManager();
+    await sessionManager.revokeAllUserSessions(userId);
+  }
 };
 
 export const registerUserByEmail = async (
@@ -105,7 +116,8 @@ export const registerUserByEmail = async (
 
 export const loginUserByEmail = async (
   payload: LoginUserByEmailSchemaType,
-): Promise<string> => {
+  metadata?: { userAgent?: string; ipAddress?: string },
+): Promise<{ token: string; sessionId?: string }> => {
   const user = await getUserByEmail(payload.email, '+password');
 
   if (!user || !(await compareHash(String(user.password), payload.password))) {
@@ -120,14 +132,34 @@ export const loginUserByEmail = async (
     username: user.username,
   };
 
-  const token = await signToken(jwtPayload);
+  let sessionId: string | undefined;
 
-  return token;
+  if (config.SET_SESSION) {
+    const sessionManager = getSessionManager();
+    
+    const token = await signToken(jwtPayload);
+    
+    const session = await sessionManager.createSession({
+      userId: String(user._id),
+      token,
+      metadata,
+    });
+    
+    sessionId = session.sessionId;
+    jwtPayload.sid = sessionId;
+    
+    const tokenWithSession = await signToken(jwtPayload);
+    return { token: tokenWithSession, sessionId };
+  }
+
+  const token = await signToken(jwtPayload);
+  return { token };
 };
 
 export const googleLogin = async (
   payload: GoogleCallbackQuery,
-): Promise<UserType> => {
+  metadata?: { userAgent?: string; ipAddress?: string },
+): Promise<{ user: UserType; token: string; sessionId?: string }> => {
   const { code, error } = payload;
 
   if (error) {
@@ -145,10 +177,10 @@ export const googleLogin = async (
 
   const { id, email, name, picture } = userInfoResponse;
 
-  const user = await getUserByEmail(email);
+  let user = await getUserByEmail(email);
 
   if (!user) {
-    const newUser = await createUser({
+    user = await createUser({
       email,
       username: name,
       avatar: picture,
@@ -164,21 +196,48 @@ export const googleLogin = async (
         },
       ],
     });
-
-    return newUser;
+  } else {
+    user = await updateUser(user._id, {
+      socialAccount: [
+        {
+          refreshToken: refresh_token,
+          tokenExpiry: new Date(Date.now() + expires_in * 1000),
+          accountType: SOCIAL_ACCOUNT_ENUM.GOOGLE,
+          accessToken: access_token,
+          accountID: id,
+        },
+      ],
+    });
   }
 
-  const updatedUser = await updateUser(user._id, {
-    socialAccount: [
-      {
-        refreshToken: refresh_token,
-        tokenExpiry: new Date(Date.now() + expires_in * 1000),
-        accountType: SOCIAL_ACCOUNT_ENUM.GOOGLE,
-        accessToken: access_token,
-        accountID: id,
-      },
-    ],
-  });
+  const jwtPayload: JwtPayload = {
+    sub: String(user._id),
+    email: user.email,
+    phoneNo: user.phoneNo,
+    role: String(user.role) as RoleType,
+    username: user.username,
+  };
 
-  return updatedUser;
+  let sessionId: string | undefined;
+
+  if (config.SET_SESSION) {
+    const sessionManager = getSessionManager();
+    
+    const token = await signToken(jwtPayload);
+    
+    const session = await sessionManager.createSession({
+      userId: String(user._id),
+      token,
+      metadata,
+    });
+    
+    sessionId = session.sessionId;
+    jwtPayload.sid = sessionId;
+    
+    const tokenWithSession = await signToken(jwtPayload);
+    return { user, token: tokenWithSession, sessionId };
+  }
+
+  const token = await signToken(jwtPayload);
+  return { user, token };
 };

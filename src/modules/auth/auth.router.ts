@@ -6,10 +6,13 @@ import {
   handleGetCurrentUser,
   handleGoogleCallback,
   handleGoogleLogin,
+  handleListSessions,
   handleLoginByEmail,
   handleLogout,
   handleRegisterUser,
   handleResetPassword,
+  handleRevokeAllSessions,
+  handleRevokeSession,
 } from './auth.controller';
 import {
   changePasswordSchema,
@@ -60,5 +63,9 @@ authRouter.post(
 
 authRouter.get('/google', {}, handleGoogleLogin);
 authRouter.get('/google/callback', {}, handleGoogleCallback);
+
+authRouter.get('/sessions', {}, canAccess(), handleListSessions);
+authRouter.delete('/sessions/:sessionId', {}, canAccess(), handleRevokeSession);
+authRouter.delete('/sessions', {}, canAccess(), handleRevokeAllSessions);
 
 export default authRouter.getRouter();

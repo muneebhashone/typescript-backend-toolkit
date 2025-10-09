@@ -60,7 +60,18 @@ export const handleRegisterUser = async (
   return successResponse(res, 'User has been reigstered', user);
 };
 
-export const handleLogout = async (_: Request, res: Response) => {
+export const handleLogout = async (req: Request, res: Response) => {
+  console.log({
+    setSession: config.SET_SESSION,
+    session: req.session,
+    sessionManager: req.app.locals.sessionManager,
+  });
+
+  if (config.SET_SESSION && req.session && req.app.locals.sessionManager) {
+    const sessionManager = req.app.locals.sessionManager;
+    await sessionManager.revokeSession(req.session.sessionId);
+  }
+
   res.cookie(AUTH_COOKIE_KEY, undefined, COOKIE_CONFIG);
 
   return successResponse(res, 'Logout successful');
@@ -70,11 +81,24 @@ export const handleLoginByEmail = async (
   req: Request<unknown, unknown, LoginUserByEmailSchemaType>,
   res: Response,
 ) => {
-  const token = await loginUserByEmail(req.body);
+  const metadata = {
+    userAgent: req.headers['user-agent'],
+    ipAddress:
+      req.ip ||
+      (req.headers['x-forwarded-for'] as string) ||
+      req.connection?.remoteAddress,
+  };
+
+  const result = await loginUserByEmail(req.body, metadata);
+
   if (config.SET_SESSION) {
-    res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
+    res.cookie(AUTH_COOKIE_KEY, result.token, COOKIE_CONFIG);
   }
-  return successResponse(res, 'Login successful', { token: token });
+
+  return successResponse(res, 'Login successful', {
+    token: result.token,
+    sessionId: result.sessionId,
+  });
 };
 
 export const handleGetCurrentUser = async (req: Request, res: Response) => {
@@ -95,15 +119,62 @@ export const handleGoogleCallback = async (
   req: Request<unknown, unknown, unknown, GoogleCallbackQuery>,
   res: Response,
 ) => {
-  const user = await googleLogin(req.query);
-  if (!user) throw new Error('Failed to login');
-  res.cookie(
-    AUTH_COOKIE_KEY,
-    user.socialAccount?.[0]?.accessToken,
-    COOKIE_CONFIG,
-  );
+  const metadata = {
+    userAgent: req.headers['user-agent'],
+    ipAddress:
+      req.ip ||
+      (req.headers['x-forwarded-for'] as string) ||
+      req.connection?.remoteAddress,
+  };
+
+  const result = await googleLogin(req.query, metadata);
+
+  if (!result.user) throw new Error('Failed to login');
+
+  if (config.SET_SESSION) {
+    res.cookie(AUTH_COOKIE_KEY, result.token, COOKIE_CONFIG);
+  }
 
   return successResponse(res, 'Logged in successfully', {
-    token: user.socialAccount?.[0]?.accessToken,
+    token: result.token,
+    sessionId: result.sessionId,
   });
+};
+
+export const handleListSessions = async (req: Request, res: Response) => {
+  if (!config.SET_SESSION || !req.app.locals.sessionManager) {
+    throw new Error('Session management is not enabled');
+  }
+
+  const userId = (req.user as JwtPayload).sub;
+  const sessionManager = req.app.locals.sessionManager;
+  const sessions = await sessionManager.listUserSessions(userId);
+
+  return successResponse(res, undefined, { sessions });
+};
+
+export const handleRevokeSession = async (
+  req: Request<{ sessionId: string }>,
+  res: Response,
+) => {
+  if (!config.SET_SESSION || !req.app.locals.sessionManager) {
+    throw new Error('Session management is not enabled');
+  }
+
+  const sessionManager = req.app.locals.sessionManager;
+  await sessionManager.revokeSession(req.params.sessionId);
+
+  return successResponse(res, 'Session revoked successfully');
+};
+
+export const handleRevokeAllSessions = async (req: Request, res: Response) => {
+  if (!config.SET_SESSION || !req.app.locals.sessionManager) {
+    throw new Error('Session management is not enabled');
+  }
+
+  const userId = (req.user as JwtPayload).sub;
+  const sessionManager = req.app.locals.sessionManager;
+  await sessionManager.revokeAllUserSessions(userId);
+
+  return successResponse(res, 'All sessions revoked successfully');
 };
