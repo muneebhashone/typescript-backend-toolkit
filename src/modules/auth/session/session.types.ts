@@ -49,4 +49,15 @@ export interface SessionStore {
   pruneExpired(): Promise<void>;
   close(): Promise<void>;
   updateTokenHash(sessionId: string, token: string): Promise<void>;
+  deleteRevoked(): Promise<number>;
+  deleteExpired(): Promise<number>;
+  deleteUserExpiredSessions?(userId: string): Promise<number>;
+  cleanupOrphanedKeys?(): Promise<number>;
+}
+
+export interface CleanupStats {
+  revokedDeleted: number;
+  expiredDeleted: number;
+  orphanedKeysDeleted?: number;
+  totalProcessed: number;
 }

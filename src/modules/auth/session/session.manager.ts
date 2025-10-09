@@ -4,6 +4,7 @@ import type {
   CreateSessionInput,
   SessionRecord,
   SessionValidationResult,
+  CleanupStats,
 } from './session.types';
 import { MongoSessionStore } from './mongo.session.store';
 import { RedisSessionStore } from './redis.session.store';
@@ -133,6 +134,39 @@ export class SessionManager {
 
   async pruneExpiredSessions(): Promise<void> {
     await this.store.pruneExpired();
+  }
+
+  async cleanupSessions(type: 'full' | 'revoked' | 'expired'): Promise<CleanupStats> {
+    const stats: CleanupStats = {
+      revokedDeleted: 0,
+      expiredDeleted: 0,
+      orphanedKeysDeleted: 0,
+      totalProcessed: 0,
+    };
+
+    if (type === 'full' || type === 'revoked') {
+      stats.revokedDeleted = await this.store.deleteRevoked();
+    }
+
+    if (type === 'full' || type === 'expired') {
+      stats.expiredDeleted = await this.store.deleteExpired();
+    }
+
+    if (type === 'full' && this.config.driver === 'redis') {
+      stats.orphanedKeysDeleted = await this.store.cleanupOrphanedKeys?.() || 0;
+    }
+
+    stats.totalProcessed = stats.revokedDeleted + stats.expiredDeleted + (stats.orphanedKeysDeleted || 0);
+
+    if (this.config.debug) {
+      logger.info({ stats }, 'Session cleanup stats');
+    }
+
+    return stats;
+  }
+
+  async cleanupUserSessions(userId: string): Promise<number> {
+    return this.store.deleteUserExpiredSessions?.(userId) || 0;
   }
 
   async cleanup(): Promise<void> {

@@ -37,6 +37,8 @@ const configSchema = z.object({
   SESSION_ROTATION: booleanString.default('false'),
   SESSION_COOKIE_NAME: z.string().default('session_id'),
   SESSION_DEBUG: booleanString.default('false'),
+  SESSION_CLEANUP_ENABLED: booleanString.default('true'),
+  SESSION_CLEANUP_CRON: z.string().default('0 * * * *'),
 
   SMTP_HOST: z.string().min(1).optional(),
   SMTP_PORT: z.string().regex(/^\d+$/).transform(Number).optional(),

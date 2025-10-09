@@ -175,6 +175,89 @@ export class RedisSessionStore implements SessionStore {
     logger.debug('Redis handles expiration automatically via TTL');
   }
 
+  async deleteRevoked(): Promise<number> {
+    const userKeys = await this.redis.keys(`${USER_SESSIONS_PREFIX}*`);
+    let deletedCount = 0;
+
+    for (const userKey of userKeys) {
+      const sessionIds = await this.redis.zrange(userKey, 0, -1);
+      
+      for (const sessionId of sessionIds) {
+        const session = await this.get(sessionId);
+        if (session?.isRevoked) {
+          await this.redis.del(this.getSessionKey(sessionId));
+          await this.redis.zrem(userKey, sessionId);
+          deletedCount++;
+        }
+      }
+    }
+
+    if (deletedCount > 0) {
+      logger.info({ count: deletedCount }, 'Deleted revoked sessions');
+    }
+
+    return deletedCount;
+  }
+
+  async deleteExpired(): Promise<number> {
+    const userKeys = await this.redis.keys(`${USER_SESSIONS_PREFIX}*`);
+    let deletedCount = 0;
+
+    for (const userKey of userKeys) {
+      const sessionIds = await this.redis.zrange(userKey, 0, -1);
+      
+      for (const sessionId of sessionIds) {
+        const exists = await this.redis.exists(this.getSessionKey(sessionId));
+        if (!exists) {
+          await this.redis.zrem(userKey, sessionId);
+          deletedCount++;
+        }
+      }
+    }
+
+    if (deletedCount > 0) {
+      logger.info({ count: deletedCount }, 'Cleaned up expired session references');
+    }
+
+    return deletedCount;
+  }
+
+  async deleteUserExpiredSessions(userId: string): Promise<number> {
+    const userKey = this.getUserSessionsKey(userId);
+    const sessionIds = await this.redis.zrange(userKey, 0, -1);
+    let deletedCount = 0;
+
+    for (const sessionId of sessionIds) {
+      const session = await this.get(sessionId);
+      if (!session || session.isRevoked || new Date() > session.expiresAt) {
+        await this.redis.del(this.getSessionKey(sessionId));
+        await this.redis.zrem(userKey, sessionId);
+        deletedCount++;
+      }
+    }
+
+    return deletedCount;
+  }
+
+  async cleanupOrphanedKeys(): Promise<number> {
+    const userKeys = await this.redis.keys(`${USER_SESSIONS_PREFIX}*`);
+    let deletedCount = 0;
+
+    for (const userKey of userKeys) {
+      const count = await this.redis.zcard(userKey);
+      if (count === 0) {
+        await this.redis.del(userKey);
+        deletedCount++;
+      }
+    }
+
+    if (deletedCount > 0) {
+      logger.info({ count: deletedCount }, 'Deleted orphaned user session keys');
+    }
+
+    return deletedCount;
+  }
+
   async close(): Promise<void> {
     // Redis connection is managed globally, no specific cleanup needed
   }

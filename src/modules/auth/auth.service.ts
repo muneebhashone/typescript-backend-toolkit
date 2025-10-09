@@ -137,6 +137,9 @@ export const loginUserByEmail = async (
   if (config.SET_SESSION) {
     const sessionManager = getSessionManager();
     
+    // Lazy cleanup: remove user's expired/revoked sessions
+    await sessionManager.cleanupUserSessions(String(user._id));
+    
     // Step 1: Generate token with placeholder sid
     jwtPayload.sid = 'pending';
     const placeholderToken = await signToken(jwtPayload);
@@ -230,6 +233,9 @@ export const googleLogin = async (
 
   if (config.SET_SESSION) {
     const sessionManager = getSessionManager();
+    
+    // Lazy cleanup: remove user's expired/revoked sessions
+    await sessionManager.cleanupUserSessions(String(user._id));
     
     // Step 1: Generate token with placeholder sid
     jwtPayload.sid = 'pending';
