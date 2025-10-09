@@ -24,6 +24,7 @@ export type JwtPayload = {
   phoneNo?: string | null;
   username: string;
   role: RoleType;
+  sid?: string;
 };
 
 export type PasswordResetTokenPayload = {
