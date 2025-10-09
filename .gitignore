@@ -136,3 +136,5 @@ dist
 .claude
 
 .dump
+
+openapi.yml 
