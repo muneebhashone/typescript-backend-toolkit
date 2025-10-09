@@ -137,19 +137,27 @@ export const loginUserByEmail = async (
   if (config.SET_SESSION) {
     const sessionManager = getSessionManager();
     
-    const token = await signToken(jwtPayload);
+    // Step 1: Generate token with placeholder sid
+    jwtPayload.sid = 'pending';
+    const placeholderToken = await signToken(jwtPayload);
     
+    // Step 2: Create session with placeholder token hash
     const session = await sessionManager.createSession({
       userId: String(user._id),
-      token,
+      token: placeholderToken,
       metadata,
     });
     
     sessionId = session.sessionId;
-    jwtPayload.sid = sessionId;
     
-    const tokenWithSession = await signToken(jwtPayload);
-    return { token: tokenWithSession, sessionId };
+    // Step 3: Generate final token with real session ID
+    jwtPayload.sid = sessionId;
+    const finalToken = await signToken(jwtPayload);
+    
+    // Step 4: Update session with final token hash
+    await sessionManager.updateSessionToken(sessionId, finalToken);
+    
+    return { token: finalToken, sessionId };
   }
 
   const token = await signToken(jwtPayload);
@@ -223,19 +231,27 @@ export const googleLogin = async (
   if (config.SET_SESSION) {
     const sessionManager = getSessionManager();
     
-    const token = await signToken(jwtPayload);
+    // Step 1: Generate token with placeholder sid
+    jwtPayload.sid = 'pending';
+    const placeholderToken = await signToken(jwtPayload);
     
+    // Step 2: Create session with placeholder token hash
     const session = await sessionManager.createSession({
       userId: String(user._id),
-      token,
+      token: placeholderToken,
       metadata,
     });
     
     sessionId = session.sessionId;
-    jwtPayload.sid = sessionId;
     
-    const tokenWithSession = await signToken(jwtPayload);
-    return { user, token: tokenWithSession, sessionId };
+    // Step 3: Generate final token with real session ID
+    jwtPayload.sid = sessionId;
+    const finalToken = await signToken(jwtPayload);
+    
+    // Step 4: Update session with final token hash
+    await sessionManager.updateSessionToken(sessionId, finalToken);
+    
+    return { user, token: finalToken, sessionId };
   }
 
   const token = await signToken(jwtPayload);

@@ -116,6 +116,23 @@ export class RedisSessionStore implements SessionStore {
     }
   }
 
+  async updateTokenHash(sessionId: string, token: string): Promise<void> {
+    const session = await this.get(sessionId);
+    if (!session) return;
+
+    const tokenHash = hashToken(token);
+    session.tokenHash = tokenHash;
+    
+    const sessionKey = this.getSessionKey(sessionId);
+    const ttl = await this.redis.ttl(sessionKey);
+
+    if (ttl > 0) {
+      await this.redis.set(sessionKey, JSON.stringify(session), 'EX', ttl);
+    }
+    
+    logger.debug({ sessionId }, 'Session token hash updated');
+  }
+
   async revoke(sessionId: string): Promise<void> {
     const session = await this.get(sessionId);
     if (!session) return;

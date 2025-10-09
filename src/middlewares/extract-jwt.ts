@@ -22,7 +22,10 @@ export const extractJwt = async (
       return next();
     }
 
-    logger.debug({ token: token ? '[REDACTED]' : undefined }, 'JWT token found, verifying');
+    logger.debug(
+      { token: token ? '[REDACTED]' : undefined },
+      'JWT token found, verifying',
+    );
     const decode = await verifyToken<JwtPayload>(token);
 
     if (config.SET_SESSION && req.app.locals.sessionManager) {
@@ -42,14 +45,14 @@ export const extractJwt = async (
       if (!validation.isValid) {
         logger.warn(
           { sid: decode.sid, reason: validation.reason },
-          'Session validation failed'
+          'Session validation failed',
         );
         return next();
       }
 
       logger.debug(
         { sid: decode.sid, userId: validation.session?.userId },
-        'Session validated successfully'
+        'Session validated successfully',
       );
       req.session = validation.session;
     }
@@ -57,7 +60,7 @@ export const extractJwt = async (
     req.user = decode;
     logger.debug(
       { userId: decode.sub, sid: decode.sid },
-      'JWT decoded and user attached to request'
+      'JWT decoded and user attached to request',
     );
 
     return next();

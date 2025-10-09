@@ -48,4 +48,5 @@ export interface SessionStore {
   revokeAllForUser(userId: string): Promise<void>;
   pruneExpired(): Promise<void>;
   close(): Promise<void>;
+  updateTokenHash(sessionId: string, token: string): Promise<void>;
 }
