@@ -25,7 +25,7 @@ export const userFactory = {
   async createMany(count: number, overrides: Overrides = {}): Promise<UserType[]> {
     const result: UserType[] = [];
     for (let i = 1; i <= count; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
+       
       const u = await this.create(i, overrides);
       result.push(u);
     }

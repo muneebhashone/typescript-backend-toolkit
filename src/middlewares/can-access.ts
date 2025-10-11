@@ -1,7 +1,6 @@
 import type { NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import type { RoleType } from '../enums';
-import { getUserById } from '../modules/user/user.services';
 import { errorResponse } from '../utils/api.utils';
 import type { JwtPayload } from '../utils/auth.utils';
 import type { RequestAny, ResponseAny } from '../openapi/magic-router';
@@ -16,7 +15,7 @@ export const canAccess =
   <T extends CanAccessByType>(by?: T, access?: CanAccessOptions[T][]) =>
   async (req: RequestAny, res: ResponseAny, next?: NextFunction) => {
     try {
-      const requestUser = req?.user as JwtPayload;
+      const requestUser = req?.user as JwtPayload | undefined;
 
       if (!requestUser) {
         return errorResponse(
@@ -25,32 +24,21 @@ export const canAccess =
           StatusCodes.UNAUTHORIZED,
         );
       }
-      const currentUser = await getUserById(requestUser.sub);
-
-      if (!currentUser) {
-        return errorResponse(res, 'Login again', StatusCodes.UNAUTHORIZED);
-      }
-
-      if (currentUser.otp !== null) {
-        return errorResponse(
-          res,
-          'Your account is not verified',
-          StatusCodes.UNAUTHORIZED,
-        );
-      }
 
       let can = false;
 
-      const accessorsToScanFor = access;
+      const accessorsToScanFor = access as (RoleType | '*')[] | undefined;
 
-      if (by === 'roles' && accessorsToScanFor) {
-        can = (accessorsToScanFor as RoleType[]).includes(
-          currentUser.role as RoleType,
-        );
+      if (by === 'roles' && accessorsToScanFor && accessorsToScanFor.length) {
+        if ((accessorsToScanFor as (RoleType | '*')[]).includes('*')) {
+          can = true;
+        } else {
+          can = (accessorsToScanFor as RoleType[]).includes(requestUser.role);
+        }
       }
 
-      if (!accessorsToScanFor) {
-        can = Boolean(currentUser.email);
+      if (!accessorsToScanFor && !by) {
+        can = true; // Authenticated since JWT is present
       }
 
       if (!can && by === 'roles') {
@@ -62,10 +50,6 @@ export const canAccess =
         );
       }
 
-      if (currentUser && !by && !access) {
-        can = true;
-      }
-
       if (!can) {
         return errorResponse(
           res,
@@ -73,10 +57,6 @@ export const canAccess =
           StatusCodes.UNAUTHORIZED,
           access,
         );
-      }
-
-      if (currentUser) {
-        req.user = { ...currentUser, sub: currentUser._id };
       }
     } catch (err) {
       return errorResponse(
