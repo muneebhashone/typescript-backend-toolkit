@@ -1,111 +1,131 @@
-### Create a module-tied seeder + factory (tbk CLI)
+# Create a module-tied seeder + factory (tbk CLI)
 
-- **Purpose**: Scaffold a seeder and its factory for a module, register it, and seed data.
+## Overview
 
-#### Inputs
+Scaffold a seeder and its factory for a module, register it in the database seeder, and populate your database with test data.
+
+## Inputs
 
 - **module**: existing module folder in `src/modules/` (e.g., `user`)
 - **name**: base name used for both factory and seeder (CLI appends `Seeder`)
 
-#### Generate (factory + seeder)
+## Steps
 
-```bash
-# 1) Factory (used inside the seeder)
-pnpm tbk make:factory <module>/<Name>
+1. **Generate factory and seeder files**
 
-# 2) Seeder (will import and use the factory)
-pnpm tbk make:seeder <module>/<Name>
+   ```bash
+   # 1) Factory (used inside the seeder)
+   pnpm tbk make:factory <module>/<Name>
 
-# examples
-# pnpm tbk make:factory payment/Payment && pnpm tbk make:seeder payment/Payment
-# pnpm tbk make:factory user/User && pnpm tbk make:seeder user/User
-```
+   # 2) Seeder (will import and use the factory)
+   pnpm tbk make:seeder <module>/<Name>
+   ```
 
-This creates:
+   Examples:
 
-- `src/modules/<module>/factories/<name>.factory.ts` (lowercased file; exports `<camelName>Factory`)
-- `src/modules/<module>/seeders/<Name>Seeder.ts`
+   ```bash
+   pnpm tbk make:factory payment/Payment && pnpm tbk make:seeder payment/Payment
+   pnpm tbk make:factory user/User && pnpm tbk make:seeder user/User
+   ```
 
-#### Use the factory inside the seeder
+   This creates:
 
-Edit `src/modules/<module>/seeders/<Name>Seeder.ts` to import the factory and insert documents via the module model:
+   - `src/modules/<module>/factories/<name>.factory.ts` (lowercased file; exports `<camelName>Factory`)
+   - `src/modules/<module>/seeders/<Name>Seeder.ts`
 
-```ts
-import <Model> from '../<module>.model';
-import { <camelName>Factory } from '../factories/<name>.factory';
+2. **Implement seeder logic**
+   Edit `src/modules/<module>/seeders/<Name>Seeder.ts` to import the factory and insert documents via the module model:
 
-export const <Name>Seeder = {
-  name: '<Name>Seeder',
-  groups: ['dev'],
-  // collections help --fresh drop only the affected collections
-  collections: ['<collection_name>'],
-  async run(ctx) {
-    ctx.logger.info('Running <Name>Seeder');
+   ```ts
+   import <Model> from '../<module>.model';
+   import { <camelName>Factory } from '../factories/<name>.factory';
 
-    const docs = Array.from({ length: 10 }, (_, i) =>
-      <camelName>Factory.build(i + 1),
-    );
+   export const <Name>Seeder = {
+     name: '<Name>Seeder',
+     groups: ['dev'],
+     // collections help --fresh drop only the affected collections
+     collections: ['<collection_name>'],
+     async run(ctx) {
+       ctx.logger.info('Running <Name>Seeder');
 
-    if (!ctx.env.dryRun) {
-      await <Model>.insertMany(docs);
-    }
+       const docs = Array.from({ length: 10 }, (_, i) =>
+         <camelName>Factory.build(i + 1),
+       );
 
-    // share references across seeders if needed
-    ctx.refs.set('<module>:seeded', docs.map((d) => d._id));
-  },
-};
-```
+       if (!ctx.env.dryRun) {
+         await <Model>.insertMany(docs);
+       }
 
-- Replace `<Model>` with your module's mongoose model (e.g., `Payment`).
-- Replace `<camelName>`/`<name>` with the factory export/file (e.g., `paymentFactory`/`payment`).
-- Replace `<collection_name>` with the underlying collection name.
+       // share references across seeders if needed
+       ctx.refs.set('<module>:seeded', docs.map((d) => d._id));
+     },
+   };
+   ```
 
-#### Register (required)
+   - Replace `<Model>` with your module's mongoose model (e.g., `Payment`)
+   - Replace `<camelName>`/`<name>` with the factory export/file (e.g., `paymentFactory`/`payment`)
+   - Replace `<collection_name>` with the underlying collection name
 
-Add your seeder to `src/seeders/DatabaseSeeder.ts`:
+3. **Register seeder**
+   Add your seeder to `src/seeders/DatabaseSeeder.ts`:
 
-```ts
-import { <Name>Seeder } from '../modules/<module>/seeders/<Name>Seeder';
+   ```ts
+   import { <Name>Seeder } from '../modules/<module>/seeders/<Name>Seeder';
 
-export const seeders = [
-  // existing seeders...
-  <Name>Seeder,
-];
-```
+   export const seeders = [
+     // existing seeders...
+     <Name>Seeder,
+   ];
+   ```
 
-#### Run seeders
+4. **Run seeders**
 
-```bash
-# default: group=dev, transactions enabled
-pnpm tbk seed
+   ```bash
+   # default: group=dev, transactions enabled
+   pnpm tbk seed
 
-# choose group
-docker compose up -d
-pnpm tbk seed --group dev
-pnpm tbk seed --group test
-pnpm tbk seed --group demo
+   # choose specific group
+   pnpm tbk seed --group dev
+   pnpm tbk seed --group test
+   pnpm tbk seed --group demo
 
-# run specific seeders only (comma-separated names)
-pnpm tbk seed --only <Name>Seeder,OtherSeeder
+   # run specific seeders only (comma-separated names)
+   pnpm tbk seed --only <Name>Seeder,OtherSeeder
 
-# drop involved collections before seeding (uses each seeder's `collections`)
-pnpm tbk seed --fresh
+   # drop involved collections before seeding
+   pnpm tbk seed --fresh
 
-# dry run (log only, no writes)
-pnpm tbk seed --dry-run
+   # dry run (log only, no writes)
+   pnpm tbk seed --dry-run
 
-# set random seed value
-pnpm tbk seed --seed 42
+   # set random seed value
+   pnpm tbk seed --seed 42
 
-# disable transactions globally
-pnpm tbk seed --no-transaction
+   # disable transactions globally
+   pnpm tbk seed --no-transaction
 
-# allow in production (blocked unless forced)
-pnpm tbk seed --force
-```
+   # allow in production (blocked unless forced)
+   pnpm tbk seed --force
+   ```
 
-#### Notes
+## Seeder Checklist
 
-- Use `dependsOn` to order seeders (names must match other seeders' `name`).
-- Factories live in `src/modules/<module>/factories/` and export `<camelName>Factory` with a `build(i, overrides)` helper.
-- Ensure MongoDB is reachable before seeding.
+- [ ] Factory file generated in `src/modules/<module>/factories/`
+- [ ] Seeder file generated in `src/modules/<module>/seeders/`
+- [ ] Factory implements `build(i, overrides)` method
+- [ ] Seeder registered in `src/seeders/DatabaseSeeder.ts`
+- [ ] Collections specified in seeder config
+- [ ] MongoDB service running (`docker compose up -d`)
+- [ ] Seeder tested with `--dry-run` flag
+
+## Advanced Options
+
+- **Order dependencies**: Use `dependsOn` to order seeders (names must match other seeders' `name`)
+- **Share data**: Use `ctx.refs.set()` and `ctx.refs.get()` to pass data between seeders
+- **Group targeting**: Assign seeders to groups (`dev`, `test`, `demo`) for different environments
+
+## Notes
+
+- Factories live in `src/modules/<module>/factories/` and export `<camelName>Factory` with a `build(i, overrides)` helper
+- Ensure MongoDB is reachable before seeding (`docker compose up -d`)
+- Use transactions by default for data consistency; disable with `--no-transaction` if needed
