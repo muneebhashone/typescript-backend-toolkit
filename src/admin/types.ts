@@ -6,6 +6,7 @@ export type AdminResource = {
   model: Model<any>;
   fields?: string[];
   readOnlyFields?: string[];
+  fileFields?: string[]; // fields that should be uploaded via multipart; values stored as URL strings
 };
 
 export type AdminField = {

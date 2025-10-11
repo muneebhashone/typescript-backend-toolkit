@@ -1,5 +1,5 @@
 (() => {
-  const state = { resources: [], current: null, fields: [], page: 1, limit: 10, total: 0, data: [] };
+  const state = { resources: [], current: null, fields: [], fileFields: [], page: 1, limit: 10, total: 0, data: [] };
 
   const $ = (sel) => document.querySelector(sel);
   const el = (tag, props = {}, children = []) => {
@@ -23,10 +23,33 @@
     if (m) m.classList.add('hidden');
   }
 
-  async function api(path, opts) {
-    const res = await fetch(`/admin/api${path}`, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  async function api(path, opts = {}) {
+    const isFormData = opts && opts.body && typeof FormData !== 'undefined' && opts.body instanceof FormData;
+    const baseHeaders = isFormData ? {} : { 'Content-Type': 'application/json' };
+    const headers = { ...baseHeaders, ...(opts.headers || {}) };
+    const res = await fetch(`/admin/api${path}`, { ...opts, headers });
     if (!res.ok) throw new Error((await res.json()).error || res.statusText);
     return res.json();
+  }
+
+  function toDatetimeLocal(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n) => String(n).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  }
+
+  function fromDatetimeLocal(value) {
+    if (!value) return undefined;
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return undefined;
+    return d.toISOString();
   }
 
   async function loadResources() {
@@ -43,8 +66,9 @@
   }
 
   async function loadFields(resource) {
-    const { fields } = await api(`/${resource}/meta`);
+    const { fields, fileFields } = await api(`/${resource}/meta`);
     state.fields = fields;
+    state.fileFields = fileFields || [];
   }
 
   function renderList() {
@@ -91,27 +115,94 @@
     const grid = el('div', { className: 'form-grid' });
     fields.forEach((f) => {
       const label = el('label', { textContent: f.path });
+      const type = f.type;
       let input;
-      if (f.enumValues && f.enumValues.length) {
+      const isFile = Array.isArray(state.fileFields) && state.fileFields.includes(f.path);
+      if (isFile) {
+        input = el('input', { type: 'file' });
+      } else if (f.enumValues && f.enumValues.length) {
         input = el('select');
+        input.appendChild(el('option', { value: '', textContent: '' }));
         f.enumValues.forEach((opt) => input.appendChild(el('option', { value: opt, textContent: opt })));
-      } else if (f.type === 'boolean') {
+      } else if (type === 'boolean') {
         input = el('select'); ['false','true'].forEach((opt) => input.appendChild(el('option', { value: opt, textContent: opt })));
+      } else if (type === 'number') {
+        input = el('input', { type: 'number', step: 'any' });
+      } else if (type === 'date') {
+        input = el('input', { type: 'datetime-local' });
+      } else if (type === 'array') {
+        input = el('textarea', { rows: 3, placeholder: '[ ... ]' });
+      } else if (type === 'mixed') {
+        input = el('input', { type: 'text' });
       } else {
         input = el('input', { type: 'text' });
       }
-      input.value = row ? (row[f.path] ?? '') : '';
+
+      const rawVal = row ? row[f.path] : undefined;
+      let val = '';
+      if (rawVal != null) {
+        if (isFile) {
+          val = '';
+        } else if (f.enumValues && f.enumValues.length) val = String(rawVal);
+        else if (type === 'boolean') val = rawVal ? 'true' : 'false';
+        else if (type === 'number') val = String(rawVal);
+        else if (type === 'date') val = toDatetimeLocal(rawVal);
+        else if (type === 'array') val = Array.isArray(rawVal) ? JSON.stringify(rawVal, null, 2) : '';
+        else if (type === 'mixed') val = typeof rawVal === 'object' ? JSON.stringify(rawVal) : String(rawVal);
+        else val = String(rawVal);
+      }
+      input.value = val;
       input.disabled = readOnly.has(f.path);
       input.dataset.path = f.path;
+      input.dataset.type = type;
+      input.dataset.isArray = f.isArray ? '1' : '0';
+      input.dataset.isFile = isFile ? '1' : '0';
       grid.appendChild(label); grid.appendChild(input);
+      if (isFile && row && typeof rawVal === 'string' && rawVal) {
+        grid.appendChild(el('div', { className: 'muted', style: 'grid-column: 1 / -1' }, [
+          el('small', { textContent: `Current: ${rawVal}` })
+        ]));
+      }
     });
     const save = el('button', { textContent: row ? 'Update' : 'Create' });
     save.onclick = async () => {
       const payload = {};
-      grid.querySelectorAll('[data-path]').forEach((inp) => { payload[inp.dataset.path] = parseVal(inp.value); });
+      const fileInputs = Array.from(grid.querySelectorAll('[data-is-file="1"]'));
+      const anyFileSelected = fileInputs.some((inp) => inp.files && inp.files.length > 0);
+      const useMultipart = anyFileSelected;
+      const formData = useMultipart ? new FormData() : null;
       try {
-        if (row) await api(`/${state.current}/${row._id}`, { method: 'PUT', body: JSON.stringify(payload) });
-        else await api(`/${state.current}`, { method: 'POST', body: JSON.stringify(payload) });
+        grid.querySelectorAll('[data-path]').forEach((inp) => {
+          const isFile = inp.dataset.isFile === '1';
+          const t = inp.dataset.type;
+          const isArr = inp.dataset.isArray === '1';
+          const path = inp.dataset.path;
+          if (isFile) {
+            if (useMultipart && inp.files && inp.files[0]) {
+              formData.append(path, inp.files[0]);
+            }
+            return;
+          }
+          const raw = inp.value;
+          const v = parseByType(t, isArr, raw);
+          if (useMultipart) {
+            if (v !== undefined) formData.append(path, typeof v === 'string' ? v : JSON.stringify(v));
+          } else {
+            if (v !== undefined) payload[path] = v;
+          }
+        });
+      } catch (e) {
+        $('#error').textContent = e.message || 'Invalid input';
+        return;
+      }
+      try {
+        if (row) {
+          if (useMultipart) await api(`/${state.current}/${row._id}`, { method: 'PUT', body: formData });
+          else await api(`/${state.current}/${row._id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        } else {
+          if (useMultipart) await api(`/${state.current}`, { method: 'POST', body: formData });
+          else await api(`/${state.current}`, { method: 'POST', body: JSON.stringify(payload) });
+        }
         $('#error').textContent = '';
         await refresh();
         closeModal();
@@ -125,9 +216,30 @@
     form.appendChild(el('div', { style: 'margin-top:8px' }, [save, cancel]));
   }
 
-  function parseVal(v){
-    if (v === 'true') return true; if (v === 'false') return false; if (v === '') return undefined;
-    const n = Number(v); if (!Number.isNaN(n) && String(n) === v) return n; return v;
+  function parseByType(type, isArray, v) {
+    if (v === '') return undefined;
+    if (type === 'boolean') return v === 'true';
+    if (type === 'number') {
+      const n = Number(v);
+      return Number.isNaN(n) ? v : n;
+    }
+    if (type === 'date') {
+      const iso = fromDatetimeLocal(v);
+      return iso ?? v;
+    }
+    if (type === 'array' || isArray) {
+      try {
+        const parsed = JSON.parse(v);
+        if (!Array.isArray(parsed)) throw new Error('Array expected');
+        return parsed;
+      } catch {
+        throw new Error('Invalid JSON for array field');
+      }
+    }
+    if (type === 'mixed') return v; // keep as string per request
+    if (v === 'true') return true; if (v === 'false') return false;
+    const n = Number(v); if (!Number.isNaN(n) && String(n) === v) return n;
+    return v;
   }
 
   async function refresh() {
