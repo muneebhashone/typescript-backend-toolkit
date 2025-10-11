@@ -11,11 +11,11 @@ description: Environment configuration and secrets management
 - `.env` - Local development (gitignored)
 - `.env.local` - Local production build (gitignored)
 - `.env.production` - Production environment (gitignored)
-- [src/config/config.service.ts](mdc:src/config/config.service.ts) - Type-safe config with Zod validation
+- [src/config/env.ts](mdc:src/config/env.ts) - Type-safe config with Zod validation
 
 ## Configuration Pattern
 
-All environment variables are validated and typed in [config.service.ts](mdc:src/config/config.service.ts):
+All environment variables are validated and typed in [env.ts](mdc:src/config/env.ts):
 
 ```typescript
 import { z } from 'zod';
@@ -48,7 +48,7 @@ All time-based config values use milliseconds internally:
 JWT_EXPIRES_IN=7d
 OTP_EXPIRES_IN=10m
 
-// In config.service.ts - convert to milliseconds
+// In env.ts - convert to milliseconds
 import ms from "ms";
 
 JWT_EXPIRES_IN: z.string().transform((val) => ms(val)),
@@ -137,7 +137,7 @@ NEW_API_TIMEOUT=30s
 ### Step 2: Add to config schema
 
 ```typescript
-// In src/config/config.service.ts
+// In src/config/env.ts
 const configSchema = z.object({
   // ... existing config
   NEW_API_KEY: z.string().min(1),
@@ -158,7 +158,7 @@ export const config: Config = configSchema.parse({
 ### Step 4: Use in code
 
 ```typescript
-import { config } from '@/config/config.service';
+import config from '@/config/env';
 
 const apiKey = config.NEW_API_KEY;
 const timeout = config.NEW_API_TIMEOUT; // In milliseconds
@@ -175,7 +175,7 @@ const timeout = config.NEW_API_TIMEOUT; // In milliseconds
 
 ### Validation
 
-- Always validate with Zod in config.service.ts
+- Always validate with Zod in env.ts
 - Fail fast if required config is missing
 - Provide sensible defaults where appropriate
 - Use type inference for type safety
@@ -190,7 +190,7 @@ const timeout = config.NEW_API_TIMEOUT; // In milliseconds
 ### Time Values
 
 - Always use human-readable format in .env (e.g., "7d", "10m", "30s")
-- Convert to milliseconds in config.service.ts using `ms` package
+- Convert to milliseconds in env.ts using `ms` package
 - Never use raw milliseconds in .env files
 
 ## Docker Setup
@@ -209,13 +209,13 @@ docker compose up -d
 ## Common Mistakes to Avoid
 
 ❌ DON'T access `process.env` directly in code
-✅ DO import from `config.service.ts`
+✅ DO import from `env.ts`
 
 ❌ DON'T use hardcoded values
 ✅ DO use environment variables
 
 ❌ DON'T forget to validate new config variables
-✅ DO add Zod validation in config.service.ts
+✅ DO add Zod validation in env.ts
 
 ❌ DON'T commit `.env` files
 ✅ DO commit `.env.sample` as template

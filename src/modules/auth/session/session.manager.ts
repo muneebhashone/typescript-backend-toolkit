@@ -44,16 +44,25 @@ export class SessionManager {
   }
 
   async createSession(input: CreateSessionInput): Promise<SessionRecord> {
+    // Note: This check-then-revoke pattern has a race condition where concurrent
+    // createSession calls can bypass the maxPerUser limit. For production use,
+    // consider implementing atomic store-level eviction (e.g., using Redis Lua
+    // scripts or MongoDB transactions with proper locking). This implementation
+    // provides best-effort enforcement.
+
     const sessions = await this.store.listByUser(input.userId);
 
-    if (sessions.length >= this.config.maxPerUser) {
-      const oldestSession = sessions[sessions.length - 1];
-      await this.store.revoke(oldestSession.sessionId);
-      if (this.config.debug) {
-        logger.debug(
-          { userId: input.userId, revokedSessionId: oldestSession.sessionId },
-          'Evicted oldest session due to max limit',
-        );
+    // Evict oldest sessions if at or over limit
+    while (sessions.length >= this.config.maxPerUser) {
+      const oldestSession = sessions.pop();
+      if (oldestSession) {
+        await this.store.revoke(oldestSession.sessionId);
+        if (this.config.debug) {
+          logger.debug(
+            { userId: input.userId, revokedSessionId: oldestSession.sessionId },
+            'Evicted oldest session due to max limit',
+          );
+        }
       }
     }
 
@@ -187,14 +196,34 @@ export class SessionManager {
 }
 
 let sessionManagerInstance: SessionManager | null = null;
+let initPromise: Promise<SessionManager> | null = null;
 
-export function initializeSessionManager(
+export async function initializeSessionManager(
   config?: Partial<SessionStoreConfig>,
-): SessionManager {
-  if (!sessionManagerInstance) {
-    sessionManagerInstance = new SessionManager(config);
+): Promise<SessionManager> {
+  // If already initialized, return the existing instance
+  if (sessionManagerInstance) {
+    return sessionManagerInstance;
   }
-  return sessionManagerInstance;
+
+  // If initialization is in progress, wait for it
+  if (initPromise) {
+    return initPromise;
+  }
+
+  // Start initialization
+  initPromise = Promise.resolve()
+    .then(() => {
+      if (!sessionManagerInstance) {
+        sessionManagerInstance = new SessionManager(config);
+      }
+      return sessionManagerInstance;
+    })
+    .finally(() => {
+      initPromise = null;
+    });
+
+  return initPromise;
 }
 
 export function getSessionManager(): SessionManager {

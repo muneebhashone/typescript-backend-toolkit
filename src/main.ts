@@ -19,6 +19,8 @@ import { getSessionManager } from './modules/auth/session/session.manager';
 const bootstrapServer = async () => {
   await connectDatabase();
 
+  const { app, server } = await initializeApp();
+
   if (config.SET_SESSION) {
     try {
       const sessionManager = getSessionManager();
@@ -30,8 +32,6 @@ const bootstrapServer = async () => {
   }
 
   await scheduleSessionCleanup();
-
-  const { app, server } = await initializeApp();
 
   const io = setupSocketIo(server);
 
@@ -65,7 +65,6 @@ const bootstrapServer = async () => {
 
   const serverAdapter = new ExpressAdapter();
   serverAdapter.setBasePath('/admin/queues');
-
 
   createBullBoard({
     queues: Object.entries(getRegisteredQueues() || {}).map(

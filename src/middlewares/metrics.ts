@@ -10,17 +10,23 @@ export function metricsMiddleware(
   const method = req.method;
 
   const start = Date.now();
+  let ended = false;
+
   metricsCollector.startRequest(method, route);
 
   res.on('finish', () => {
     const duration = Date.now() - start;
     metricsCollector.recordRequest(method, route, res.statusCode, duration);
-    metricsCollector.endRequest(method, route);
+    if (!ended) {
+      metricsCollector.endRequest(method, route);
+      ended = true;
+    }
   });
 
   res.on('close', () => {
-    if (!res.writableEnded) {
+    if (!res.writableEnded && !ended) {
       metricsCollector.endRequest(method, route);
+      ended = true;
     }
   });
 

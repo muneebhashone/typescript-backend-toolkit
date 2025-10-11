@@ -28,7 +28,7 @@ export const runSeeders = async (
 
   if (process.env.NODE_ENV === 'production' && !force) {
     throw new Error(
-      'Seeding in production is blocked. Use --force or set ALLOW_SEED_IN_PROD=true.'
+      'Seeding in production is blocked. Use --force or set ALLOW_SEED_IN_PROD=true.',
     );
   }
 
@@ -50,7 +50,9 @@ export const runSeeders = async (
   for (const s of list) {
     for (const dep of s.dependsOn ?? []) {
       if (!byName.has(dep)) {
-        throw new Error(`Seeder ${s.name} depends on missing seeder ${dep} in group ${group}`);
+        throw new Error(
+          `Seeder ${s.name} depends on missing seeder ${dep} in group ${group}`,
+        );
       }
       edges.get(dep)!.push(s.name);
       inDegree.set(s.name, (inDegree.get(s.name) ?? 0) + 1);
@@ -74,63 +76,73 @@ export const runSeeders = async (
 
   // Connect DB
   await connectDatabase();
-  const db = mongoose.connection;
 
-  const refs = new Map<string, unknown>();
-  const ctx: SeederContext = {
-    db,
-    config,
-    logger,
-    refs: {
-      set: (k, v) => refs.set(k, v),
-      get: <T = unknown>(k: string) => refs.get(k) as T,
-      has: (k) => refs.has(k),
-      keys: () => Array.from(refs.keys()),
-    },
-    env: { group, dryRun, seed, now: new Date() },
-  };
+  try {
+    const db = mongoose.connection;
 
-  // Fresh: drop involved collections
-  if (fresh) {
-    const toDrop = new Set<string>();
-    for (const s of ordered) for (const c of s.collections ?? []) toDrop.add(c);
-    if (toDrop.size) {
-      logger.warn(`Fresh mode: dropping collections: ${Array.from(toDrop).join(', ')}`);
-      for (const coll of toDrop) {
-        try {
-          const exists = (await db.db!.listCollections({ name: coll }).toArray()).length > 0;
-          if (exists && !dryRun) await db.dropCollection(coll);
-        } catch (e) {
-          logger.warn(`Failed to drop collection ${coll}: ${(e as Error).message}`);
+    const refs = new Map<string, unknown>();
+    const ctx: SeederContext = {
+      db,
+      config,
+      logger,
+      refs: {
+        set: (k, v) => refs.set(k, v),
+        get: <T = unknown>(k: string) => refs.get(k) as T,
+        has: (k) => refs.has(k),
+        keys: () => Array.from(refs.keys()),
+      },
+      env: { group, dryRun, seed, now: new Date() },
+    };
+
+    // Fresh: drop involved collections
+    if (fresh) {
+      const toDrop = new Set<string>();
+      for (const s of ordered)
+        for (const c of s.collections ?? []) toDrop.add(c);
+      if (toDrop.size) {
+        logger.warn(
+          `Fresh mode: dropping collections: ${Array.from(toDrop).join(', ')}`,
+        );
+        for (const coll of toDrop) {
+          try {
+            const exists =
+              (await db.db!.listCollections({ name: coll }).toArray()).length >
+              0;
+            if (exists && !dryRun) await db.dropCollection(coll);
+          } catch (e) {
+            logger.warn(
+              `Failed to drop collection ${coll}: ${(e as Error).message}`,
+            );
+          }
         }
       }
     }
-  }
 
-  // Execute seeders
-  for (const seeder of ordered) {
-    const shouldTx = seeder.transaction ?? true;
-    logger.info(`→ Running ${seeder.name} (group=${group})`);
+    // Execute seeders
+    for (const seeder of ordered) {
+      const shouldTx = seeder.transaction ?? true;
+      logger.info(`→ Running ${seeder.name} (group=${group})`);
 
-    if (dryRun) {
-      logger.info(`[dry-run] Skipping execution of ${seeder.name}`);
-      continue;
-    }
-
-    if (useTransactions && shouldTx) {
-      const session = await db.startSession();
-      try {
-        await session.withTransaction(async () => {
-          await seeder.run(ctx);
-        });
-      } finally {
-        await session.endSession();
+      if (dryRun) {
+        logger.info(`[dry-run] Skipping execution of ${seeder.name}`);
+        continue;
       }
-    } else {
-      await seeder.run(ctx);
-    }
-    logger.info(`✓ Completed ${seeder.name}`);
-  }
 
-  await disconnectDatabase();
+      if (useTransactions && shouldTx) {
+        const session = await db.startSession();
+        try {
+          await session.withTransaction(async () => {
+            await seeder.run(ctx);
+          });
+        } finally {
+          await session.endSession();
+        }
+      } else {
+        await seeder.run(ctx);
+      }
+      logger.info(`✓ Completed ${seeder.name}`);
+    }
+  } finally {
+    await disconnectDatabase();
+  }
 };

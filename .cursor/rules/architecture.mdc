@@ -38,7 +38,7 @@ module-name/
 
 ### Configuration
 
-- All config in [config.service.ts](mdc:src/config/config.service.ts)
+- All config in [env.ts](mdc:src/config/env.ts)
 - Environment variables validated with Zod
 - Time values are in milliseconds (converted from strings like "1d" or "7d")
 
