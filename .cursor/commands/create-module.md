@@ -70,7 +70,29 @@ Scaffold a fully-typed module with controller, service, router, schema, and mode
    pnpm typecheck && pnpm lint
    ```
 
-5. **Optional: Create seeder and factory**
+5. **Register with admin dashboard** (if needed)
+
+   Add your module to `src/admin/registry.ts`:
+
+   ```ts
+   import <ModuleName>Model from '../modules/<moduleName>/<moduleName>.model';
+
+   export const adminResources: AdminResource[] = [
+     // ... existing resources
+     {
+       name: '<moduleName>s',
+       label: '<ModuleName>s',
+       model: <ModuleName>Model,
+       readOnlyFields: ['_id', 'createdAt', 'updatedAt']
+     },
+   ];
+   ```
+
+   - Replace `<moduleName>` with your module name (e.g., `product`)
+   - Replace `<ModuleName>` with PascalCase version (e.g., `Product`)
+   - Adjust `readOnlyFields` as needed for your module
+
+6. **Optional: Create seeder and factory**
    ```bash
    pnpm tbk make:factory <moduleName>/<Name>
    pnpm tbk make:seeder <moduleName>/<Name>
@@ -80,6 +102,7 @@ Scaffold a fully-typed module with controller, service, router, schema, and mode
 
 - [ ] Module files generated successfully
 - [ ] Router registered in `src/routes/routes.ts`
+- [ ] Module registered in admin dashboard (`src/admin/registry.ts`) (if needed)
 - [ ] OpenAPI documentation rebuilt
 - [ ] Code passes typecheck and lint
 - [ ] Environment variables added to `src/config/env.ts` and `.env.sample` (if needed)

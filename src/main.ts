@@ -15,6 +15,7 @@ import globalErrorHandler from './utils/globalErrorHandler';
 import { getRegisteredQueues } from './lib/queue.server';
 import { scheduleSessionCleanup } from './queues/session-cleanup.queue';
 import { getSessionManager } from './modules/auth/session/session.manager';
+import { adminApiRouter, registerAdminUI } from './admin/router';
 
 const bootstrapServer = async () => {
   await connectDatabase();
@@ -63,6 +64,10 @@ const bootstrapServer = async () => {
 
   app.use('/api', apiRoutes);
 
+  // Admin dashboard (CRUD) — UI and JSON API
+  registerAdminUI(app);
+  app.use('/admin/api', adminApiRouter);
+
   const serverAdapter = new ExpressAdapter();
   serverAdapter.setBasePath('/admin/queues');
 
@@ -96,6 +101,7 @@ const bootstrapServer = async () => {
     logger.info(`Metrics: http://localhost:${config.PORT}/ops/metrics`);
     logger.info(`BullBoard: http://localhost:${config.PORT}/admin/queues`);
     logger.info(`Client-side url set to: ${config.CLIENT_SIDE_URL}`);
+    logger.info(`Admin dashboard: http://localhost:${config.PORT}/admin`);
   });
 };
 
