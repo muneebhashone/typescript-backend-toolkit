@@ -5,20 +5,147 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Admin Dashboard</title>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; display: flex; height: 100vh; }
-      #sidebar { width: 260px; border-right: 1px solid #ddd; padding: 12px; overflow: auto; }
-      #content { flex: 1; padding: 12px; overflow: auto; }
-      .resource { padding: 8px; cursor: pointer; border-radius: 6px; }
-      .resource.active { background: #f2f2f2; }
+      :root {
+        --bg: #0d1117;           /* GitHub dark background */
+        --panel: #161b22;        /* Panel background */
+        --border: #30363d;       /* Subtle border */
+        --text: #c9d1d9;         /* Primary text */
+        --muted: #8b949e;        /* Muted text */
+        --primary: #1f6feb;      /* GitHub blue */
+        --primary-hover: #2f81f7;/* Hover blue */
+        --danger: #f85149;       /* Danger */
+        --radius: 12px;
+        --radius-sm: 8px;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        display: flex;
+        height: 100vh;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--text);
+        background: var(--bg);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      #sidebar {
+        width: 280px;
+        padding: 16px;
+        border-right: 1px solid var(--border);
+        background: var(--bg);
+        overflow: auto;
+      }
+      #content {
+        flex: 1;
+        padding: 20px;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      h3 { margin: 4px 0 12px; font-weight: 600; letter-spacing: .2px; color: var(--muted); }
+      /* Resources */
+      #resources { display: grid; gap: 6px; }
+      .resource {
+        padding: 10px 12px;
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        border: 1px solid transparent;
+        background: transparent;
+        transition: background .15s ease, border-color .15s ease;
+      }
+      .resource:hover { background: var(--panel); border-color: var(--border); }
+      .resource.active { background: var(--panel); border-color: var(--border); }
+
+      /* Toolbar */
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 12px;
+      }
+      input, select {
+        padding: 10px 12px;
+        font-size: 14px;
+        color: var(--text);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        outline: none;
+        transition: border-color .15s ease;
+      }
+      input::placeholder { color: #6e7681; }
+      input:focus, select:focus { border-color: var(--primary); }
+
+      button {
+        padding: 10px 14px;
+        font-size: 14px;
+        color: #f0f6fc;
+        background: var(--primary);
+        border: 1px solid transparent;
+        border-radius: 10px;
+        font-weight: 600;
+        letter-spacing: .2px;
+        cursor: pointer;
+        transition: background-color .15s ease, border-color .15s ease, transform .05s ease;
+      }
+      button:hover { background: var(--primary-hover); }
+      button:active { transform: translateY(1px); }
+
+      /* Cards */
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px;
+      }
+
+      /* Table */
       table { border-collapse: collapse; width: 100%; }
-      th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
-      .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
-      input, select, button { padding: 6px 8px; font-size: 14px; }
-      .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-      .pagination { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+      thead th {
+        position: sticky; top: 0;
+        background: var(--panel);
+        color: var(--muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: .4px;
+      }
+      th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; }
+      tbody tr:hover { background: #0f141b; }
+
+      /* Pagination */
+      .pagination { display: flex; gap: 10px; align-items: center; margin-top: 6px; color: var(--muted); }
+      #pageInfo { font-size: 12px; }
+
+      /* Form */
+      #form { padding-top: 4px; }
+      .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      label { font-size: 12px; color: var(--muted); }
+
+      /* Modal */
+      .modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 50; }
+      .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.5); }
+      .modal-card { position: relative; width: min(720px, 92vw); max-height: 85vh; overflow: auto; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+      .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+      .icon-btn { background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+      .icon-btn:hover { color: var(--text); border-color: rgba(96,165,250,.6); }
+
+      /* States */
       .hidden { display: none; }
-      .danger { color: #b00020; }
-      .muted { color: #666; font-size: 12px; }
+      .danger { color: var(--danger); }
+      .muted { color: var(--muted); font-size: 12px; }
+
+      /* Responsive */
+      @media (max-width: 960px) {
+        #sidebar { display: none; }
+        .form-grid { grid-template-columns: 1fr; }
+      }
     </style>
   </head>
   <body>
@@ -32,15 +159,26 @@
         <button id="refresh">Refresh</button>
         <button id="new">New</button>
       </div>
-      <div id="list"></div>
+
+      <div class="card" id="list"></div>
+
       <div class="pagination">
         <button id="prev">Prev</button>
         <span id="pageInfo" class="muted"></span>
         <button id="next">Next</button>
       </div>
-      <hr />
-      <div id="form" class="hidden"></div>
+
       <div id="error" class="danger"></div>
+    </div>
+    <div id="modal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-card">
+        <div class="modal-header">
+          <span id="modalTitle" class="muted"></span>
+          <button id="modalClose" class="icon-btn" aria-label="Close">×</button>
+        </div>
+        <div id="form"></div>
+      </div>
     </div>
     <script src="/admin/admin.js"></script>
   </body>
