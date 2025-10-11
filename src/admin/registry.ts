@@ -9,6 +9,7 @@ export const adminResources: AdminResource[] = [
     label: 'Users',
     model: User,
     readOnlyFields: ['_id', 'createdAt', 'updatedAt', 'password'],
+    fileFields: ['avatar'],
   },
   {
     name: 'sessions',
