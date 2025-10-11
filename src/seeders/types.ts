@@ -28,4 +28,3 @@ export type Seeder = {
   transaction?: boolean; // default: true
   collections?: string[]; // for --fresh drop targeting
 };
-
