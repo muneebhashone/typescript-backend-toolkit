@@ -138,7 +138,7 @@ export const loginUserByEmail = async (
     const sessionManager = getSessionManager();
 
     // Lazy cleanup: remove user's expired/revoked sessions
-    await sessionManager.cleanupUserSessions(String(user._id));
+    sessionManager.cleanupUserSessions(String(user._id)).then();
 
     // Step 1: Create session without token (store empty token temporarily)
     const session = await sessionManager.createSession({
@@ -231,7 +231,7 @@ export const googleLogin = async (
     const sessionManager = getSessionManager();
 
     // Lazy cleanup: remove user's expired/revoked sessions
-    await sessionManager.cleanupUserSessions(String(user._id));
+    sessionManager.cleanupUserSessions(String(user._id)).then();
 
     // Step 1: Create session without token (store empty token temporarily)
     const session = await sessionManager.createSession({
