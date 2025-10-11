@@ -7,32 +7,35 @@ export interface SecurityOptions {
   corsEnabled?: boolean;
   corsOrigins?: string | string[];
   corsCredentials?: boolean;
-  
+
   helmetEnabled?: boolean;
   helmetOptions?: Parameters<typeof helmet>[0];
-  
+
   rateLimitEnabled?: boolean;
   rateLimitWindowMs?: number;
   rateLimitMax?: number;
   rateLimitMessage?: string;
-  
+
   trustProxy?: boolean;
 }
 
-export function applySecurity(app: Application, options: SecurityOptions = {}): void {
+export function applySecurity(
+  app: Application,
+  options: SecurityOptions = {},
+): void {
   const {
     corsEnabled = true,
     corsOrigins = '*',
     corsCredentials = false,
-    
+
     helmetEnabled = true,
     helmetOptions = {},
-    
+
     rateLimitEnabled = true,
-    rateLimitWindowMs = 15 * 60 * 1000,
-    rateLimitMax = 100,
+    rateLimitWindowMs = 15 * 60 * 1000, // 15 minutes
+    rateLimitMax = 1000, // 100 requests per 15 minutes
     rateLimitMessage = 'Too many requests from this IP, please try again later.',
-    
+
     trustProxy = false,
   } = options;
 

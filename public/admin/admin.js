@@ -9,6 +9,20 @@
     return e;
   };
 
+  function openModal(title) {
+    const m = $('#modal');
+    const t = $('#modalTitle');
+    if (t) t.textContent = title || '';
+    if (m) m.classList.remove('hidden');
+  }
+
+  function closeModal() {
+    const m = $('#modal');
+    const f = $('#form');
+    if (f) f.innerHTML = '';
+    if (m) m.classList.add('hidden');
+  }
+
   async function api(path, opts) {
     const res = await fetch(`/admin/api${path}`, { headers: { 'Content-Type': 'application/json' }, ...opts });
     if (!res.ok) throw new Error((await res.json()).error || res.statusText);
@@ -70,7 +84,7 @@
 
   function showForm(row) {
     const form = $('#form');
-    form.classList.remove('hidden');
+    openModal(row ? 'Edit record' : 'Create record');
     const fields = state.fields.filter(f => !['_id', '__v'].includes(f.path));
     const readOnly = new Set(['_id', 'createdAt', 'updatedAt', 'password']);
     form.innerHTML = '';
@@ -100,13 +114,15 @@
         else await api(`/${state.current}`, { method: 'POST', body: JSON.stringify(payload) });
         $('#error').textContent = '';
         await refresh();
-        form.classList.add('hidden');
+        closeModal();
       } catch (e) {
         $('#error').textContent = e.message || 'Failed';
       }
     };
+    const cancel = el('button', { textContent: 'Cancel', style: 'margin-left:8px; background: transparent; color: var(--text); border: 1px solid var(--border);' });
+    cancel.onclick = () => closeModal();
     form.appendChild(grid);
-    form.appendChild(el('div', { style: 'margin-top:8px' }, [save]));
+    form.appendChild(el('div', { style: 'margin-top:8px' }, [save, cancel]));
   }
 
   function parseVal(v){
@@ -124,6 +140,7 @@
 
   async function selectResource(name) {
     state.current = name; state.page = 1; $('#search').value = '';
+    try { localStorage.setItem('admin.currentResource', name); } catch {}
     await loadFields(name);
     await refresh();
     loadResources();
@@ -135,5 +152,16 @@
   $('#next').onclick = async () => { const max = Math.ceil(state.total / state.limit) || 1; if (state.page < max) { state.page++; await refresh(); } };
   $('#search').onkeydown = (e) => { if (e.key === 'Enter') refresh(); };
 
-  loadResources().then(() => { if (state.resources[0]) selectResource(state.resources[0].name); });
+  const modalClose = $('#modalClose');
+  if (modalClose) modalClose.onclick = () => closeModal();
+  const modalBackdrop = document.querySelector('#modal .modal-backdrop');
+  if (modalBackdrop) modalBackdrop.onclick = () => closeModal();
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modal').classList.contains('hidden')) closeModal(); });
+
+  loadResources().then(() => {
+    const saved = (() => { try { return localStorage.getItem('admin.currentResource'); } catch { return null; } })();
+    const names = state.resources.map(r => r.name);
+    const pick = saved && names.includes(saved) ? saved : (state.resources[0] && state.resources[0].name);
+    if (pick) selectResource(pick);
+  });
 })();

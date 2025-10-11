@@ -71,7 +71,7 @@ const configSchema = z.object({
   HEALTH_ENABLED: booleanString.default('true'),
 
   CORS_ENABLED: booleanString.default('true'),
-  RATE_LIMIT_ENABLED: booleanString.default('true'),
+  RATE_LIMIT_ENABLED: booleanString.default('false'),
   RATE_LIMIT_WINDOW_MS: z.string().transform(Number).default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().transform(Number).default('100'),
 
