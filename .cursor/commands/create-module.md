@@ -1,77 +1,92 @@
-### Create a new module (tbk CLI)
+# Create a new module (tbk CLI)
 
-- **Purpose**: Scaffold a fully-typed module and wire it into routing.
+## Overview
 
-#### Inputs
+Scaffold a fully-typed module with controller, service, router, schema, and model files, then wire it into the application routing system.
+
+## Inputs
 
 - **moduleName**: module folder/name in `src/modules/` (e.g., `product`)
 - **apiPath**: optional API root path; defaults to `/api` (e.g., `/api/v1`)
 
-#### Run
+## Steps
 
-```bash
-pnpm tbk generate:module <moduleName> --path <apiPath>
-# examples
-# pnpm tbk generate:module product --path /api
-# pnpm tbk generate:module product --path /api/v1
-```
+1. **Generate module files**
 
-This generates:
+   ```bash
+   pnpm tbk generate:module <moduleName> --path <apiPath>
+   ```
 
-- `src/modules/<moduleName>/<moduleName>.dto.ts`
-- `src/modules/<moduleName>/<moduleName>.model.ts`
-- `src/modules/<moduleName>/<moduleName>.schema.ts`
-- `src/modules/<moduleName>/<moduleName>.services.ts`
-- `src/modules/<moduleName>/<moduleName>.controller.ts`
-- `src/modules/<moduleName>/<moduleName>.router.ts` (exports `<MODULE>_ROUTER_ROOT` and default router)
+   Examples:
 
-#### Register router (required)
+   ```bash
+   pnpm tbk generate:module product --path /api
+   pnpm tbk generate:module product --path /api/v1
+   ```
 
-Add an import and `router.use(...)` in `src/routes/routes.ts`:
+   This creates:
 
-```ts
-// add with other imports
-import <moduleName>Router, { <MODULE_NAME>_ROUTER_ROOT } from '../modules/<moduleName>/<moduleName>.router';
+   - `src/modules/<moduleName>/<moduleName>.dto.ts`
+   - `src/modules/<moduleName>/<moduleName>.model.ts`
+   - `src/modules/<moduleName>/<moduleName>.schema.ts`
+   - `src/modules/<moduleName>/<moduleName>.services.ts`
+   - `src/modules/<moduleName>/<moduleName>.controller.ts`
+   - `src/modules/<moduleName>/<moduleName>.router.ts` (exports `<MODULE>_ROUTER_ROOT` and default router)
 
-// add with other router.use calls
-router.use(<MODULE_NAME>_ROUTER_ROOT, <moduleName>Router);
-```
+2. **Register router in routes**
+   Add an import and `router.use(...)` in `src/routes/routes.ts`:
 
-- Replace `<moduleName>` with your actual module name (e.g., `product`).
-- Replace `<MODULE_NAME>` with the uppercased module name (e.g., `PRODUCT`).
+   ```ts
+   // add with other imports
+   import <moduleName>Router, { <MODULE_NAME>_ROUTER_ROOT } from '../modules/<moduleName>/<moduleName>.router';
 
-Example for `product`:
+   // add with other router.use calls
+   router.use(<MODULE_NAME>_ROUTER_ROOT, <moduleName>Router);
+   ```
 
-```ts
-import productRouter, {
-  PRODUCT_ROUTER_ROOT,
-} from '../modules/product/product.router';
-router.use(PRODUCT_ROUTER_ROOT, productRouter);
-```
+   - Replace `<moduleName>` with your actual module name (e.g., `product`)
+   - Replace `<MODULE_NAME>` with the uppercased module name (e.g., `PRODUCT`)
 
-#### Post-steps
+   Example for `product`:
 
-1. Rebuild OpenAPI (auto-generates Swagger from MagicRouter + Zod)
+   ```ts
+   import productRouter, {
+     PRODUCT_ROUTER_ROOT,
+   } from '../modules/product/product.router';
+   router.use(PRODUCT_ROUTER_ROOT, productRouter);
+   ```
 
-```bash
-pnpm openapi
-```
+3. **Rebuild OpenAPI documentation**
 
-2. Typecheck and lint
+   ```bash
+   pnpm openapi
+   ```
 
-```bash
-pnpm typecheck && pnpm lint
-```
+   Auto-generates Swagger from MagicRouter + Zod schemas.
 
-3. Optional: create a seeder and factory
+4. **Typecheck and lint**
 
-```bash
-pnpm tbk make:seeder <moduleName>/<Name>
-pnpm tbk make:factory <moduleName>/<Name>
-```
+   ```bash
+   pnpm typecheck && pnpm lint
+   ```
 
-#### Notes
+5. **Optional: Create seeder and factory**
+   ```bash
+   pnpm tbk make:factory <moduleName>/<Name>
+   pnpm tbk make:seeder <moduleName>/<Name>
+   ```
 
-- Routes must use `MagicRouter`; the generator already sets this up and defines `<MODULE>_ROUTER_ROOT` using the `--path` you pass.
-- Keep environment configs valid, and update `src/config/env.ts` and `.env.sample` if you introduce new variables.
-- Commit with Conventional Commits (e.g., `feat(<moduleName>): add <feature>`).
+## Module Checklist
+
+- [ ] Module files generated successfully
+- [ ] Router registered in `src/routes/routes.ts`
+- [ ] OpenAPI documentation rebuilt
+- [ ] Code passes typecheck and lint
+- [ ] Environment variables added to `src/config/env.ts` and `.env.sample` (if needed)
+- [ ] Committed with Conventional Commits format
+
+## Notes
+
+- Routes must use `MagicRouter`; the generator already sets this up and defines `<MODULE>_ROUTER_ROOT` using the `--path` you pass
+- Keep environment configs valid, and update `src/config/env.ts` and `.env.sample` if you introduce new variables
+- Commit with Conventional Commits (e.g., `feat(<moduleName>): add <feature>`)
