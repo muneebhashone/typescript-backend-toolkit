@@ -392,36 +392,38 @@ export default ${moduleName}Router.getRouter();
 `;
 
       // Write all files
-      await fs.writeFile(
-        path.join(moduleDir, `${moduleName}.dto.ts`),
-        dtoContent,
-        'utf-8',
-      );
-      await fs.writeFile(
-        path.join(moduleDir, `${moduleName}.model.ts`),
-        modelContent,
-        'utf-8',
-      );
-      await fs.writeFile(
-        path.join(moduleDir, `${moduleName}.schema.ts`),
-        schemaContent,
-        'utf-8',
-      );
-      await fs.writeFile(
-        path.join(moduleDir, `${moduleName}.services.ts`),
-        servicesContent,
-        'utf-8',
-      );
-      await fs.writeFile(
-        path.join(moduleDir, `${moduleName}.controller.ts`),
-        controllerContent,
-        'utf-8',
-      );
-      await fs.writeFile(
-        path.join(moduleDir, `${moduleName}.router.ts`),
-        routerContent,
-        'utf-8',
-      );
+      await Promise.all([
+        fs.writeFile(
+          path.join(moduleDir, `${moduleName}.dto.ts`),
+          dtoContent,
+          'utf-8',
+        ),
+        fs.writeFile(
+          path.join(moduleDir, `${moduleName}.model.ts`),
+          modelContent,
+          'utf-8',
+        ),
+        fs.writeFile(
+          path.join(moduleDir, `${moduleName}.schema.ts`),
+          schemaContent,
+          'utf-8',
+        ),
+        fs.writeFile(
+          path.join(moduleDir, `${moduleName}.services.ts`),
+          servicesContent,
+          'utf-8',
+        ),
+        fs.writeFile(
+          path.join(moduleDir, `${moduleName}.controller.ts`),
+          controllerContent,
+          'utf-8',
+        ),
+        fs.writeFile(
+          path.join(moduleDir, `${moduleName}.router.ts`),
+          routerContent,
+          'utf-8',
+        ),
+      ]);
 
       console.log(`✓ Module created: ${moduleDir}`);
       console.log(`  ├── ${moduleName}.dto.ts`);
@@ -451,12 +453,21 @@ program
   .option('--fresh', 'Drop involved collections before seeding')
   .option('--force', 'Force run in production')
   .option('--dry-run', 'Do not write, only log actions')
-  .option('--seed <number>', 'Random seed for data generation', (v) => Number(v), 1)
+  .option(
+    '--seed <number>',
+    'Random seed for data generation',
+    (v) => Number(v),
+    1,
+  )
   .option('--no-transaction', 'Disable transactions')
   .action(async (opts) => {
     const { runSeeders } = await import('../src/seeders/runner');
     const { seeders } = await import('../src/seeders/DatabaseSeeder');
-    const only = opts.only ? String(opts.only).split(',').map((s) => s.trim()) : undefined;
+    const only = opts.only
+      ? String(opts.only)
+          .split(',')
+          .map((s) => s.trim())
+      : undefined;
 
     try {
       await runSeeders(seeders, {
@@ -480,7 +491,9 @@ program
   .description('Scaffold a new module seeder')
   .action(async (fullName) => {
     const [module, rawName] = String(fullName).split('/');
-    const seederName = rawName.endsWith('Seeder') ? rawName : `${rawName}Seeder`;
+    const seederName = rawName.endsWith('Seeder')
+      ? rawName
+      : `${rawName}Seeder`;
     const className = seederName;
     const fs = await import('fs/promises');
     const path = await import('path');
@@ -499,7 +512,13 @@ export const ${className}: Seeder = {
 };
 `;
 
-    const outputPath = path.join(process.cwd(), 'src', 'modules', module, 'seeders');
+    const outputPath = path.join(
+      process.cwd(),
+      'src',
+      'modules',
+      module,
+      'seeders',
+    );
     const filePath = path.join(outputPath, `${className}.ts`);
     try {
       await fs.mkdir(outputPath, { recursive: true });
@@ -529,8 +548,17 @@ export const ${factoryVar} = {
 };
 `;
 
-    const outputPath = path.join(process.cwd(), 'src', 'modules', module, 'factories');
-    const filePath = path.join(outputPath, `${baseName.toLowerCase()}.factory.ts`);
+    const outputPath = path.join(
+      process.cwd(),
+      'src',
+      'modules',
+      module,
+      'factories',
+    );
+    const filePath = path.join(
+      outputPath,
+      `${baseName.toLowerCase()}.factory.ts`,
+    );
     try {
       await fs.mkdir(outputPath, { recursive: true });
       await fs.writeFile(filePath, content, 'utf-8');

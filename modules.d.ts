@@ -1,6 +1,6 @@
 import { Server } from 'socket.io';
 import { JwtPayload } from '../utils/auth.utils';
-import { Config } from './src/config/config.service';
+import { Config } from './src/config/env';
 import { SessionRecord } from './src/modules/auth/session/session.types';
 import { SessionManager } from './src/modules/auth/session/session.manager';
 
