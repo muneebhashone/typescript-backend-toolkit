@@ -68,9 +68,9 @@ export const httpLogger = pinoHttp({
     res: (res: unknown) => ({
       statusCode:
         res instanceof Response
-          ? res.statusText
+          ? res.status
           : res instanceof ResponseHTTP
-            ? 200
+            ? res.statusCode
             : 200,
       headers: {
         'content-type':

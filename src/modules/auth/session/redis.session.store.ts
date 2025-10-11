@@ -1,6 +1,14 @@
 import type { Redis } from 'ioredis';
-import type { SessionStore, CreateSessionInput, SessionRecord } from './session.types';
-import { generateSessionId, hashToken, calculateExpiresAt } from './session.utils';
+import type {
+  SessionStore,
+  CreateSessionInput,
+  SessionRecord,
+} from './session.types';
+import {
+  generateSessionId,
+  hashToken,
+  calculateExpiresAt,
+} from './session.utils';
 import { createChildLogger } from '../../../observability/logger';
 
 const logger = createChildLogger({ context: 'RedisSessionStore' });
@@ -89,7 +97,11 @@ export class RedisSessionStore implements SessionStore {
     for (const [err, data] of results) {
       if (!err && data) {
         const session = JSON.parse(data as string, (key, value) => {
-          if (key === 'createdAt' || key === 'lastSeen' || key === 'expiresAt') {
+          if (
+            key === 'createdAt' ||
+            key === 'lastSeen' ||
+            key === 'expiresAt'
+          ) {
             return new Date(value);
           }
           return value;
@@ -122,14 +134,14 @@ export class RedisSessionStore implements SessionStore {
 
     const tokenHash = hashToken(token);
     session.tokenHash = tokenHash;
-    
+
     const sessionKey = this.getSessionKey(sessionId);
     const ttl = await this.redis.ttl(sessionKey);
 
     if (ttl > 0) {
       await this.redis.set(sessionKey, JSON.stringify(session), 'EX', ttl);
     }
-    
+
     logger.debug({ sessionId }, 'Session token hash updated');
   }
 
@@ -150,23 +162,23 @@ export class RedisSessionStore implements SessionStore {
 
   async revokeAllForUser(userId: string): Promise<void> {
     const sessions = await this.listByUser(userId);
-    
+
     if (!sessions.length) return;
 
     const pipeline = this.redis.pipeline();
-    
+
     for (const session of sessions) {
       session.isRevoked = true;
       const sessionKey = this.getSessionKey(session.sessionId);
       const ttl = Math.floor((session.expiresAt.getTime() - Date.now()) / 1000);
-      
+
       if (ttl > 0) {
         pipeline.set(sessionKey, JSON.stringify(session), 'EX', ttl);
       }
     }
 
     await pipeline.exec();
-    
+
     logger.debug({ userId }, 'All sessions revoked for user');
   }
 
@@ -176,21 +188,34 @@ export class RedisSessionStore implements SessionStore {
   }
 
   async deleteRevoked(): Promise<number> {
-    const userKeys = await this.redis.keys(`${USER_SESSIONS_PREFIX}*`);
     let deletedCount = 0;
+    let cursor = '0';
 
-    for (const userKey of userKeys) {
-      const sessionIds = await this.redis.zrange(userKey, 0, -1);
-      
-      for (const sessionId of sessionIds) {
-        const session = await this.get(sessionId);
-        if (session?.isRevoked) {
-          await this.redis.del(this.getSessionKey(sessionId));
-          await this.redis.zrem(userKey, sessionId);
-          deletedCount++;
+    do {
+      const [newCursor, keys] = await this.redis.scan(
+        cursor,
+        'MATCH',
+        `${USER_SESSIONS_PREFIX}*`,
+        'COUNT',
+        1000,
+      );
+      cursor = newCursor;
+
+      for (const userKey of keys) {
+        const sessionIds = await this.redis.zrange(userKey, 0, -1);
+
+        const pipeline = this.redis.pipeline();
+        for (const sessionId of sessionIds) {
+          const session = await this.get(sessionId);
+          if (session?.isRevoked) {
+            pipeline.del(this.getSessionKey(sessionId));
+            pipeline.zrem(userKey, sessionId);
+            deletedCount++;
+          }
         }
+        await pipeline.exec();
       }
-    }
+    } while (cursor !== '0');
 
     if (deletedCount > 0) {
       logger.info({ count: deletedCount }, 'Deleted revoked sessions');
@@ -200,23 +225,39 @@ export class RedisSessionStore implements SessionStore {
   }
 
   async deleteExpired(): Promise<number> {
-    const userKeys = await this.redis.keys(`${USER_SESSIONS_PREFIX}*`);
     let deletedCount = 0;
+    let cursor = '0';
 
-    for (const userKey of userKeys) {
-      const sessionIds = await this.redis.zrange(userKey, 0, -1);
-      
-      for (const sessionId of sessionIds) {
-        const exists = await this.redis.exists(this.getSessionKey(sessionId));
-        if (!exists) {
-          await this.redis.zrem(userKey, sessionId);
-          deletedCount++;
+    do {
+      const [newCursor, keys] = await this.redis.scan(
+        cursor,
+        'MATCH',
+        `${USER_SESSIONS_PREFIX}*`,
+        'COUNT',
+        1000,
+      );
+      cursor = newCursor;
+
+      for (const userKey of keys) {
+        const sessionIds = await this.redis.zrange(userKey, 0, -1);
+
+        const pipeline = this.redis.pipeline();
+        for (const sessionId of sessionIds) {
+          const exists = await this.redis.exists(this.getSessionKey(sessionId));
+          if (!exists) {
+            pipeline.zrem(userKey, sessionId);
+            deletedCount++;
+          }
         }
+        await pipeline.exec();
       }
-    }
+    } while (cursor !== '0');
 
     if (deletedCount > 0) {
-      logger.info({ count: deletedCount }, 'Cleaned up expired session references');
+      logger.info(
+        { count: deletedCount },
+        'Cleaned up expired session references',
+      );
     }
 
     return deletedCount;
@@ -240,19 +281,35 @@ export class RedisSessionStore implements SessionStore {
   }
 
   async cleanupOrphanedKeys(): Promise<number> {
-    const userKeys = await this.redis.keys(`${USER_SESSIONS_PREFIX}*`);
     let deletedCount = 0;
+    let cursor = '0';
 
-    for (const userKey of userKeys) {
-      const count = await this.redis.zcard(userKey);
-      if (count === 0) {
-        await this.redis.del(userKey);
-        deletedCount++;
+    do {
+      const [newCursor, keys] = await this.redis.scan(
+        cursor,
+        'MATCH',
+        `${USER_SESSIONS_PREFIX}*`,
+        'COUNT',
+        1000,
+      );
+      cursor = newCursor;
+
+      const pipeline = this.redis.pipeline();
+      for (const userKey of keys) {
+        const count = await this.redis.zcard(userKey);
+        if (count === 0) {
+          pipeline.del(userKey);
+          deletedCount++;
+        }
       }
-    }
+      await pipeline.exec();
+    } while (cursor !== '0');
 
     if (deletedCount > 0) {
-      logger.info({ count: deletedCount }, 'Deleted orphaned user session keys');
+      logger.info(
+        { count: deletedCount },
+        'Deleted orphaned user session keys',
+      );
     }
 
     return deletedCount;

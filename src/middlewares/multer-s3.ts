@@ -19,7 +19,7 @@ const storageEngineProfile: multer.StorageEngine = multerS3({
     if (checkFiletype(file)) {
       cb(null, key);
     } else {
-      cb('File format is not valid', key);
+      cb(new Error('File format is not valid'));
     }
   },
 });

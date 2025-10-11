@@ -1,5 +1,8 @@
 import type { ToolkitPlugin, PluginFactory } from './types';
-import { initializeSessionManager, type SessionManager } from '../modules/auth/session/session.manager';
+import {
+  initializeSessionManager,
+  type SessionManager,
+} from '../modules/auth/session/session.manager';
 import type { SessionStoreConfig } from '../modules/auth/session/session.types';
 import config from '../config/env';
 
@@ -20,7 +23,7 @@ export const authPlugin: PluginFactory<AuthOptions> = (
     priority: 70,
     options,
 
-    register({ app }) {
+    async register({ app }) {
       app.set('auth:configured', true);
 
       if (options.jwtSecret) {
@@ -31,7 +34,7 @@ export const authPlugin: PluginFactory<AuthOptions> = (
       }
 
       if (config.SET_SESSION && options.session?.enabled !== false) {
-        sessionManager = initializeSessionManager(options.session);
+        sessionManager = await initializeSessionManager(options.session);
         app.locals.sessionManager = sessionManager;
         app.set('auth:session:enabled', true);
       }

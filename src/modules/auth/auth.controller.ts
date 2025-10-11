@@ -66,7 +66,7 @@ export const handleLogout = async (req: Request, res: Response) => {
     await sessionManager.revokeSession(req.session.sessionId);
   }
 
-  res.cookie(AUTH_COOKIE_KEY, undefined, COOKIE_CONFIG);
+  res.clearCookie(AUTH_COOKIE_KEY, COOKIE_CONFIG);
 
   return successResponse(res, 'Logout successful');
 };
