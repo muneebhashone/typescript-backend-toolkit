@@ -31,7 +31,7 @@ program
       });
       process.exit(0);
     } catch (e) {
-      // eslint-disable-next-line no-console
+       
       console.error((e as Error).message);
       process.exit(1);
     }

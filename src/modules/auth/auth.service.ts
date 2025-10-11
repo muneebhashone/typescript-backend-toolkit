@@ -124,6 +124,10 @@ export const loginUserByEmail = async (
     throw new Error('Invalid email or password');
   }
 
+  if (config.OTP_VERIFICATION_ENABLED && user.otp !== null) {
+    throw new Error('Your account is not verified');
+  }
+
   const jwtPayload: JwtPayload = {
     sub: String(user._id),
     email: user?.email,
