@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Dashboard</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; display: flex; height: 100vh; }
+      #sidebar { width: 260px; border-right: 1px solid #ddd; padding: 12px; overflow: auto; }
+      #content { flex: 1; padding: 12px; overflow: auto; }
+      .resource { padding: 8px; cursor: pointer; border-radius: 6px; }
+      .resource.active { background: #f2f2f2; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+      .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+      input, select, button { padding: 6px 8px; font-size: 14px; }
+      .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .pagination { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+      .hidden { display: none; }
+      .danger { color: #b00020; }
+      .muted { color: #666; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <div id="sidebar">
+      <h3>Resources</h3>
+      <div id="resources"></div>
+    </div>
+    <div id="content">
+      <div class="toolbar">
+        <input id="search" placeholder="Search..." />
+        <button id="refresh">Refresh</button>
+        <button id="new">New</button>
+      </div>
+      <div id="list"></div>
+      <div class="pagination">
+        <button id="prev">Prev</button>
+        <span id="pageInfo" class="muted"></span>
+        <button id="next">Next</button>
+      </div>
+      <hr />
+      <div id="form" class="hidden"></div>
+      <div id="error" class="danger"></div>
+    </div>
+    <script src="/admin/admin.js"></script>
+  </body>
+  </html>
