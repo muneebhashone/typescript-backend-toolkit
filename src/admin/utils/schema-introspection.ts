@@ -50,6 +50,22 @@ function extractFieldsFromSchema(
     }
     const isArray = instance === 'Array';
 
+    // Array of subdocuments (DocumentArrayPath) — detect before single to avoid misclassification
+    const caster: any = (schemaType as any).caster || (schemaType as any).$embeddedSchemaType;
+    const maybeSubArraySchema: MongooseSchema<any> | undefined = caster?.schema || (isArray ? (schemaType as any).schema : undefined);
+    if (isArray && maybeSubArraySchema) {
+      const children = extractFieldsFromSchema(maybeSubArraySchema, undefined, depth + 1);
+      fields.push({
+        path,
+        type: 'subdocument',
+        required,
+        enumValues,
+        isArray: true,
+        children,
+      });
+      continue;
+    }
+
     // Subdocument (single)
     const subSchema: MongooseSchema<any> | undefined = (schemaType as any).schema;
     if (subSchema) {
@@ -60,21 +76,6 @@ function extractFieldsFromSchema(
         required,
         enumValues,
         isArray: false,
-        children,
-      });
-      continue;
-    }
-
-    // Array of subdocuments
-    const caster: any = (schemaType as any).caster || (schemaType as any).$embeddedSchemaType;
-    if (isArray && caster && caster.schema) {
-      const children = extractFieldsFromSchema(caster.schema, undefined, depth + 1);
-      fields.push({
-        path,
-        type: 'subdocument',
-        required,
-        enumValues,
-        isArray: true,
         children,
       });
       continue;
