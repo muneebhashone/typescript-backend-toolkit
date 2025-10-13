@@ -26,4 +26,6 @@ export type AdminField = {
     // Field to display as label for the referenced resource
     displayField: string;
   };
+  // Present when type === 'subdocument'
+  children?: AdminField[];
 };

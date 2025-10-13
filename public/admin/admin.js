@@ -182,6 +182,12 @@
         input = el('input', { type: 'file' });
       } else if (type === 'relation' && f.relation) {
         input = createRelationEditor(f, row ? row[f.path] : undefined);
+      } else if (type === 'subdocument' && Array.isArray(f.children)) {
+        if (f.isArray) {
+          input = createSubdocArrayEditor(f, row ? row[f.path] : undefined);
+        } else {
+          input = createSubdocEditor(f, row ? row[f.path] : undefined);
+        }
       } else if (f.enumValues && f.enumValues.length) {
         input = el('select');
         input.appendChild(el('option', { value: '', textContent: '' }));
@@ -230,6 +236,11 @@
         // disable search when readOnly
         if (readOnly.has(f.path)) {
           const controls = input.querySelectorAll('input,button');
+          controls.forEach((c) => (c.disabled = true));
+        }
+      } else if (type === 'subdocument' && Array.isArray(f.children)) {
+        if (readOnly.has(f.path)) {
+          const controls = input.querySelectorAll('input,button,select,textarea');
           controls.forEach((c) => (c.disabled = true));
         }
       } else {
@@ -345,6 +356,13 @@
         return parsed;
       } catch {
         throw new Error('Invalid JSON for array field');
+      }
+    }
+    if (type === 'subdocument') {
+      try {
+        return JSON.parse(v);
+      } catch {
+        throw new Error('Invalid JSON for subdocument field');
       }
     }
     if (type === 'mixed' || type === 'relation') return v; // keep as-is (relation handled upstream)
@@ -575,6 +593,160 @@
     }
     container.appendChild(search);
     container.appendChild(results);
+    container.appendChild(hidden);
+    return container;
+  }
+
+  // Subdocument (single) editor
+  function createSubdocEditor(field, rawVal) {
+    const container = el('div', { style: 'display:flex; flex-direction: column; gap:8px; border:1px solid var(--border); padding:10px; border-radius:6px;' });
+    const hidden = el('input', { type: 'hidden' });
+    hidden.dataset.path = field.path;
+    hidden.dataset.type = 'subdocument';
+    hidden.dataset.isArray = '0';
+    hidden.dataset.isFile = '0';
+
+    const childWrap = el('div', { className: 'form-grid' });
+    const value = rawVal && typeof rawVal === 'object' ? rawVal : {};
+
+    const childControls = [];
+    field.children.forEach((cf) => {
+      const label = el('label', { textContent: cf.path });
+      let input;
+      if (cf.type === 'relation' && cf.relation) input = createRelationEditor({ ...cf, path: `${field.path}.${cf.path}` }, value[cf.path]);
+      else if (cf.type === 'subdocument' && Array.isArray(cf.children)) {
+        if (cf.isArray) input = createSubdocArrayEditor({ ...cf, path: `${field.path}.${cf.path}` }, value[cf.path]);
+        else input = createSubdocEditor({ ...cf, path: `${field.path}.${cf.path}` }, value[cf.path]);
+      } else if (cf.enumValues && cf.enumValues.length) {
+        input = el('select');
+        input.appendChild(el('option', { value: '', textContent: '' }));
+        cf.enumValues.forEach((opt) => input.appendChild(el('option', { value: opt, textContent: opt })));
+        input.value = value[cf.path] != null ? String(value[cf.path]) : '';
+      } else if (cf.type === 'boolean') {
+        input = el('select');
+        ['false', 'true'].forEach((opt) => input.appendChild(el('option', { value: opt, textContent: opt })));
+        input.value = value[cf.path] ? 'true' : 'false';
+      } else if (cf.type === 'number') {
+        input = el('input', { type: 'number', step: 'any', value: value[cf.path] != null ? String(value[cf.path]) : '' });
+      } else if (cf.type === 'date') {
+        input = el('input', { type: 'datetime-local', value: value[cf.path] ? toDatetimeLocal(value[cf.path]) : '' });
+      } else if (cf.type === 'array') {
+        input = el('textarea', { rows: 3, placeholder: '[ ... ]', value: Array.isArray(value[cf.path]) ? JSON.stringify(value[cf.path], null, 2) : '' });
+      } else {
+        input = el('input', { type: 'text', value: value[cf.path] != null ? String(value[cf.path]) : '' });
+      }
+      const childPath = `${field.path}.${cf.path}`;
+      if (!(cf.type === 'relation' && cf.relation)) {
+        input.dataset.path = childPath;
+        input.dataset.type = cf.type;
+        input.dataset.isArray = cf.isArray ? '1' : '0';
+        input.dataset.isFile = '0';
+      }
+      childControls.push({ def: cf, elem: input, path: childPath });
+      childWrap.appendChild(label);
+      childWrap.appendChild(input);
+    });
+
+    function syncHidden() {
+      const obj = {};
+      for (const item of childControls) {
+        const cf = item.def;
+        const ctrl = item.elem;
+        const p = item.path.split('.').slice(-1)[0];
+        if (cf.type === 'relation') {
+          const hid = ctrl.querySelector && ctrl.querySelector(`input[type="hidden"][data-path="${item.path}"]`);
+          obj[p] = hid ? hid.value : undefined;
+        } else if (ctrl.tagName === 'TEXTAREA' && (cf.type === 'array' || (cf.isArray && cf.type !== 'subdocument'))) {
+          try {
+            const parsed = JSON.parse(ctrl.value || '[]');
+            obj[p] = parsed;
+          } catch {}
+        } else if (ctrl.type === 'number') obj[p] = ctrl.value === '' ? undefined : Number(ctrl.value);
+        else if (ctrl.type === 'datetime-local') obj[p] = ctrl.value ? fromDatetimeLocal(ctrl.value) : undefined;
+        else if (ctrl.tagName === 'SELECT' && cf.type === 'boolean') obj[p] = ctrl.value === 'true';
+        else if (cf.type === 'subdocument') {
+          const hid = ctrl.querySelector && ctrl.querySelector('input[type="hidden"][data-type="subdocument"]');
+          if (hid) {
+            try {
+              obj[p] = JSON.parse(hid.value || '{}');
+            } catch {}
+          }
+        } else obj[p] = ctrl.value === '' ? undefined : ctrl.value;
+      }
+      hidden.value = JSON.stringify(obj);
+    }
+
+    childWrap.addEventListener('input', syncHidden, true);
+    syncHidden();
+
+    container.appendChild(childWrap);
+    container.appendChild(hidden);
+    return container;
+  }
+
+  // Subdocument array (repeater) editor
+  function createSubdocArrayEditor(field, rawVal) {
+    const container = el('div', { style: 'display:flex; flex-direction: column; gap:8px; border:1px dashed var(--border); padding:10px; border-radius:6px;' });
+    const hidden = el('input', { type: 'hidden' });
+    hidden.dataset.path = field.path;
+    hidden.dataset.type = 'subdocument';
+    hidden.dataset.isArray = '1';
+    hidden.dataset.isFile = '0';
+
+    const itemsWrap = el('div', { style: 'display:flex; flex-direction: column; gap:8px;' });
+    const addBtn = el('button', { textContent: 'Add item', style: 'width:max-content;' });
+
+    let items = Array.isArray(rawVal) ? rawVal : [];
+
+    function render() {
+      itemsWrap.innerHTML = '';
+      items.forEach((it, idx) => {
+        const row = el('div', { style: 'border:1px solid var(--border); border-radius:6px; padding:8px;' });
+        const header = el('div', { style: 'display:flex; justify-content: space-between; align-items:center; margin-bottom:6px;' }, [
+          el('span', { className: 'muted', textContent: `Item ${idx + 1}` }),
+          (() => {
+            const btn = el('button', { textContent: 'Remove', style: 'background: transparent; color: var(--danger); border:1px solid var(--border);' });
+            btn.onclick = () => {
+              items.splice(idx, 1);
+              syncHidden();
+              render();
+            };
+            return btn;
+          })(),
+        ]);
+        const editor = createSubdocEditor({ ...field, isArray: false }, it);
+        row.appendChild(header);
+        row.appendChild(editor);
+        itemsWrap.appendChild(row);
+      });
+    }
+
+    function syncHidden() {
+      try {
+        const arr = [];
+        const rows = itemsWrap.querySelectorAll('input[type="hidden"][data-type="subdocument"][data-is-array="0"]');
+        rows.forEach((h) => {
+          try {
+            const val = JSON.parse(h.value || '{}');
+            arr.push(val);
+          } catch {}
+        });
+        hidden.value = JSON.stringify(arr);
+      } catch {}
+    }
+
+    itemsWrap.addEventListener('input', syncHidden, true);
+
+    addBtn.onclick = () => {
+      items.push({});
+      render();
+      syncHidden();
+    };
+
+    render();
+    syncHidden();
+    container.appendChild(itemsWrap);
+    container.appendChild(addBtn);
     container.appendChild(hidden);
     return container;
   }
