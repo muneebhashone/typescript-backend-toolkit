@@ -22,6 +22,7 @@
     listeners: [], // { id, pattern, enabled }
     rooms: [], // ['room1']
     logs: [], // { dir, event, payload, ts }
+    filters: { showOnlyEnabled: false, selectedListenerId: null },
     autoReconnect: true,
     connected: false,
   });
@@ -92,6 +93,8 @@
     if (matches.length) {
       item.classList.add('matched');
     }
+    // apply filters to reflect current visibility rules
+    applyLogFilters();
   }
 
   function currentOptions() {
@@ -282,6 +285,29 @@
       (l) => l.enabled && globToRegExp(l.pattern).test(event),
     );
   }
+  function applyLogFilters() {
+    const showOnlyEnabled = !!state.filters?.showOnlyEnabled;
+    const selectedId = state.filters?.selectedListenerId || null;
+    const selected = selectedId
+      ? (state.listeners || []).find((l) => l.id === selectedId)
+      : null;
+
+    const nodes = logsEl?.querySelectorAll('.log') || [];
+    for (const node of nodes) {
+      if (!(node instanceof HTMLElement) || !node.classList.contains('log'))
+        continue;
+      const eventName = node.dataset.event || '';
+      let visible = true;
+      if (showOnlyEnabled) {
+        visible = getMatchingListeners(eventName).length > 0;
+      }
+      if (visible && selected) {
+        visible =
+          selected.enabled && globToRegExp(selected.pattern).test(eventName);
+      }
+      node.classList.toggle('hidden', !visible);
+    }
+  }
   function renderListeners() {
     if (!listenersEl) return;
     listenersEl.innerHTML = '';
@@ -301,6 +327,10 @@
       `;
       listenersEl.appendChild(row);
     });
+    // refresh filter dropdown options when listeners change
+    renderFilterOptions();
+    // re-apply log filters in case enabled flags or patterns changed
+    applyLogFilters();
   }
   function addListener(pattern, enabled = true) {
     if (!pattern) return;
@@ -326,6 +356,8 @@
     state.listeners = [];
     saveState();
     renderListeners();
+    renderFilterOptions();
+    applyLogFilters();
   });
   listenersEl?.addEventListener('change', (e) => {
     const target = e.target;
@@ -338,6 +370,9 @@
     if (!l) return;
     l.enabled = !!target.checked;
     saveState();
+    // update filters and visibility
+    renderFilterOptions();
+    applyLogFilters();
   });
   listenersEl?.addEventListener('click', (e) => {
     const btn = e.target;
@@ -348,6 +383,33 @@
     if (!id) return;
     removeListener(id);
   });
+
+  function renderFilterOptions() {
+    const sel = document.getElementById('filter-listener');
+    if (!sel) return;
+    const selectedId = state.filters?.selectedListenerId || '';
+    // if previously selected listener id no longer exists, reset
+    const stillExists = (state.listeners || []).some(
+      (l) => l.id === selectedId,
+    );
+    const effectiveSelectedId = stillExists ? selectedId : '';
+    if (!stillExists && selectedId) {
+      state.filters.selectedListenerId = null;
+      saveState();
+    }
+    sel.innerHTML = '';
+    const optAll = document.createElement('option');
+    optAll.value = '';
+    optAll.textContent = 'All listeners';
+    sel.appendChild(optAll);
+    (state.listeners || []).forEach((l) => {
+      const opt = document.createElement('option');
+      opt.value = l.id;
+      opt.textContent = l.pattern + (l.enabled ? '' : ' (disabled)');
+      if (l.id === effectiveSelectedId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
 
   // logs click-to-add listener
   logsEl.addEventListener('click', (e) => {
@@ -421,6 +483,30 @@
     // listeners & rooms
     renderListeners();
     renderRooms();
+    // filters UI state
+    renderFilterOptions();
+    const chk = document.getElementById('filter-enabled');
+    if (chk && chk instanceof HTMLInputElement) {
+      chk.checked = !!state.filters?.showOnlyEnabled;
+      chk.addEventListener('change', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        state.filters.showOnlyEnabled = !!target.checked;
+        saveState();
+        applyLogFilters();
+      });
+    }
+    const sel = document.getElementById('filter-listener');
+    if (sel && sel instanceof HTMLSelectElement) {
+      sel.value = state.filters?.selectedListenerId || '';
+      sel.addEventListener('change', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLSelectElement)) return;
+        state.filters.selectedListenerId = target.value || null;
+        saveState();
+        applyLogFilters();
+      });
+    }
     // logs
     if (state.logs?.length) {
       // render from oldest to newest so prepend makes correct order
@@ -437,6 +523,8 @@
         });
       }
     }
+    // apply filters after logs restored
+    applyLogFilters();
   }
   restoreUI();
 

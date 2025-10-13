@@ -197,6 +197,16 @@
         <div class="panel-header">
           <h2>Event Logs</h2>
           <div class="panel-actions">
+            <label
+              class="checkbox-label"
+              title="Show logs that match any enabled listener"
+            >
+              <input id="filter-enabled" type="checkbox" />
+              <span>Only enabled listeners</span>
+            </label>
+            <select id="filter-listener">
+              <option value="">All listeners</option>
+            </select>
             <button id="clear" class="secondary small">Clear</button>
             <button id="reset-session" class="secondary small">
               Reset Session
