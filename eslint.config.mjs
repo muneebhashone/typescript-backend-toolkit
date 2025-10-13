@@ -18,6 +18,8 @@ export default [
       '.database/*',
       'public/*',
       'public/**/*',
+      'src/openapi*',
+      'src/admin/*',
     ],
   },
   pluginJs.configs.recommended,

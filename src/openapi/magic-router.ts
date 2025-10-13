@@ -11,13 +11,8 @@ import {
   successResponseSchema,
 } from '../common/common.schema';
 import { canAccess } from '../middlewares/can-access';
-import { validateZodSchema } from '../core/validate';
-import type {
-  RequestExtended,
-  RequestZodSchemaType,
-  ResponseExtended,
-} from '../types';
-import responseInterceptor from '../utils/responseInterceptor';
+import { validateZodSchema } from '../middlewares/validate-zod-schema';
+import type { RequestZodSchemaType } from '../types';
 import {
   camelCaseToTitleCase,
   parseRouteString,
@@ -55,7 +50,7 @@ export type MagicRouteRType<PathSet extends boolean> = Omit<
 export type MagicMiddleware = (
   req: RequestAny,
   res: ResponseAny,
-  next?: NextFunction,
+  next: NextFunction,
 ) => MaybePromise;
 
 export type RequestAndResponseType = {
@@ -179,25 +174,12 @@ export class MagicRouter<PathSet extends boolean = false> {
 
     const controller = asyncHandler(middlewares[middlewares.length - 1]);
 
-    const responseInterceptorWrapper = (
-      req: RequestAny | RequestExtended,
-      res: ResponseAny | ResponseExtended,
-      next: NextFunction,
-    ) => {
-      return responseInterceptor(
-        req as RequestExtended,
-        res as ResponseExtended,
-        next,
-      );
-    };
-
     middlewares.pop();
 
     if (Object.keys(requestType).length) {
       this.router[method](
         path,
         attachResponseModelMiddleware,
-        responseInterceptorWrapper,
         validateZodSchema(requestType),
         ...middlewares,
         controller,
@@ -207,7 +189,6 @@ export class MagicRouter<PathSet extends boolean = false> {
         path,
         attachResponseModelMiddleware,
         ...middlewares,
-        responseInterceptorWrapper,
         controller,
       );
     }

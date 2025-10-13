@@ -108,7 +108,6 @@ src/
 ├── openapi/                # MagicRouter & OpenAPI generation
 ├── queues/                 # BullMQ background jobs
 ├── routes/                 # Route registration
-├── upload/                 # File upload handling
 ├── email/                  # Email templates (React Email)
 └── utils/                  # Utility functions
 ```
