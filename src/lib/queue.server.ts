@@ -9,7 +9,7 @@ type RegisteredQueue = {
   worker: Worker;
 };
 
-const registeredQueues: Record<string, RegisteredQueue> = {};
+export const registeredQueues: Record<string, RegisteredQueue> = {};
 
 export function Queue<Payload>(
   name: string,
@@ -37,5 +37,3 @@ export function Queue<Payload>(
 
   return queue;
 }
-
-export const getRegisteredQueues = () => registeredQueues;

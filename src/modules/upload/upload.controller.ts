@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
-import type { UserType } from '../modules/user/user.dto';
-import { updateUser } from '../modules/user/user.services';
-import { errorResponse, successResponse } from '../utils/api.utils';
+import type { UserType } from '../user/user.dto';
+import { updateUser } from '../user/user.services';
+import { errorResponse, successResponse } from '../../utils/api.utils';
 
 export const handleProfileUpload = async (req: Request, res: Response) => {
   try {
