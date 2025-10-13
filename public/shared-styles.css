@@ -106,7 +106,7 @@ body {
 /* Buttons */
 button {
   position: relative;
-  padding: 8px 16px;
+  padding: 4px 10px;
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;

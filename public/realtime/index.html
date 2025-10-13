@@ -13,24 +13,6 @@
       <div class="sidebar-header">Realtime Tester</div>
 
       <div class="sidebar-section">
-        <h3>Connection Status</h3>
-        <div class="status-info">
-          <div class="status-row">
-            <span class="label">Status</span>
-            <div id="status" class="badge danger">Disconnected</div>
-          </div>
-          <div class="status-row">
-            <span class="label">Socket ID</span>
-            <code id="sid">—</code>
-          </div>
-          <div class="status-row">
-            <span class="label">Transport</span>
-            <code id="transport">—</code>
-          </div>
-        </div>
-      </div>
-
-      <div class="sidebar-section">
         <h3>Connection Settings</h3>
         <div class="sidebar-form">
           <div class="sidebar-form-row">
@@ -64,15 +46,67 @@
       <div class="sidebar-section">
         <h3>Quick Actions</h3>
         <div class="action-buttons">
-          <button id="connect">Connect</button>
-          <button id="disconnect" class="secondary" disabled>Disconnect</button>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <button id="connect">Connect</button>
+            <button id="disconnect" class="secondary" disabled>
+              Disconnect
+            </button>
+          </div>
           <button id="ping" class="secondary">Send Ping</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Rooms</h3>
+        <div class="sidebar-form">
+          <div class="sidebar-form-row">
+            <input id="room-input" type="text" placeholder="room name" />
+          </div>
+          <div class="action-buttons">
+            <button id="room-join" class="secondary">Join Room</button>
+            <button id="room-leave" class="secondary">Leave Room</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Listeners</h3>
+        <div class="sidebar-form">
+          <div class="sidebar-form-row">
+            <input
+              id="listener-pattern"
+              type="text"
+              placeholder="e.g., chat:*"
+            />
+          </div>
+          <div class="action-buttons">
+            <button id="listener-add">Add Listener</button>
+            <button id="listeners-clear" class="secondary">Clear All</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Main Content -->
     <div id="content">
+      <div id="topbar" class="topbar">
+        <div class="topbar-section">
+          <span class="label">Status</span>
+          <div id="status" class="badge danger">Disconnected</div>
+        </div>
+        <div class="topbar-section">
+          <span class="label">Socket ID</span>
+          <code id="sid">—</code>
+        </div>
+        <div class="topbar-section">
+          <span class="label">Transport</span>
+          <code id="transport">—</code>
+        </div>
+        <div class="topbar-spacer"></div>
+        <button id="drawer-toggle" class="secondary small">
+          Listeners & Rooms
+        </button>
+      </div>
       <!-- Custom Emit Panel -->
       <div class="panel padded">
         <h2>Custom Emit</h2>
@@ -80,29 +114,59 @@
           <label for="event">Event Name</label>
           <input id="event" type="text" placeholder="event name" />
         </div>
-        <div class="form-row">
-          <label>Payload Type</label>
-          <div class="radio-group">
-            <label class="radio-label">
-              <input
-                type="radio"
-                name="payload-type"
-                id="pt-json"
-                value="json"
-                checked
-              />
-              <span>JSON</span>
-            </label>
-            <label class="radio-label">
-              <input
-                type="radio"
-                name="payload-type"
-                id="pt-string"
-                value="string"
-              />
-              <span>String</span>
-            </label>
+        <div class="form-row grid-2" style="display: flex; gap: 12px">
+          <div>
+            <label for="emit-target">Emit Target</label>
+            <div class="radio-group">
+              <label class="radio-label"
+                ><input
+                  type="radio"
+                  name="emit-target"
+                  id="target-socket"
+                  value="socket"
+                  checked
+                />
+                <span>Socket</span></label
+              >
+              <label class="radio-label"
+                ><input
+                  type="radio"
+                  name="emit-target"
+                  id="target-room"
+                  value="room"
+                />
+                <span>Room</span></label
+              >
+            </div>
           </div>
+          <div>
+            <label>Payload Type</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="payload-type"
+                  id="pt-json"
+                  value="json"
+                  checked
+                />
+                <span>JSON</span>
+              </label>
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="payload-type"
+                  id="pt-string"
+                  value="string"
+                />
+                <span>String</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-row hidden" id="row-target-room">
+          <label for="target-room-name">Room Name</label>
+          <input id="target-room-name" type="text" placeholder="room name" />
         </div>
         <div class="form-row" id="row-payload-json">
           <label for="payload">Payload (JSON)</label>
@@ -125,9 +189,30 @@
       <div class="panel logs-panel">
         <div class="panel-header">
           <h2>Event Logs</h2>
-          <button id="clear" class="secondary small">Clear</button>
+          <div class="panel-actions">
+            <button id="clear" class="secondary small">Clear</button>
+            <button id="reset-session" class="secondary small">
+              Reset Session
+            </button>
+          </div>
         </div>
         <div id="logs" class="logs"></div>
+      </div>
+    </div>
+
+    <!-- Right Drawer -->
+    <div id="drawer" class="drawer">
+      <div class="drawer-header">
+        <h2>Listeners & Rooms</h2>
+        <button id="drawer-close" class="secondary small">Close</button>
+      </div>
+      <div class="drawer-section">
+        <h3>Listeners</h3>
+        <div id="listeners" class="listeners"></div>
+      </div>
+      <div class="drawer-section">
+        <h3>Rooms</h3>
+        <div class="rooms-list" id="rooms"></div>
       </div>
     </div>
 
