@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Realtime Tester</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Realtime Tester</h1>
+      <div id="status" class="badge">Disconnected</div>
+    </header>
+
+    <section class="panel">
+      <h2>Connection</h2>
+      <div class="row">
+        <label>Namespace</label>
+        <input id="ns" type="text" value="/" />
+      </div>
+      <div class="row">
+        <label>Path</label>
+        <input id="path" type="text" value="/socket.io" />
+      </div>
+      <div class="row">
+        <label>Auth token</label>
+        <input id="token" type="text" placeholder="optional" />
+      </div>
+      <div class="row">
+        <label>Transports</label>
+        <label
+          ><input id="t-websocket" type="checkbox" checked /> websocket</label
+        >
+        <label><input id="t-polling" type="checkbox" checked /> polling</label>
+      </div>
+      <div class="row actions">
+        <button id="connect">Connect</button>
+        <button id="disconnect" disabled>Disconnect</button>
+      </div>
+      <div class="row info">
+        <div>Socket ID: <code id="sid">—</code></div>
+        <div>Transport: <code id="transport">—</code></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Quick actions</h2>
+      <button id="ping">Send ping</button>
+    </section>
+
+    <section class="panel">
+      <h2>Custom emit</h2>
+      <div class="row">
+        <label>Event name</label>
+        <input id="event" type="text" placeholder="event name" />
+      </div>
+      <div class="row">
+        <label>Payload type</label>
+        <label class="seg"><input type="radio" name="payload-type" id="pt-json" value="json" checked /> JSON</label>
+        <label class="seg"><input type="radio" name="payload-type" id="pt-string" value="string" /> String</label>
+      </div>
+      <div class="row">
+        <label>Payload (JSON)</label>
+        <textarea id="payload" rows="6" placeholder='{"message":"hello"}'></textarea>
+      </div>
+      <div class="row" id="row-payload-string" style="display:none;">
+        <label>Payload (string)</label>
+        <input id="payload-str" type="text" placeholder="hello world" />
+      </div>
+      <div class="row actions">
+        <button id="emit">Emit</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Logs</h2>
+      <div id="logs" class="logs"></div>
+      <div class="row actions">
+        <button id="clear">Clear logs</button>
+      </div>
+    </section>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
