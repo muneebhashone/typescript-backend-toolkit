@@ -108,80 +108,87 @@
         </button>
       </div>
       <!-- Custom Emit Panel -->
-      <div class="panel padded">
-        <h2>Custom Emit</h2>
-        <div class="form-row">
-          <label for="event">Event Name</label>
-          <input id="event" type="text" placeholder="event name" />
-        </div>
-        <div class="form-row grid-2" style="display: flex; gap: 12px">
-          <div>
-            <label for="emit-target">Emit Target</label>
-            <div class="radio-group">
-              <label class="radio-label"
-                ><input
-                  type="radio"
-                  name="emit-target"
-                  id="target-socket"
-                  value="socket"
-                  checked
-                />
-                <span>Socket</span></label
-              >
-              <label class="radio-label"
-                ><input
-                  type="radio"
-                  name="emit-target"
-                  id="target-room"
-                  value="room"
-                />
-                <span>Room</span></label
-              >
-            </div>
-          </div>
-          <div>
-            <label>Payload Type</label>
-            <div class="radio-group">
-              <label class="radio-label">
-                <input
-                  type="radio"
-                  name="payload-type"
-                  id="pt-json"
-                  value="json"
-                  checked
-                />
-                <span>JSON</span>
-              </label>
-              <label class="radio-label">
-                <input
-                  type="radio"
-                  name="payload-type"
-                  id="pt-string"
-                  value="string"
-                />
-                <span>String</span>
-              </label>
-            </div>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Custom Emit</h2>
+          <div class="panel-actions">
+            <button id="emit-collapse" class="secondary small">Hide</button>
           </div>
         </div>
-        <div class="form-row hidden" id="row-target-room">
-          <label for="target-room-name">Room Name</label>
-          <input id="target-room-name" type="text" placeholder="room name" />
-        </div>
-        <div class="form-row" id="row-payload-json">
-          <label for="payload">Payload (JSON)</label>
-          <textarea
-            id="payload"
-            rows="8"
-            placeholder='{"message":"hello"}'
-          ></textarea>
-        </div>
-        <div class="form-row hidden" id="row-payload-string">
-          <label for="payload-str">Payload (String)</label>
-          <input id="payload-str" type="text" placeholder="hello world" />
-        </div>
-        <div class="form-actions">
-          <button id="emit">Emit</button>
+        <div id="emit-body" class="panel-body">
+          <div class="form-row">
+            <label for="event">Event Name</label>
+            <input id="event" type="text" placeholder="event name" />
+          </div>
+          <div class="form-row grid-2" style="display: flex; gap: 12px">
+            <div>
+              <label for="emit-target">Emit Target</label>
+              <div class="radio-group">
+                <label class="radio-label"
+                  ><input
+                    type="radio"
+                    name="emit-target"
+                    id="target-socket"
+                    value="socket"
+                    checked
+                  />
+                  <span>Socket</span></label
+                >
+                <label class="radio-label"
+                  ><input
+                    type="radio"
+                    name="emit-target"
+                    id="target-room"
+                    value="room"
+                  />
+                  <span>Room</span></label
+                >
+              </div>
+            </div>
+            <div>
+              <label>Payload Type</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    name="payload-type"
+                    id="pt-json"
+                    value="json"
+                    checked
+                  />
+                  <span>JSON</span>
+                </label>
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    name="payload-type"
+                    id="pt-string"
+                    value="string"
+                  />
+                  <span>String</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="form-row hidden" id="row-target-room">
+            <label for="target-room-name">Room Name</label>
+            <input id="target-room-name" type="text" placeholder="room name" />
+          </div>
+          <div class="form-row" id="row-payload-json">
+            <label for="payload">Payload (JSON)</label>
+            <textarea
+              id="payload"
+              rows="8"
+              placeholder='{"message":"hello"}'
+            ></textarea>
+          </div>
+          <div class="form-row hidden" id="row-payload-string">
+            <label for="payload-str">Payload (String)</label>
+            <input id="payload-str" type="text" placeholder="hello world" />
+          </div>
+          <div class="form-actions">
+            <button id="emit">Emit</button>
+          </div>
         </div>
       </div>
 
