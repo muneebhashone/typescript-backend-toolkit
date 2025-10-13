@@ -13,7 +13,7 @@ export type CanAccessOptions = {
 
 export const canAccess =
   <T extends CanAccessByType>(by?: T, access?: CanAccessOptions[T][]) =>
-  async (req: RequestAny, res: ResponseAny, next?: NextFunction) => {
+  async (req: RequestAny, res: ResponseAny, next: NextFunction) => {
     try {
       const requestUser = req?.user as JwtPayload | undefined;
 
@@ -67,5 +67,5 @@ export const canAccess =
       );
     }
 
-    next?.();
+    next();
   };

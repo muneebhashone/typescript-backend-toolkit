@@ -82,10 +82,10 @@ program
 export function ${middlewareName}Middleware(
   req: Request,
   res: Response,
-  next?: NextFunction,
+  next: NextFunction,
 ): void {
   // Middleware implementation here
-  next?.();
+  next();
 }
 
 export default ${middlewareName}Middleware;

@@ -27,7 +27,7 @@ const storageEngineProfile: multer.StorageEngine = multerS3({
 export const uploadProfile = (
   req: RequestAny,
   res: ResponseAny,
-  next?: NextFunction,
+  next: NextFunction,
 ) => {
   const upload = multer({
     storage: storageEngineProfile,
@@ -44,6 +44,6 @@ export const uploadProfile = (
       );
     }
 
-    next?.();
+    next();
   });
 };

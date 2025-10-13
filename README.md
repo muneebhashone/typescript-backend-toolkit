@@ -96,9 +96,6 @@ Before you get started, make sure you have the following installed on your machi
 │   │   └── templates
 │   │       └── ResetPassword.tsx
 │   ├── enums.ts
-│   ├── healthcheck
-│   │   ├── healthcheck.controller.ts
-│   │   └── healthcheck.routes.ts
 │   ├── lib
 │   │   ├── aws.service.ts
 │   │   ├── common.schema.ts

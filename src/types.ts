@@ -29,6 +29,4 @@ export interface ResponseExtended extends Response {
   locals: {
     validateSchema?: ZodSchema;
   };
-  jsonValidate: Response['json'];
-  sendValidate: Response['send'];
 }

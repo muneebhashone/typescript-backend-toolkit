@@ -1,7 +1,6 @@
 import type { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import config from '../config/env';
-import logger from '../lib/logger.service';
 import type { ResponseExtended } from '../types';
 
 export const errorResponse = (
@@ -11,31 +10,14 @@ export const errorResponse = (
   payload?: unknown,
   stack?: string,
 ): void => {
-  try {
-    if ('jsonValidate' in res) {
-      (res as ResponseExtended)
-        .status(statusCode ?? StatusCodes.BAD_REQUEST)
-        .jsonValidate({
-          success: false,
-          message: message,
-          data: payload,
-          stack: stack,
-        });
-    } else {
-      (res as ResponseExtended)
-        .status(statusCode ?? StatusCodes.BAD_REQUEST)
-        .json({
-          success: false,
-          message: message,
-          data: payload,
-          stack: stack,
-        });
-    }
+  res.status(statusCode ?? StatusCodes.BAD_REQUEST).json({
+    success: false,
+    message: message,
+    data: payload,
+    stack: config.NODE_ENV === 'development' ? stack : undefined,
+  });
 
-    return;
-  } catch (err) {
-    logger.error(err);
-  }
+  return;
 };
 
 export const successResponse = (
@@ -44,21 +26,11 @@ export const successResponse = (
   payload?: Record<string, unknown>,
   statusCode: StatusCodes = StatusCodes.OK,
 ): void => {
-  try {
-    if ('jsonValidate' in res) {
-      (res as ResponseExtended)
-        .status(statusCode)
-        .jsonValidate({ success: true, message: message, data: payload });
-    } else {
-      (res as ResponseExtended)
-        .status(statusCode)
-        .json({ success: true, message: message, data: payload });
-    }
+  res
+    .status(statusCode)
+    .json({ success: true, message: message, data: payload });
 
-    return;
-  } catch (err) {
-    logger.error(err);
-  }
+  return;
 };
 
 export const generateResetPasswordLink = (token: string) => {
