@@ -12,7 +12,7 @@ async function generateOpenApiSpec() {
 
     const yamlContent = convertDocumentationToYaml();
 
-    const outputPath = path.join(process.cwd(), 'openapi.yml');
+    const outputPath = path.join(process.cwd(), 'public', 'openapi.yml');
     await fs.writeFile(outputPath, yamlContent, 'utf-8');
 
     console.log(`✓ OpenAPI spec generated successfully at: ${outputPath}`);
