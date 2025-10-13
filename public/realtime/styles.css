@@ -5,6 +5,66 @@
   width: 280px;
 }
 
+/* Topbar */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+  margin: -8px -8px 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.topbar .topbar-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar .topbar-spacer {
+  flex: 1;
+}
+
+/* Right Drawer */
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 340px;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(100%);
+  transition: transform var(--transition);
+  display: flex;
+  flex-direction: column;
+  z-index: 99999;
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.drawer-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
 .sidebar-section {
   padding: 0 16px 20px;
   border-bottom: 1px solid var(--border);
@@ -91,7 +151,6 @@ h3 {
 /* Action buttons in sidebar */
 .action-buttons {
   display: flex;
-  flex-direction: column;
   gap: 8px;
 }
 
@@ -103,8 +162,8 @@ h3 {
 #content {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  overflow: hidden;
+  gap: 12px;
+  overflow: auto;
 }
 
 /* Panel customizations */
@@ -125,8 +184,13 @@ h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border);
+}
+
+.panel-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .panel-header h2 {
@@ -140,7 +204,7 @@ button.small {
 
 /* Panel headings */
 h2 {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   font-size: 16px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -149,7 +213,7 @@ h2 {
 
 /* Form layouts */
 .form-row {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .form-row:last-child {
@@ -167,7 +231,7 @@ h2 {
 }
 
 .form-actions {
-  margin-top: 20px;
+  margin-top: 12px;
   display: flex;
   gap: 8px;
 }
@@ -220,6 +284,64 @@ h2 {
   min-height: 0;
 }
 
+/* Listeners */
+.listeners {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.listener-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.listener-item .pattern {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  font-size: 12px;
+}
+
+.listener-item .controls {
+  display: flex;
+  gap: 6px;
+}
+
+/* Rooms */
+.rooms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.room-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+
+.room-badge .remove {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+/* Matched logs highlight */
+.log.matched {
+  background: rgba(38, 166, 91, 0.12);
+}
+
 .logs:empty::after {
   content: 'No logs yet. Connect and emit events to see logs here.';
   display: block;
@@ -233,8 +355,8 @@ h2 {
 .log {
   display: grid;
   grid-template-columns: 90px 60px 1fr;
-  gap: 12px;
-  padding: 10px 8px;
+  gap: 8px;
+  padding: 8px 8px;
   border-bottom: 1px solid rgba(48, 54, 61, 0.5);
   align-items: start;
   transition: background var(--transition);
