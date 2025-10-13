@@ -1,6 +1,6 @@
-import type { Request, Response } from 'express';
+import type { Request } from 'express';
 import config from '../../config/env';
-import type { GoogleCallbackQuery } from '../../types';
+import type { GoogleCallbackQuery, ResponseExtended } from '../../types';
 import { successResponse } from '../../utils/api.utils';
 import type { JwtPayload } from '../../utils/auth.utils';
 import { AUTH_COOKIE_KEY, COOKIE_CONFIG } from './auth.constants';
@@ -20,36 +20,50 @@ import {
   resetPassword,
 } from './auth.service';
 
+// Using new res.ok() helper
 export const handleResetPassword = async (
   req: Request<unknown, unknown, ResetPasswordSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   await resetPassword(req.body);
 
-  return successResponse(res, 'Password successfully reset');
+  return res.ok?.({
+    success: true,
+    message: 'Password successfully reset',
+  });
 };
 
+// Using new res.ok() helper
 export const handleForgetPassword = async (
   req: Request<unknown, unknown, ForgetPasswordSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   const user = await forgetPassword(req.body);
 
-  return successResponse(res, 'Code has been sent', { userId: user._id });
+  return res.ok?.({
+    success: true,
+    message: 'Code has been sent',
+    data: { userId: user._id },
+  });
 };
 
+// Using new res.ok() helper
 export const handleChangePassword = async (
   req: Request<unknown, unknown, ChangePasswordSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   await changePassword((req.user as JwtPayload).sub, req.body);
 
-  return successResponse(res, 'Password successfully changed');
+  return res.ok?.({
+    success: true,
+    message: 'Password successfully changed',
+  });
 };
 
+// Using legacy successResponse (register doesn't return token directly)
 export const handleRegisterUser = async (
   req: Request<unknown, unknown, RegisterUserByEmailSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   const user = await registerUserByEmail(req.body);
 
@@ -57,10 +71,11 @@ export const handleRegisterUser = async (
     return successResponse(res, 'Please check your email for OTP', user);
   }
 
-  return successResponse(res, 'User has been reigstered', user);
+  return successResponse(res, 'User has been registered', user);
 };
 
-export const handleLogout = async (req: Request, res: Response) => {
+// Using new res.ok() helper
+export const handleLogout = async (req: Request, res: ResponseExtended) => {
   if (config.SET_SESSION && req.session && req.app.locals.sessionManager) {
     const sessionManager = req.app.locals.sessionManager;
     await sessionManager.revokeSession(req.session.sessionId);
@@ -68,12 +83,16 @@ export const handleLogout = async (req: Request, res: Response) => {
 
   res.clearCookie(AUTH_COOKIE_KEY, COOKIE_CONFIG);
 
-  return successResponse(res, 'Logout successful');
+  return res.ok?.({
+    success: true,
+    message: 'Logout successful',
+  });
 };
 
+// Using new res.ok() helper (login uses 200, not 201)
 export const handleLoginByEmail = async (
   req: Request<unknown, unknown, LoginUserByEmailSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   const metadata = {
     userAgent: req.headers['user-agent'],
@@ -89,18 +108,29 @@ export const handleLoginByEmail = async (
     res.cookie(AUTH_COOKIE_KEY, result.token, COOKIE_CONFIG);
   }
 
-  return successResponse(res, 'Login successful', {
-    token: result.token,
-    sessionId: result.sessionId,
+  return res.ok?.({
+    success: true,
+    message: 'Login successful',
+    data: {
+      token: result.token,
+    },
   });
 };
 
-export const handleGetCurrentUser = async (req: Request, res: Response) => {
+// Using new res.ok() helper
+export const handleGetCurrentUser = async (
+  req: Request,
+  res: ResponseExtended,
+) => {
   const user = req.user;
 
-  return successResponse(res, undefined, user);
+  return res.ok?.({
+    success: true,
+    data: user,
+  });
 };
-export const handleGoogleLogin = async (_: Request, res: Response) => {
+// Google OAuth redirects - no response schema needed
+export const handleGoogleLogin = async (_: Request, res: ResponseExtended) => {
   if (!config.GOOGLE_CLIENT_ID || !config.GOOGLE_REDIRECT_URI) {
     throw new Error('Google credentials are not set');
   }
@@ -109,9 +139,10 @@ export const handleGoogleLogin = async (_: Request, res: Response) => {
 
   res.redirect(googleAuthURL);
 };
+
 export const handleGoogleCallback = async (
   req: Request<unknown, unknown, unknown, GoogleCallbackQuery>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   const metadata = {
     userAgent: req.headers['user-agent'],
@@ -135,7 +166,11 @@ export const handleGoogleCallback = async (
   });
 };
 
-export const handleListSessions = async (req: Request, res: Response) => {
+// Using new res.ok() helper
+export const handleListSessions = async (
+  req: Request,
+  res: ResponseExtended,
+) => {
   if (!config.SET_SESSION || !req.app.locals.sessionManager) {
     throw new Error('Session management is not enabled');
   }
@@ -144,12 +179,16 @@ export const handleListSessions = async (req: Request, res: Response) => {
   const sessionManager = req.app.locals.sessionManager;
   const sessions = await sessionManager.listUserSessions(userId);
 
-  return successResponse(res, undefined, { sessions });
+  return res.ok?.({
+    success: true,
+    data: sessions,
+  });
 };
 
+// Using new res.ok() helper
 export const handleRevokeSession = async (
   req: Request<{ sessionId: string }>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   if (!config.SET_SESSION || !req.app.locals.sessionManager) {
     throw new Error('Session management is not enabled');
@@ -158,10 +197,17 @@ export const handleRevokeSession = async (
   const sessionManager = req.app.locals.sessionManager;
   await sessionManager.revokeSession(req.params.sessionId);
 
-  return successResponse(res, 'Session revoked successfully');
+  return res.ok?.({
+    success: true,
+    message: 'Session revoked successfully',
+  });
 };
 
-export const handleRevokeAllSessions = async (req: Request, res: Response) => {
+// Using new res.ok() helper
+export const handleRevokeAllSessions = async (
+  req: Request,
+  res: ResponseExtended,
+) => {
   if (!config.SET_SESSION || !req.app.locals.sessionManager) {
     throw new Error('Session management is not enabled');
   }
@@ -170,5 +216,8 @@ export const handleRevokeAllSessions = async (req: Request, res: Response) => {
   const sessionManager = req.app.locals.sessionManager;
   await sessionManager.revokeAllUserSessions(userId);
 
-  return successResponse(res, 'All sessions revoked successfully');
+  return res.ok?.({
+    success: true,
+    message: 'All sessions revoked successfully',
+  });
 };

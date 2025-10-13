@@ -1,5 +1,8 @@
+import { z } from 'zod';
 import { canAccess } from '../../middlewares/can-access';
 import MagicRouter from '../../openapi/magic-router';
+import { R } from '../../openapi/response.builders';
+import { userOutSchema } from '../user/user.dto';
 import {
   handleChangePassword,
   handleForgetPassword,
@@ -21,51 +24,157 @@ import {
   registerUserByEmailSchema,
   resetPasswordSchema,
 } from './auth.schema';
+import { sessionRecordSchema } from './session/session.schema';
 
 export const AUTH_ROUTER_ROOT = '/auth';
 
 const authRouter = new MagicRouter(AUTH_ROUTER_ROOT);
 
+// Login with email
 authRouter.post(
   '/login/email',
-  { requestType: { body: loginUserByEmailSchema } },
+  {
+    requestType: { body: loginUserByEmailSchema },
+    responses: {
+      200: R.success(z.object({ token: z.string() })),
+    },
+  },
   handleLoginByEmail,
 );
 
+// Register with email
 authRouter.post(
   '/register/email',
-  { requestType: { body: registerUserByEmailSchema } },
+  {
+    requestType: { body: registerUserByEmailSchema },
+    responses: {
+      201: R.success(z.object({ token: z.string() })),
+    },
+  },
   handleRegisterUser,
 );
 
-authRouter.post('/logout', {}, handleLogout);
+// Logout
+authRouter.post(
+  '/logout',
+  {
+    responses: {
+      200: R.success(
+        z.object({
+          success: z.boolean(),
+          message: z.string(),
+        }),
+      ),
+    },
+  },
+  handleLogout,
+);
 
-authRouter.get('/me', {}, canAccess(), handleGetCurrentUser);
+// Get current user
+authRouter.get(
+  '/me',
+  {
+    responses: {
+      200: R.success(userOutSchema),
+    },
+  },
+  canAccess(),
+  handleGetCurrentUser,
+);
 
+// Forget password
 authRouter.post(
   '/forget-password',
-  { requestType: { body: forgetPasswordSchema } },
+  {
+    requestType: { body: forgetPasswordSchema },
+    responses: {
+      200: R.success(z.object({ userId: z.string() })),
+    },
+  },
   handleForgetPassword,
 );
 
+// Change password
 authRouter.post(
   '/change-password',
-  { requestType: { body: changePasswordSchema } },
+  {
+    requestType: { body: changePasswordSchema },
+    responses: {
+      200: R.success(
+        z.object({
+          success: z.boolean(),
+          message: z.string(),
+        }),
+      ),
+    },
+  },
   canAccess(),
   handleChangePassword,
 );
 
+// Reset password
 authRouter.post(
   '/reset-password',
-  { requestType: { body: resetPasswordSchema } },
+  {
+    requestType: { body: resetPasswordSchema },
+    responses: {
+      200: R.success(
+        z.object({
+          success: z.boolean(),
+          message: z.string(),
+        }),
+      ),
+    },
+  },
   handleResetPassword,
 );
 
+// Google OAuth (redirects, no response schemas needed)
 authRouter.get('/google', {}, handleGoogleLogin);
 authRouter.get('/google/callback', {}, handleGoogleCallback);
 
-authRouter.get('/sessions', {}, canAccess(), handleListSessions);
-authRouter.delete('/sessions/:sessionId', {}, canAccess(), handleRevokeSession);
-authRouter.delete('/sessions', {}, canAccess(), handleRevokeAllSessions);
+// Session management
+authRouter.get(
+  '/sessions',
+  {
+    responses: {
+      200: R.success(z.array(sessionRecordSchema)),
+    },
+  },
+  canAccess(),
+  handleListSessions,
+);
+
+authRouter.delete(
+  '/sessions/:sessionId',
+  {
+    responses: {
+      200: R.success(
+        z.object({
+          success: z.boolean(),
+          message: z.string(),
+        }),
+      ),
+    },
+  },
+  canAccess(),
+  handleRevokeSession,
+);
+
+authRouter.delete(
+  '/sessions',
+  {
+    responses: {
+      200: R.success(
+        z.object({
+          success: z.boolean(),
+          message: z.string(),
+        }),
+      ),
+    },
+  },
+  canAccess(),
+  handleRevokeAllSessions,
+);
 
 export default authRouter.getRouter();

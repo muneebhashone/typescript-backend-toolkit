@@ -1,9 +1,14 @@
-import type { Request, Response } from 'express';
+import type { Request } from 'express';
+import type { ResponseExtended } from '../../types';
+import { errorResponse } from '../../utils/api.utils';
 import type { UserType } from '../user/user.dto';
 import { updateUser } from '../user/user.services';
-import { errorResponse, successResponse } from '../../utils/api.utils';
 
-export const handleProfileUpload = async (req: Request, res: Response) => {
+// Using new res.created() helper
+export const handleProfileUpload = async (
+  req: Request,
+  res: ResponseExtended,
+) => {
   try {
     const file = req.file;
 
@@ -13,11 +18,18 @@ export const handleProfileUpload = async (req: Request, res: Response) => {
       return errorResponse(res, 'File not uploaded, Please try again');
     }
 
-    const user = await updateUser(String(currentUser._id), {
+    await updateUser(String(currentUser._id), {
       avatar: String(file.location),
     });
 
-    return successResponse(res, 'Profile picture has been uploaded', user);
+    return res.created?.({
+      success: true,
+      message: 'Profile picture has been uploaded',
+      data: {
+        url: String(file.location),
+        key: (file as { key?: string }).key,
+      },
+    });
   } catch (err) {
     return errorResponse(res, (err as Error).message);
   }

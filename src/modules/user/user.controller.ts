@@ -1,7 +1,7 @@
-import type { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
+import type { Request } from 'express';
 import type { MongoIdSchemaType } from '../../common/common.schema';
 import config from '../../config/env';
+import type { ResponseExtended } from '../../types';
 import { successResponse } from '../../utils/api.utils';
 import { generateRandomPassword } from '../../utils/auth.utils';
 import type { CreateUserSchemaType, GetUsersSchemaType } from './user.schema';
@@ -9,16 +9,17 @@ import { createUser, deleteUser, getUsers } from './user.services';
 
 export const handleDeleteUser = async (
   req: Request<MongoIdSchemaType, unknown>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   await deleteUser({ id: req.params.id });
 
   return successResponse(res, 'User has been deleted');
 };
 
+// Using new res.created() helper
 export const handleCreateUser = async (
   req: Request<unknown, unknown, CreateUserSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   const data = req.body;
 
@@ -28,17 +29,17 @@ export const handleCreateUser = async (
     role: 'DEFAULT_USER',
   });
 
-  return successResponse(
-    res,
-    'Email has been sent to the user',
-    user,
-    StatusCodes.CREATED,
-  );
+  return res.created?.({
+    success: true,
+    message: 'Email has been sent to the user',
+    data: user,
+  });
 };
 
+// Using new res.created() helper
 export const handleCreateSuperAdmin = async (
   _: Request<unknown, unknown, unknown>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   const user = await createUser({
     email: config.ADMIN_EMAIL,
@@ -50,17 +51,17 @@ export const handleCreateSuperAdmin = async (
     otp: null,
   });
 
-  return successResponse(
-    res,
-    'Super Admin has been created',
-    { email: user.email, password: config.ADMIN_PASSWORD },
-    StatusCodes.CREATED,
-  );
+  return res.created?.({
+    success: true,
+    message: 'Super Admin has been created',
+    data: { email: user.email, password: config.ADMIN_PASSWORD },
+  });
 };
 
+// Using new res.ok() helper with paginated response
 export const handleGetUsers = async (
   req: Request<unknown, unknown, unknown, GetUsersSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   const { results, paginatorInfo } = await getUsers(
     {
@@ -69,5 +70,11 @@ export const handleGetUsers = async (
     req.query,
   );
 
-  return successResponse(res, undefined, { results, paginatorInfo });
+  return res.ok?.({
+    success: true,
+    data: {
+      items: results,
+      paginator: paginatorInfo,
+    },
+  });
 };
