@@ -8,8 +8,13 @@
   let socket = null;
 
   function setStatus(connected) {
-    statusEl.textContent = connected ? 'Connected' : 'Disconnected';
-    statusEl.className = `badge ${connected ? 'ok' : ''}`;
+    if (connected) {
+      statusEl.textContent = 'Connected';
+      statusEl.className = 'badge success';
+    } else {
+      statusEl.textContent = 'Disconnected';
+      statusEl.className = 'badge danger';
+    }
     $('disconnect').disabled = !connected;
     $('connect').disabled = !!connected;
   }
@@ -18,7 +23,8 @@
     const time = new Date().toLocaleTimeString();
     const item = document.createElement('div');
     item.className = `log ${direction}`;
-    const pretty = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+    const pretty =
+      typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
     item.innerHTML = `<span class="time">${time}</span> <span class="dir">${direction}</span> <span class="event">${event}</span> <pre class="payload">${pretty}</pre>`;
     logsEl.prepend(item);
   }
@@ -63,7 +69,9 @@
       log('in', 'connect_error', { message: err.message });
     });
 
-    socket.on('reconnect_attempt', (n) => log('in', 'reconnect_attempt', { attempt: n }));
+    socket.on('reconnect_attempt', (n) =>
+      log('in', 'reconnect_attempt', { attempt: n }),
+    );
     socket.on('reconnect_failed', () => log('in', 'reconnect_failed'));
 
     socket.on('pong', (data) => log('in', 'pong', data));
@@ -99,7 +107,9 @@
     if (!socket) return log('out', 'emit', 'not connected');
     const event = $('event').value.trim();
     if (!event) return log('out', 'emit', 'missing event name');
-    const type = (document.querySelector('input[name="payload-type"]:checked')?.value) || 'json';
+    const type =
+      document.querySelector('input[name="payload-type"]:checked')?.value ||
+      'json';
     let payloadToSend = null;
     if (type === 'json') {
       const text = $('payload').value.trim();
@@ -122,10 +132,14 @@
 
   // payload type toggle
   const toggleVisibility = () => {
-    const type = (document.querySelector('input[name="payload-type"]:checked')?.value) || 'json';
+    const type =
+      document.querySelector('input[name="payload-type"]:checked')?.value ||
+      'json';
     const isJson = type === 'json';
-    $('payload').parentElement.style.display = isJson ? '' : 'none';
-    $('row-payload-string').style.display = isJson ? 'none' : '';
+    const jsonRow = $('row-payload-json');
+    const stringRow = $('row-payload-string');
+    if (jsonRow) jsonRow.classList.toggle('hidden', !isJson);
+    if (stringRow) stringRow.classList.toggle('hidden', isJson);
   };
   ['pt-json', 'pt-string'].forEach((id) => {
     const el = $(id);

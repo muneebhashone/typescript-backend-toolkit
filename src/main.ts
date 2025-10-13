@@ -71,7 +71,7 @@ const bootstrapServer = async () => {
     serverAdapter,
   });
 
-  app.use('/admin/queues', serverAdapter.getRouter());
+  app.use('/queues', serverAdapter.getRouter());
 
   app.use(globalErrorHandler);
 
@@ -89,11 +89,11 @@ const bootstrapServer = async () => {
   server.listen(config.PORT, () => {
     logger.info(`Server is running on http://localhost:${config.PORT}`);
     logger.info(`RESTful API: http://localhost:${config.PORT}/api`);
-    logger.info(`Swagger API Docs: http://localhost:${config.PORT}/api-docs`);
+    logger.info(`OpenAPI Docs: http://localhost:${config.PORT}/docs`);
     logger.info(`Health: http://localhost:${config.PORT}/ops/health`);
     logger.info(`Readiness: http://localhost:${config.PORT}/ops/readiness`);
     logger.info(`Metrics: http://localhost:${config.PORT}/ops/metrics`);
-    logger.info(`BullBoard: http://localhost:${config.PORT}/admin/queues`);
+    logger.info(`BullBoard: http://localhost:${config.PORT}/queues`);
     logger.info(`Client-side url set to: ${config.CLIENT_SIDE_URL}`);
     logger.info(`Admin dashboard: http://localhost:${config.PORT}/admin`);
   });

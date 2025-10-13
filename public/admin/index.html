@@ -4,63 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/shared-styles.css" />
     <style>
-      :root {
-        --bg: #0d1117;
-        --panel: #161b22;
-        --border: #30363d;
-        --text: #c9d1d9;
-        --muted: #8b949e;
-        --primary: #1f6feb;
-        --primary-hover: #2f81f7;
-        --danger: #f85149;
-        --radius: 6px;
-        --radius-sm: 3px;
-        --radius-lg: 8px;
-        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
-        --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.2);
-        --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.3);
-        --transition: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      * {
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        height: 100%;
-      }
-      body {
-        margin: 0;
-        display: flex;
-        height: 100vh;
-        font-family:
-          'Inter',
-          ui-sans-serif,
-          system-ui,
-          -apple-system,
-          Segoe UI,
-          Roboto,
-          'Helvetica Neue',
-          Arial,
-          'Apple Color Emoji',
-          'Segoe UI Emoji';
-        font-size: 14px;
-        line-height: 1.5;
-        color: var(--text);
-        background: var(--bg);
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-
-      /* Sidebar */
+      /* Admin Dashboard Specific Styles */
       #sidebar {
-        width: 300px;
-        padding: 0;
-        border-right: 1px solid var(--border);
-        background: var(--bg);
-        overflow: auto;
-        display: flex;
-        flex-direction: column;
+        width: 280px;
       }
       #sidebar::before {
         content: 'Admin Dashboard';
@@ -71,7 +19,7 @@
         letter-spacing: -0.02em;
         color: var(--text);
         border-bottom: 1px solid var(--border);
-        background: linear-gradient(180deg, var(--bg) 0%, rgba(22, 27, 34, 0.4) 100%);
+        background: var(--bg);
       }
       h3 {
         margin: 0;
@@ -99,8 +47,7 @@
         font-weight: 500;
         border: 1px solid transparent;
         background: transparent;
-        transition:
-          all var(--transition);
+        transition: all var(--transition);
       }
       .resource::before {
         content: '';
@@ -129,16 +76,6 @@
         height: 60%;
       }
 
-      /* Content */
-      #content {
-        flex: 1;
-        padding: 24px 28px;
-        overflow: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
-
       /* Toolbar */
       .toolbar {
         display: flex;
@@ -149,73 +86,6 @@
         border-radius: var(--radius-lg);
         padding: 14px 16px;
         box-shadow: var(--shadow-sm);
-      }
-      input,
-      select,
-      textarea {
-        padding: 10px 14px;
-        font-size: 13px;
-        font-family: inherit;
-        color: var(--text);
-        background: var(--bg);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        outline: none;
-        transition: all var(--transition);
-      }
-      input::placeholder {
-        color: #6e7681;
-      }
-      input:focus,
-      select:focus,
-      textarea:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.12);
-      }
-      textarea {
-        resize: vertical;
-        min-height: 80px;
-      }
-
-      /* Buttons */
-      button {
-        position: relative;
-        padding: 8px 16px;
-        font-size: 13px;
-        font-weight: 600;
-        font-family: inherit;
-        color: #f0f6fc;
-        background: var(--primary);
-        border: 1px solid transparent;
-        letter-spacing: 0.01em;
-        border-radius: var(--radius);
-        cursor: pointer;
-        box-shadow: var(--shadow-sm);
-        transition: all var(--transition);
-      }
-      button:hover {
-        background: var(--primary-hover);
-        box-shadow: var(--shadow-md);
-        transform: translateY(-1px);
-      }
-      button:active {
-        transform: translateY(0);
-        box-shadow: var(--shadow-sm);
-      }
-      button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-      }
-
-      /* Cards */
-      .card {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-lg);
-        padding: 0;
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
       }
 
       /* Table */
@@ -312,17 +182,18 @@
       .modal {
         position: fixed;
         inset: 0;
-        display: flex;
         align-items: center;
         justify-content: center;
         z-index: 50;
+      }
+      .modal:not(.hidden) {
+        display: flex;
         animation: fadeIn 0.2s ease;
       }
       .modal-backdrop {
         position: absolute;
         inset: 0;
         background: rgba(0, 0, 0, 0.65);
-        backdrop-filter: blur(2px);
       }
       .modal-card {
         position: relative;
@@ -370,9 +241,6 @@
       }
 
       /* States */
-      .hidden {
-        display: none;
-      }
       .danger {
         padding: 12px 16px;
         background: rgba(248, 81, 73, 0.1);
@@ -385,39 +253,9 @@
       .danger:empty {
         display: none;
       }
-      .muted {
-        color: var(--muted);
-        font-size: 12px;
-      }
-
-      /* Animations */
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-      @keyframes scaleIn {
-        from {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
 
       /* Responsive */
       @media (max-width: 960px) {
-        #sidebar {
-          display: none;
-        }
-        #content {
-          padding: 16px;
-        }
         .form-grid {
           grid-template-columns: 1fr;
         }

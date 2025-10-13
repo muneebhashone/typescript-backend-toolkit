@@ -116,8 +116,8 @@ src/
 
 ### API Documentation
 
-- Swagger UI: `http://localhost:3000/api-docs`
-- OpenAPI JSON: `http://localhost:3000/api-docs.json`
+- Swagger UI: `http://localhost:3000/docs`
+- OpenAPI JSON: `http://localhost:3000/docs.json`
 
 ### Queue Dashboard
 
@@ -161,7 +161,7 @@ pnpm add -D package-name
 
 ### Using Swagger UI
 
-1. Navigate to `http://localhost:3000/api-docs`
+1. Navigate to `http://localhost:3000/docs`
 2. Expand endpoint
 3. Click "Try it out"
 4. Fill in parameters
@@ -186,7 +186,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 
 ### Using Postman/Insomnia
 
-1. Import OpenAPI spec from `http://localhost:3000/api-docs.json`
+1. Import OpenAPI spec from `http://localhost:3000/docs.json`
 2. All endpoints auto-configured
 3. Set Authorization header for protected routes
 
