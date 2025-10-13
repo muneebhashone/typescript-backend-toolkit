@@ -25,8 +25,4 @@ export interface RequestExtended extends Request {
   session?: SessionRecord;
 }
 
-export interface ResponseExtended extends Response {
-  locals: {
-    validateSchema?: ZodSchema;
-  };
-}
+export interface ResponseExtended extends Response {}
