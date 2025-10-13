@@ -38,7 +38,7 @@ export async function initializeApp() {
       }),
       realtimePlugin(),
       openApiPlugin({
-        path: '/api-docs',
+        path: '/docs',
         enabled: config.NODE_ENV !== 'production',
       }),
     ],

@@ -11,13 +11,13 @@ export interface OpenApiOptions {
 export const openApiPlugin: PluginFactory<OpenApiOptions> = (
   options = {},
 ): ToolkitPlugin<OpenApiOptions> => {
-  const { path = '/api-docs', enabled = true } = options;
+  const { path = '/docs', enabled = true } = options;
 
   return {
     name: 'openapi',
     priority: 10,
     options,
-    
+
     register({ app }) {
       if (!enabled) {
         return;

@@ -111,7 +111,7 @@ app.use(<module-name>Router);
 2. Visit Swagger UI:
 
    ```
-   http://localhost:3000/api-docs
+   http://localhost:3000/docs
    ```
 
 3. Test all endpoints using the interactive API documentation

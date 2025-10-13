@@ -4,83 +4,137 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Realtime Tester</title>
+    <link rel="stylesheet" href="/shared-styles.css" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header>
-      <h1>Realtime Tester</h1>
-      <div id="status" class="badge">Disconnected</div>
-    </header>
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="sidebar-header">Realtime Tester</div>
 
-    <section class="panel">
-      <h2>Connection</h2>
-      <div class="row">
-        <label>Namespace</label>
-        <input id="ns" type="text" value="/" />
+      <div class="sidebar-section">
+        <h3>Connection Status</h3>
+        <div class="status-info">
+          <div class="status-row">
+            <span class="label">Status</span>
+            <div id="status" class="badge danger">Disconnected</div>
+          </div>
+          <div class="status-row">
+            <span class="label">Socket ID</span>
+            <code id="sid">—</code>
+          </div>
+          <div class="status-row">
+            <span class="label">Transport</span>
+            <code id="transport">—</code>
+          </div>
+        </div>
       </div>
-      <div class="row">
-        <label>Path</label>
-        <input id="path" type="text" value="/socket.io" />
-      </div>
-      <div class="row">
-        <label>Auth token</label>
-        <input id="token" type="text" placeholder="optional" />
-      </div>
-      <div class="row">
-        <label>Transports</label>
-        <label
-          ><input id="t-websocket" type="checkbox" checked /> websocket</label
-        >
-        <label><input id="t-polling" type="checkbox" checked /> polling</label>
-      </div>
-      <div class="row actions">
-        <button id="connect">Connect</button>
-        <button id="disconnect" disabled>Disconnect</button>
-      </div>
-      <div class="row info">
-        <div>Socket ID: <code id="sid">—</code></div>
-        <div>Transport: <code id="transport">—</code></div>
-      </div>
-    </section>
 
-    <section class="panel">
-      <h2>Quick actions</h2>
-      <button id="ping">Send ping</button>
-    </section>
+      <div class="sidebar-section">
+        <h3>Connection Settings</h3>
+        <div class="sidebar-form">
+          <div class="sidebar-form-row">
+            <label for="ns">Namespace</label>
+            <input id="ns" type="text" value="/" />
+          </div>
+          <div class="sidebar-form-row">
+            <label for="path">Path</label>
+            <input id="path" type="text" value="/socket.io" />
+          </div>
+          <div class="sidebar-form-row">
+            <label for="token">Auth Token</label>
+            <input id="token" type="text" placeholder="optional" />
+          </div>
+          <div class="sidebar-form-row">
+            <label>Transports</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input id="t-websocket" type="checkbox" checked />
+                <span>websocket</span>
+              </label>
+              <label class="checkbox-label">
+                <input id="t-polling" type="checkbox" checked />
+                <span>polling</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <section class="panel">
-      <h2>Custom emit</h2>
-      <div class="row">
-        <label>Event name</label>
-        <input id="event" type="text" placeholder="event name" />
+      <div class="sidebar-section">
+        <h3>Quick Actions</h3>
+        <div class="action-buttons">
+          <button id="connect">Connect</button>
+          <button id="disconnect" class="secondary" disabled>Disconnect</button>
+          <button id="ping" class="secondary">Send Ping</button>
+        </div>
       </div>
-      <div class="row">
-        <label>Payload type</label>
-        <label class="seg"><input type="radio" name="payload-type" id="pt-json" value="json" checked /> JSON</label>
-        <label class="seg"><input type="radio" name="payload-type" id="pt-string" value="string" /> String</label>
-      </div>
-      <div class="row">
-        <label>Payload (JSON)</label>
-        <textarea id="payload" rows="6" placeholder='{"message":"hello"}'></textarea>
-      </div>
-      <div class="row" id="row-payload-string" style="display:none;">
-        <label>Payload (string)</label>
-        <input id="payload-str" type="text" placeholder="hello world" />
-      </div>
-      <div class="row actions">
-        <button id="emit">Emit</button>
-      </div>
-    </section>
+    </div>
 
-    <section class="panel">
-      <h2>Logs</h2>
-      <div id="logs" class="logs"></div>
-      <div class="row actions">
-        <button id="clear">Clear logs</button>
+    <!-- Main Content -->
+    <div id="content">
+      <!-- Custom Emit Panel -->
+      <div class="panel padded">
+        <h2>Custom Emit</h2>
+        <div class="form-row">
+          <label for="event">Event Name</label>
+          <input id="event" type="text" placeholder="event name" />
+        </div>
+        <div class="form-row">
+          <label>Payload Type</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input
+                type="radio"
+                name="payload-type"
+                id="pt-json"
+                value="json"
+                checked
+              />
+              <span>JSON</span>
+            </label>
+            <label class="radio-label">
+              <input
+                type="radio"
+                name="payload-type"
+                id="pt-string"
+                value="string"
+              />
+              <span>String</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-row" id="row-payload-json">
+          <label for="payload">Payload (JSON)</label>
+          <textarea
+            id="payload"
+            rows="8"
+            placeholder='{"message":"hello"}'
+          ></textarea>
+        </div>
+        <div class="form-row hidden" id="row-payload-string">
+          <label for="payload-str">Payload (String)</label>
+          <input id="payload-str" type="text" placeholder="hello world" />
+        </div>
+        <div class="form-actions">
+          <button id="emit">Emit</button>
+        </div>
       </div>
-    </section>
 
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous"></script>
+      <!-- Logs Panel -->
+      <div class="panel logs-panel">
+        <div class="panel-header">
+          <h2>Event Logs</h2>
+          <button id="clear" class="secondary small">Clear</button>
+        </div>
+        <div id="logs" class="logs"></div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.socket.io/4.8.1/socket.io.min.js"
+      crossorigin="anonymous"
+    ></script>
     <script src="./app.js"></script>
   </body>
 </html>
