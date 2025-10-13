@@ -197,6 +197,10 @@ h3 {
   margin: 0;
 }
 
+.panel-body {
+  padding: 12px 16px 16px;
+}
+
 button.small {
   padding: 6px 12px;
   font-size: 12px;
