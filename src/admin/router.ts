@@ -5,6 +5,7 @@ import multer from 'multer';
 import type { FilterQuery } from 'mongoose';
 import { adminResources, getResource } from './registry';
 import { buildSearchQuery, getFields } from './utils/schema-introspection';
+import type { AdminField } from './types';
 
 export const adminApiRouter = Router();
 
@@ -99,7 +100,7 @@ adminApiRouter.get('/:resource/lookup/:field', async (req, res) => {
   if (!resource) return res.status(404).json({ error: 'resource_not_found' });
 
   const fieldsMeta = getFields(resource.model, resource.fields);
-  const field = fieldsMeta.find((f) => f.path === req.params.field);
+  const field = findFieldByPath(fieldsMeta, req.params.field);
   if (!field || field.type !== 'relation' || !field.relation)
     return res.status(404).json({ error: 'relation_field_not_found' });
 
@@ -238,4 +239,20 @@ export function registerAdminUI(app: Application) {
     const indexPath = path.join(process.cwd(), 'public', 'admin', 'index.html');
     res.sendFile(indexPath);
   });
+}
+
+function findFieldByPath(fields: AdminField[], dotted: string): AdminField | undefined {
+  const parts = dotted.split('.');
+  let currentFields = fields;
+  let field: AdminField | undefined;
+  for (let i = 0; i < parts.length; i++) {
+    const seg = parts[i];
+    field = currentFields.find((f) => f.path === seg);
+    if (!field) return undefined;
+    if (i < parts.length - 1) {
+      if (field.type !== 'subdocument' || !field.children) return undefined;
+      currentFields = field.children;
+    }
+  }
+  return field;
 }

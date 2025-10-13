@@ -1,4 +1,4 @@
-import type { Model } from 'mongoose';
+import type { Model, Schema as MongooseSchema } from 'mongoose';
 import type { AdminField } from '../types';
 import { getResourceByModelName } from '../registry';
 
@@ -26,9 +26,17 @@ function mapType(instance?: string): string {
 }
 
 export function getFields(model: Model<any>, only?: string[]): AdminField[] {
-  const schema = model.schema;
+  return extractFieldsFromSchema(model.schema, only, 0);
+}
+
+function extractFieldsFromSchema(
+  schema: MongooseSchema<any>,
+  only: string[] | undefined,
+  depth: number,
+): AdminField[] {
   const fields: AdminField[] = [];
-  for (const [path, schemaType] of Object.entries(schema.paths)) {
+  if (depth > 3) return fields; // avoid deep recursion
+  for (const [path, schemaType] of Object.entries((schema as any).paths)) {
     if (path === '__v') continue;
     if (only && only.length && !only.includes(path)) continue;
     const instance = (schemaType as any).instance as string | undefined;
@@ -42,14 +50,49 @@ export function getFields(model: Model<any>, only?: string[]): AdminField[] {
     }
     const isArray = instance === 'Array';
 
+    // Subdocument (single)
+    const subSchema: MongooseSchema<any> | undefined = (schemaType as any).schema;
+    if (subSchema) {
+      const children = extractFieldsFromSchema(subSchema, undefined, depth + 1);
+      fields.push({
+        path,
+        type: 'subdocument',
+        required,
+        enumValues,
+        isArray: false,
+        children,
+      });
+      continue;
+    }
+
+    // Array of subdocuments
+    const caster: any = (schemaType as any).caster || (schemaType as any).$embeddedSchemaType;
+    if (isArray && caster && caster.schema) {
+      const children = extractFieldsFromSchema(caster.schema, undefined, depth + 1);
+      fields.push({
+        path,
+        type: 'subdocument',
+        required,
+        enumValues,
+        isArray: true,
+        children,
+      });
+      continue;
+    }
+
     // Detect relations
     let refModelName: string | undefined;
     if (options && options.ref && (instance === 'ObjectId' || instance === 'ObjectID')) {
       refModelName = String(options.ref);
     } else if (isArray) {
-      const caster: any = (schemaType as any).caster || (schemaType as any).$embeddedSchemaType;
-      if (caster && (caster.instance === 'ObjectId' || caster.instance === 'ObjectID') && caster.options && caster.options.ref) {
-        refModelName = String(caster.options.ref);
+      const casterForRef: any = (schemaType as any).caster || (schemaType as any).$embeddedSchemaType;
+      if (
+        casterForRef &&
+        (casterForRef.instance === 'ObjectId' || casterForRef.instance === 'ObjectID') &&
+        casterForRef.options &&
+        casterForRef.options.ref
+      ) {
+        refModelName = String(casterForRef.options.ref);
       }
     }
 
@@ -86,7 +129,17 @@ export function getFields(model: Model<any>, only?: string[]): AdminField[] {
 
 export function buildSearchQuery(q: string | undefined, fields: AdminField[]) {
   if (!q) return {};
-  const searchables = fields.filter((f) => f.type === 'string').map((f) => f.path);
+  const searchables: string[] = [];
+  const walk = (fs: AdminField[], prefix?: string) => {
+    for (const f of fs) {
+      const full = prefix ? `${prefix}.${f.path}` : f.path;
+      if (f.type === 'string') searchables.push(full);
+      if (f.type === 'subdocument' && Array.isArray(f.children) && f.children.length) {
+        walk(f.children, full);
+      }
+    }
+  };
+  walk(fields);
   if (!searchables.length) return {};
   return {
     $or: searchables.map((p) => ({ [p]: { $regex: q, $options: 'i' } })),
