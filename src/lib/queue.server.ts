@@ -1,7 +1,7 @@
 import type { Processor, QueueOptions, WorkerOptions } from 'bullmq';
 import { Queue as BullQueue, Worker } from 'bullmq';
 
-import logger from './logger.service';
+import logger from '../observability/logger';
 import redisClient from './redis.server';
 
 type RegisteredQueue = {

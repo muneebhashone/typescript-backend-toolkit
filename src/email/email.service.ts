@@ -1,6 +1,6 @@
 import { render } from '@react-email/render';
 import config from '../config/env';
-import logger from '../lib/logger.service';
+import logger from '../observability/logger';
 import mailgunClient from '../lib/mailgun.server';
 import ResetPasswordEmail from './templates/ResetPassword';
 

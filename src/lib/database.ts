@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import config from '../config/env';
-import logger from './logger.service';
+import logger from '../observability/logger';
 
 export const connectDatabase = async () => {
   try {

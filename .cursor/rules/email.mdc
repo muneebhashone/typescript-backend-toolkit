@@ -363,7 +363,7 @@ View:
 Check email sending logs:
 
 ```typescript
-import { logger } from '@/lib/logger.service';
+import { logger } from '@/observability/logger';
 
 // Logs are automatically added by email service
 logger.info('Email sent', { to, template });

@@ -13,7 +13,7 @@ Services contain business logic, database operations, external API calls, and co
 
 ```typescript
 import { Model } from './module.model';
-import { logger } from '@/lib/logger.service';
+import { logger } from '@/observability/logger';
 import type { CreateInput, UpdateInput } from './module.dto';
 
 /**
@@ -289,7 +289,7 @@ throw new Error('Something went wrong'); // 500
 Use Pino logger:
 
 ```typescript
-import { logger } from '@/lib/logger.service';
+import { logger } from '@/observability/logger';
 
 logger.info('Operation performed', { userId, itemId });
 logger.error('Error occurred', { error: err.message, stack: err.stack });

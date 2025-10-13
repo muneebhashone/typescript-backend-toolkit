@@ -1,6 +1,6 @@
 import type mongoose from 'mongoose';
 import type config from '../config/env';
-import logger from '../lib/logger.service';
+import logger from '../observability/logger';
 
 export type SeederContext = {
   db: mongoose.Connection;

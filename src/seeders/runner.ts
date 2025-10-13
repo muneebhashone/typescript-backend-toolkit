@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { connectDatabase, disconnectDatabase } from '../lib/database';
 import config from '../config/env';
-import logger from '../lib/logger.service';
+import logger from '../observability/logger';
 import type { Seeder, SeederContext } from './types';
 
 type RunOptions = {
