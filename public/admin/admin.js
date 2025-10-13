@@ -8,6 +8,7 @@
     limit: 10,
     total: 0,
     data: [],
+    selectedIds: new Set(),
     // cache relation labels: key => label, where key = `${resource}:${id}`
     labelCache: Object.create(null),
   };
@@ -76,11 +77,45 @@
     state.resources = resources;
     const wrap = $('#resources');
     wrap.innerHTML = '';
+    // Prepare concurrent count fetches (used for header & sidebar badges)
+    const counts = Object.create(null);
+    try {
+      const countPromises = resources.map(async (r) => {
+        try {
+          const resp = await api(`/${r.name}?page=1&limit=1`);
+          return { name: r.name, total: resp.total || 0 };
+        } catch {
+          return { name: r.name, total: null };
+        }
+      });
+      Object.assign(
+        counts,
+        Object.fromEntries(
+          (await Promise.all(countPromises)).map((c) => [c.name, c.total]),
+        ),
+      );
+    } catch {}
     resources.forEach((r) => {
       const item = el('div', {
         className: `resource${state.current === r.name ? ' active' : ''}`,
       });
-      item.textContent = r.label || r.name;
+      const row = el(
+        'div',
+        { style: 'display:flex; align-items:center; gap:8px;' },
+        [
+          el('span', { textContent: r.label || r.name }),
+          el(
+            'span',
+            {
+              className: 'muted',
+              style:
+                'font-size:11px; padding:2px 6px; border:1px solid var(--border); border-radius:10px; background: var(--panel);',
+            },
+            [counts[r.name] == null ? '…' : String(counts[r.name])],
+          ),
+        ],
+      );
+      item.appendChild(row);
       item.onclick = () => selectResource(r.name);
       wrap.appendChild(item);
     });
@@ -109,6 +144,19 @@
     const table = el('table');
     const thead = el('thead');
     const trh = el('tr');
+    // Select-all checkbox header
+    const selectAll = el('input', { type: 'checkbox' });
+    selectAll.onchange = (e) => {
+      const checked = !!selectAll.checked;
+      if (checked) {
+        state.data.forEach((row) => state.selectedIds.add(String(row._id)));
+      } else state.selectedIds.clear();
+      renderList();
+      updateBulkBtnState();
+    };
+    const thSelect = el('th');
+    thSelect.appendChild(selectAll);
+    trh.appendChild(thSelect);
     cols
       .concat(['actions'])
       .forEach((c) => trh.appendChild(el('th', { textContent: c })));
@@ -117,6 +165,18 @@
     const tbody = el('tbody');
     state.data.forEach((row) => {
       const tr = el('tr');
+      // Row select checkbox
+      const tdChk = el('td');
+      const cb = el('input', { type: 'checkbox' });
+      cb.checked = state.selectedIds.has(String(row._id));
+      cb.onchange = () => {
+        const id = String(row._id);
+        if (cb.checked) state.selectedIds.add(id);
+        else state.selectedIds.delete(id);
+        updateBulkBtnState();
+      };
+      tdChk.appendChild(cb);
+      tr.appendChild(tdChk);
       cols.forEach((c) => {
         const f = fieldByPath[c];
         tr.appendChild(el('td', { textContent: formatCell(row[c], f) }));
@@ -143,6 +203,11 @@
     list.innerHTML = '';
     list.appendChild(table);
     $('#pageInfo').textContent = `Page ${state.page} — ${state.total} total`;
+    // Reflect header select-all state (all rows selected)
+    const allSelected = state.data.every((r) =>
+      state.selectedIds.has(String(r._id)),
+    );
+    selectAll.checked = allSelected && state.data.length > 0;
   }
 
   function formatVal(v) {
@@ -380,19 +445,36 @@
   async function refresh() {
     if (!state.current) return;
     const q = $('#search').value.trim();
+    const sort = getSort(state.current);
     const { data, total } = await api(
-      `/${state.current}?page=${state.page}&limit=${state.limit}${q ? `&q=${encodeURIComponent(q)}` : ''}`,
+      `/${state.current}?page=${state.page}&limit=${state.limit}${q ? `&q=${encodeURIComponent(q)}` : ''}${sort ? `&sort=${encodeURIComponent(sort)}` : ''}`,
     );
     state.data = data;
     state.total = total;
+    // Keep only selected ids that are present on the current page
+    const idsOnPage = new Set(data.map((r) => String(r._id)));
+    state.selectedIds = new Set(
+      Array.from(state.selectedIds).filter((id) => idsOnPage.has(id)),
+    );
     await batchLoadRelationLabels();
     renderList();
+    updateBulkBtnState();
   }
 
   async function selectResource(name) {
     state.current = name;
     state.page = 1;
+    state.selectedIds.clear();
     $('#search').value = '';
+    // Sync toolbar sort select with saved preference for this resource
+    try {
+      const s = $('#sortSelect');
+      if (s) {
+        const savedSort =
+          localStorage.getItem(`admin.sort.${name}`) || '-createdAt';
+        s.value = savedSort;
+      }
+    } catch {}
     try {
       localStorage.setItem('admin.currentResource', name);
     } catch {}
@@ -403,6 +485,58 @@
 
   $('#refresh').onclick = refresh;
   $('#new').onclick = () => showForm(null);
+  // Sorting select next to Clear All
+  (function initToolbarSort() {
+    const s = $('#sortSelect');
+    if (!s) return;
+    try {
+      if (state.current) {
+        const saved = localStorage.getItem(`admin.sort.${state.current}`);
+        if (saved) s.value = saved;
+      }
+    } catch {}
+    s.onchange = async () => {
+      if (!state.current) return;
+      try {
+        localStorage.setItem(`admin.sort.${state.current}`, s.value);
+      } catch {}
+      state.page = 1;
+      await refresh();
+    };
+  })();
+  $('#bulkDelete').onclick = async () => {
+    if (!state.current) return;
+    const ids = Array.from(state.selectedIds);
+    if (ids.length === 0) return;
+    if (!confirm(`Delete ${ids.length} selected record(s)?`)) return;
+    try {
+      await api(`/${state.current}/bulk-delete`, {
+        method: 'POST',
+        body: JSON.stringify({ ids }),
+      });
+      state.selectedIds.clear();
+      await refresh();
+    } catch (e) {
+      $('#error').textContent = e.message || 'Bulk delete failed';
+    }
+  };
+  $('#clearAll').onclick = async () => {
+    if (!state.current) return;
+    if (
+      !confirm(
+        'This will delete ALL records for this resource. This cannot be undone. Continue?',
+      )
+    )
+      return;
+    try {
+      await api(`/${state.current}/clear`, { method: 'POST' });
+      state.selectedIds.clear();
+      await refresh();
+      await loadResources();
+    } catch (e) {
+      $('#error').textContent = e.message || 'Clear all failed';
+    }
+  };
   $('#prev').onclick = async () => {
     if (state.page > 1) {
       state.page--;
@@ -444,6 +578,20 @@
         : state.resources[0] && state.resources[0].name;
     if (pick) selectResource(pick);
   });
+
+  function updateBulkBtnState() {
+    const btn = $('#bulkDelete');
+    if (!btn) return;
+    btn.disabled = state.selectedIds.size === 0;
+  }
+
+  function getSort(resource) {
+    try {
+      return localStorage.getItem(`admin.sort.${resource}`) || '-createdAt';
+    } catch {
+      return '-createdAt';
+    }
+  }
 
   // Helpers for relation fields
   function debounce(fn, ms) {

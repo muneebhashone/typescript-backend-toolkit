@@ -275,6 +275,15 @@
         <input id="search" placeholder="Search..." />
         <button id="refresh">Refresh</button>
         <button id="new">New</button>
+        <button id="bulkDelete" disabled>Bulk Delete</button>
+        <button id="clearAll">Clear All</button>
+        <select id="sortSelect">
+          <option value="-createdAt">Newest</option>
+          <option value="createdAt">Oldest</option>
+          <option value="-updatedAt">Recently updated</option>
+          <option value="-_id">ID desc</option>
+          <option value="_id">ID asc</option>
+        </select>
       </div>
 
       <div class="card" id="list"></div>
