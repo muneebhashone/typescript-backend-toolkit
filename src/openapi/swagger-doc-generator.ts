@@ -1,38 +1,42 @@
-import fs from "node:fs/promises";
-import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
-import * as yaml from "yaml";
+import fs from 'node:fs/promises';
+import { OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
+import * as yaml from 'yaml';
 
-import type { OpenAPIObject } from "openapi3-ts/oas30";
-import config from "../config/env";
-import { registry } from "./swagger-instance";
+import type { OpenAPIObject } from 'openapi3-ts/oas30';
+import config from '../config/env';
+import { registry } from './swagger-instance';
 
 export const getOpenApiDocumentation = (): OpenAPIObject => {
-	const generator = new OpenApiGeneratorV3(registry.definitions);
+  const generator = new OpenApiGeneratorV3(registry.definitions);
 
-	return generator.generateDocument({
-		openapi: "3.0.0",
-		info: {
-			version: config.APP_VERSION,
-			title: config.APP_NAME,
-			description:
-				"Robust backend boilerplate designed for scalability, flexibility, and ease of development. It's packed with modern technologies and best practices to kickstart your next backend project",
-		},
-		servers: [{ url: "/api" }],
-	});
+  return generator.generateDocument({
+    openapi: '3.0.0',
+    externalDocs: {
+      url: '/openapi.yml',
+      description: 'OpenAPI documentation for the API',
+    },
+    info: {
+      version: config.APP_VERSION,
+      title: config.APP_NAME,
+      description:
+        "Robust backend boilerplate designed for scalability, flexibility, and ease of development. It's packed with modern technologies and best practices to kickstart your next backend project",
+    },
+    servers: [{ url: '/api' }],
+  });
 };
 
 export const convertDocumentationToYaml = (): string => {
-	const docs = getOpenApiDocumentation();
+  const docs = getOpenApiDocumentation();
 
-	const fileContent = yaml.stringify(docs);
+  const fileContent = yaml.stringify(docs);
 
-	return fileContent;
+  return fileContent;
 };
 
 export const writeDocumentationToDisk = async (): Promise<void> => {
-	const fileContent = convertDocumentationToYaml();
+  const fileContent = convertDocumentationToYaml();
 
-	await fs.writeFile(`${__dirname}/openapi-docs.yml`, fileContent, {
-		encoding: "utf-8",
-	});
+  await fs.writeFile(`${__dirname}/openapi-docs.yml`, fileContent, {
+    encoding: 'utf-8',
+  });
 };
