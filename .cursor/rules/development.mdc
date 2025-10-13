@@ -121,7 +121,7 @@ src/
 
 ### Queue Dashboard
 
-- BullMQ Admin: `http://localhost:3000/admin/queues`
+- BullMQ Admin: `http://localhost:3000/queues`
 
 ### Health Check
 

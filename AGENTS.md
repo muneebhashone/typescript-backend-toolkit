@@ -30,4 +30,4 @@
 ## Security & Configuration Tips
 
 - Never commit secrets; derive new keys in `.env.sample` and validate them in `src/config/env`.
-- Keep admin surfaces (`/admin/queues`, `/ops/*`) behind authentication in production deployments and document access controls when altering them.
+- Keep admin surfaces (`/queues`, `/ops/*`) behind authentication in production deployments and document access controls when altering them.

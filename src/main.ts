@@ -62,7 +62,7 @@ const bootstrapServer = async () => {
   app.use('/admin/api', adminApiRouter);
 
   const serverAdapter = new ExpressAdapter();
-  serverAdapter.setBasePath('/admin/queues');
+  serverAdapter.setBasePath('/queues');
 
   createBullBoard({
     queues: Object.entries(registeredQueues || {}).map(
