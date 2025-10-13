@@ -271,6 +271,43 @@ adminApiRouter.delete('/:resource/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
+// Bulk delete by ids
+adminApiRouter.post('/:resource/bulk-delete', async (req, res) => {
+  const resource = getResource(req.params.resource);
+  if (!resource) return res.status(404).json({ error: 'resource_not_found' });
+
+  const ids = Array.isArray(req.body?.ids)
+    ? (req.body.ids as unknown[]).map(String).filter(Boolean)
+    : [];
+  if (ids.length === 0)
+    return res
+      .status(400)
+      .json({ error: 'invalid_request', details: 'ids[] required' });
+
+  try {
+    const result = await resource.model.deleteMany({ _id: { $in: ids } });
+    return res.json({ deletedCount: result?.deletedCount ?? 0 });
+  } catch (err: any) {
+    return res
+      .status(400)
+      .json({ error: 'bulk_delete_failed', details: err?.message });
+  }
+});
+
+// Clear all documents for a resource
+adminApiRouter.post('/:resource/clear', async (req, res) => {
+  const resource = getResource(req.params.resource);
+  if (!resource) return res.status(404).json({ error: 'resource_not_found' });
+  try {
+    const result = await resource.model.deleteMany({});
+    return res.json({ deletedCount: result?.deletedCount ?? 0 });
+  } catch (err: any) {
+    return res
+      .status(400)
+      .json({ error: 'clear_failed', details: err?.message });
+  }
+});
+
 export function registerAdminUI(app: Application) {
   app.get('/admin', (_req, res) => {
     const indexPath = path.join(process.cwd(), 'public', 'admin', 'index.html');
