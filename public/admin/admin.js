@@ -103,7 +103,9 @@
       '_id',
       ...state.fields.filter((f) => f.path !== '_id').map((f) => f.path),
     ].slice(0, 6);
-    const fieldByPath = Object.fromEntries(state.fields.map((f) => [f.path, f]));
+    const fieldByPath = Object.fromEntries(
+      state.fields.map((f) => [f.path, f]),
+    );
     const table = el('table');
     const thead = el('thead');
     const trh = el('tr');
@@ -119,7 +121,7 @@
         const f = fieldByPath[c];
         tr.appendChild(el('td', { textContent: formatCell(row[c], f) }));
       });
-      const actions = el('td');
+      const actions = el('td', { style: 'display: flex;' });
       const editBtn = el('button', { textContent: 'Edit' });
       editBtn.onclick = () => showForm(row);
       const delBtn = el('button', {
@@ -240,7 +242,9 @@
         }
       } else if (type === 'subdocument' && Array.isArray(f.children)) {
         if (readOnly.has(f.path)) {
-          const controls = input.querySelectorAll('input,button,select,textarea');
+          const controls = input.querySelectorAll(
+            'input,button,select,textarea',
+          );
           controls.forEach((c) => (c.disabled = true));
         }
       } else {
@@ -451,7 +455,9 @@
   }
 
   async function batchLoadRelationLabels() {
-    const relFields = state.fields.filter((f) => f.type === 'relation' && f.relation);
+    const relFields = state.fields.filter(
+      (f) => f.type === 'relation' && f.relation,
+    );
     const tasks = relFields.map(async (f) => {
       const ids = new Set();
       for (const row of state.data) {
@@ -459,9 +465,13 @@
         if (Array.isArray(v)) v.forEach((id) => ids.add(String(id)));
         else if (v != null) ids.add(String(v));
       }
-      const missing = Array.from(ids).filter((id) => !state.labelCache[`${f.relation.resource}:${id}`]);
+      const missing = Array.from(ids).filter(
+        (id) => !state.labelCache[`${f.relation.resource}:${id}`],
+      );
       if (!missing.length) return;
-      const resp = await api(`/${state.current}/lookup/${encodeURIComponent(f.path)}?ids=${missing.join(',')}`);
+      const resp = await api(
+        `/${state.current}/lookup/${encodeURIComponent(f.path)}?ids=${missing.join(',')}`,
+      );
       (resp.options || []).forEach((opt) => {
         state.labelCache[`${f.relation.resource}:${opt._id}`] = opt.label;
       });
@@ -471,7 +481,9 @@
 
   function createRelationEditor(field, rawVal) {
     const isMulti = !!field.isArray;
-    const container = el('div', { style: 'display:flex; flex-direction: column; gap:6px;' });
+    const container = el('div', {
+      style: 'display:flex; flex-direction: column; gap:6px;',
+    });
     const hidden = el('input', { type: 'hidden' });
     // Set dataset on the hidden input so payload builder can read it
     hidden.dataset.path = field.path;
@@ -480,8 +492,15 @@
     hidden.dataset.isFile = '0';
 
     const search = el('input', { type: 'text', placeholder: 'Search…' });
-    const results = el('div', { style: 'border:1px solid var(--border); background: var(--bg); border-radius: 6px; display:none;' });
-    const chips = el('div', { style: 'display:flex; gap:6px; flex-wrap:wrap;' });
+    const results = el('div', {
+      style:
+        'border:1px solid var(--border); background: var(--bg); border-radius: 6px; display:none;',
+    });
+    const chips = el('div', {
+      style: 'display:flex; gap:6px; flex-wrap:wrap;',
+    });
+    // Will be assigned later (after the row is created). Used to toggle the Clear row visibility
+    let updateRowVisibility = () => {};
 
     function setHidden(val) {
       if (isMulti) hidden.value = JSON.stringify(val);
@@ -491,10 +510,19 @@
     function renderChips(items) {
       chips.innerHTML = '';
       items.forEach((it) => {
-        const chip = el('span', { style: 'padding:4px 8px; border:1px solid var(--border); border-radius:12px; background: var(--panel);' }, [
-          `${it.label} `,
-        ]);
-        const btn = el('button', { textContent: '×', style: 'margin-left:6px; background: transparent; color: var(--muted); border: 1px solid var(--border); padding:0 6px;' });
+        const chip = el(
+          'span',
+          {
+            style:
+              'padding:4px 8px; border:1px solid var(--border); border-radius:12px; background: var(--panel);',
+          },
+          [`${it.label} `],
+        );
+        const btn = el('button', {
+          textContent: '×',
+          style:
+            'margin-left:6px; background: transparent; color: var(--muted); border: 1px solid var(--border); padding:0 6px;',
+        });
         btn.onclick = () => {
           selected = selected.filter((s) => s._id !== it._id);
           setHidden(selected.map((s) => s._id));
@@ -508,7 +536,14 @@
     function showResults(items) {
       results.innerHTML = '';
       items.forEach((opt) => {
-        const row = el('div', { style: 'padding:8px 10px; cursor:pointer; border-bottom:1px solid var(--border);' }, [opt.label]);
+        const row = el(
+          'div',
+          {
+            style:
+              'padding:8px 10px; cursor:pointer; border-bottom:1px solid var(--border);',
+          },
+          [opt.label],
+        );
         row.onclick = () => {
           if (isMulti) {
             if (!selected.find((s) => s._id === opt._id)) selected.push(opt);
@@ -521,46 +556,68 @@
           }
           results.style.display = 'none';
           search.value = '';
+          // Toggle Clear button visibility when selection changes
+          updateRowVisibility();
         };
         results.appendChild(row);
       });
       results.style.display = items.length ? 'block' : 'none';
     }
 
-    const selectedLabel = el('div', { className: 'muted' });
+    const selectedLabel = el('div', {
+      className: 'muted',
+      style:
+        'color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;',
+    });
     let selected = [];
 
     // Initialize from raw value
     (async () => {
       if (rawVal == null) {
         setHidden(isMulti ? [] : '');
+        // ensure UI reflects empty selection
+        queueMicrotask(() => updateRowVisibility());
         return;
       }
       if (isMulti && Array.isArray(rawVal)) {
         const ids = rawVal.map(String);
-        const missing = ids.filter((id) => !state.labelCache[`${field.relation.resource}:${id}`]);
+        const missing = ids.filter(
+          (id) => !state.labelCache[`${field.relation.resource}:${id}`],
+        );
         if (missing.length) {
-          const resp = await api(`/${state.current}/lookup/${encodeURIComponent(field.path)}?ids=${missing.join(',')}`);
+          const resp = await api(
+            `/${state.current}/lookup/${encodeURIComponent(field.path)}?ids=${missing.join(',')}`,
+          );
           (resp.options || []).forEach((opt) => {
-            state.labelCache[`${field.relation.resource}:${opt._id}`] = opt.label;
+            state.labelCache[`${field.relation.resource}:${opt._id}`] =
+              opt.label;
           });
         }
-        selected = ids.map((id) => ({ _id: id, label: state.labelCache[`${field.relation.resource}:${id}`] || id }));
+        selected = ids.map((id) => ({
+          _id: id,
+          label: state.labelCache[`${field.relation.resource}:${id}`] || id,
+        }));
         renderChips(selected);
         setHidden(ids);
       } else if (!isMulti && typeof rawVal === 'string') {
         const id = String(rawVal);
         if (!state.labelCache[`${field.relation.resource}:${id}`]) {
-          const resp = await api(`/${state.current}/lookup/${encodeURIComponent(field.path)}?ids=${id}`);
+          const resp = await api(
+            `/${state.current}/lookup/${encodeURIComponent(field.path)}?ids=${id}`,
+          );
           (resp.options || []).forEach((opt) => {
-            state.labelCache[`${field.relation.resource}:${opt._id}`] = opt.label;
+            state.labelCache[`${field.relation.resource}:${opt._id}`] =
+              opt.label;
           });
         }
-        const label = state.labelCache[`${field.relation.resource}:${id}`] || id;
+        const label =
+          state.labelCache[`${field.relation.resource}:${id}`] || id;
         selected = [{ _id: id, label }];
         selectedLabel.textContent = label;
         setHidden(id);
       }
+      // defer until the row exists in DOM
+      queueMicrotask(() => updateRowVisibility());
     })();
 
     const doSearch = debounce(async () => {
@@ -571,7 +628,9 @@
         return;
       }
       try {
-        const resp = await api(`/${state.current}/lookup/${encodeURIComponent(field.path)}?q=${encodeURIComponent(q)}`);
+        const resp = await api(
+          `/${state.current}/lookup/${encodeURIComponent(field.path)}?q=${encodeURIComponent(q)}`,
+        );
         showResults(resp.options || []);
       } catch {
         results.style.display = 'none';
@@ -582,14 +641,29 @@
     if (isMulti) {
       container.appendChild(chips);
     } else {
-      const clearBtn = el('button', { textContent: 'Clear', style: 'width:max-content; background: transparent; color: var(--text); border: 1px solid var(--border);' });
+      const clearBtn = el('button', {
+        textContent: 'Clear',
+        style:
+          'width:max-content; background: transparent; color: var(--text); border: 1px solid var(--border);',
+      });
       clearBtn.onclick = () => {
         selected = [];
         selectedLabel.textContent = '';
         setHidden('');
+        updateRowVisibility();
       };
-      const row = el('div', { style: 'display:flex; gap:8px; align-items:center;' }, [selectedLabel, clearBtn]);
+      const row = el(
+        'div',
+        { style: 'display:none; gap:8px; align-items:center;' },
+        [selectedLabel, clearBtn],
+      );
+      // Assign the toggler now that row exists
+      updateRowVisibility = () => {
+        row.style.display = selected.length ? 'flex' : 'none';
+      };
       container.appendChild(row);
+      // Ensure correct initial visibility after any async initialization
+      queueMicrotask(() => updateRowVisibility());
     }
     container.appendChild(search);
     container.appendChild(results);
@@ -599,7 +673,10 @@
 
   // Subdocument (single) editor
   function createSubdocEditor(field, rawVal) {
-    const container = el('div', { style: 'display:flex; flex-direction: column; gap:8px; border:1px solid var(--border); padding:10px; border-radius:6px;' });
+    const container = el('div', {
+      style:
+        'display:flex; flex-direction: column; gap:8px; border:1px solid var(--border); padding:10px; border-radius:6px;',
+    });
     const hidden = el('input', { type: 'hidden' });
     hidden.dataset.path = field.path;
     hidden.dataset.type = 'subdocument';
@@ -613,27 +690,59 @@
     field.children.forEach((cf) => {
       const label = el('label', { textContent: cf.path });
       let input;
-      if (cf.type === 'relation' && cf.relation) input = createRelationEditor({ ...cf, path: `${field.path}.${cf.path}` }, value[cf.path]);
+      if (cf.type === 'relation' && cf.relation)
+        input = createRelationEditor(
+          { ...cf, path: `${field.path}.${cf.path}` },
+          value[cf.path],
+        );
       else if (cf.type === 'subdocument' && Array.isArray(cf.children)) {
-        if (cf.isArray) input = createSubdocArrayEditor({ ...cf, path: `${field.path}.${cf.path}` }, value[cf.path]);
-        else input = createSubdocEditor({ ...cf, path: `${field.path}.${cf.path}` }, value[cf.path]);
+        if (cf.isArray)
+          input = createSubdocArrayEditor(
+            { ...cf, path: `${field.path}.${cf.path}` },
+            value[cf.path],
+          );
+        else
+          input = createSubdocEditor(
+            { ...cf, path: `${field.path}.${cf.path}` },
+            value[cf.path],
+          );
       } else if (cf.enumValues && cf.enumValues.length) {
         input = el('select');
         input.appendChild(el('option', { value: '', textContent: '' }));
-        cf.enumValues.forEach((opt) => input.appendChild(el('option', { value: opt, textContent: opt })));
+        cf.enumValues.forEach((opt) =>
+          input.appendChild(el('option', { value: opt, textContent: opt })),
+        );
         input.value = value[cf.path] != null ? String(value[cf.path]) : '';
       } else if (cf.type === 'boolean') {
         input = el('select');
-        ['false', 'true'].forEach((opt) => input.appendChild(el('option', { value: opt, textContent: opt })));
+        ['false', 'true'].forEach((opt) =>
+          input.appendChild(el('option', { value: opt, textContent: opt })),
+        );
         input.value = value[cf.path] ? 'true' : 'false';
       } else if (cf.type === 'number') {
-        input = el('input', { type: 'number', step: 'any', value: value[cf.path] != null ? String(value[cf.path]) : '' });
+        input = el('input', {
+          type: 'number',
+          step: 'any',
+          value: value[cf.path] != null ? String(value[cf.path]) : '',
+        });
       } else if (cf.type === 'date') {
-        input = el('input', { type: 'datetime-local', value: value[cf.path] ? toDatetimeLocal(value[cf.path]) : '' });
+        input = el('input', {
+          type: 'datetime-local',
+          value: value[cf.path] ? toDatetimeLocal(value[cf.path]) : '',
+        });
       } else if (cf.type === 'array') {
-        input = el('textarea', { rows: 3, placeholder: '[ ... ]', value: Array.isArray(value[cf.path]) ? JSON.stringify(value[cf.path], null, 2) : '' });
+        input = el('textarea', {
+          rows: 3,
+          placeholder: '[ ... ]',
+          value: Array.isArray(value[cf.path])
+            ? JSON.stringify(value[cf.path], null, 2)
+            : '',
+        });
       } else {
-        input = el('input', { type: 'text', value: value[cf.path] != null ? String(value[cf.path]) : '' });
+        input = el('input', {
+          type: 'text',
+          value: value[cf.path] != null ? String(value[cf.path]) : '',
+        });
       }
       const childPath = `${field.path}.${cf.path}`;
       if (!(cf.type === 'relation' && cf.relation)) {
@@ -654,18 +763,30 @@
         const ctrl = item.elem;
         const p = item.path.split('.').slice(-1)[0];
         if (cf.type === 'relation') {
-          const hid = ctrl.querySelector && ctrl.querySelector(`input[type="hidden"][data-path="${item.path}"]`);
+          const hid =
+            ctrl.querySelector &&
+            ctrl.querySelector(
+              `input[type="hidden"][data-path="${item.path}"]`,
+            );
           obj[p] = hid ? hid.value : undefined;
-        } else if (ctrl.tagName === 'TEXTAREA' && (cf.type === 'array' || (cf.isArray && cf.type !== 'subdocument'))) {
+        } else if (
+          ctrl.tagName === 'TEXTAREA' &&
+          (cf.type === 'array' || (cf.isArray && cf.type !== 'subdocument'))
+        ) {
           try {
             const parsed = JSON.parse(ctrl.value || '[]');
             obj[p] = parsed;
           } catch {}
-        } else if (ctrl.type === 'number') obj[p] = ctrl.value === '' ? undefined : Number(ctrl.value);
-        else if (ctrl.type === 'datetime-local') obj[p] = ctrl.value ? fromDatetimeLocal(ctrl.value) : undefined;
-        else if (ctrl.tagName === 'SELECT' && cf.type === 'boolean') obj[p] = ctrl.value === 'true';
+        } else if (ctrl.type === 'number')
+          obj[p] = ctrl.value === '' ? undefined : Number(ctrl.value);
+        else if (ctrl.type === 'datetime-local')
+          obj[p] = ctrl.value ? fromDatetimeLocal(ctrl.value) : undefined;
+        else if (ctrl.tagName === 'SELECT' && cf.type === 'boolean')
+          obj[p] = ctrl.value === 'true';
         else if (cf.type === 'subdocument') {
-          const hid = ctrl.querySelector && ctrl.querySelector('input[type="hidden"][data-type="subdocument"]');
+          const hid =
+            ctrl.querySelector &&
+            ctrl.querySelector('input[type="hidden"][data-type="subdocument"]');
           if (hid) {
             try {
               obj[p] = JSON.parse(hid.value || '{}');
@@ -686,34 +807,56 @@
 
   // Subdocument array (repeater) editor
   function createSubdocArrayEditor(field, rawVal) {
-    const container = el('div', { style: 'display:flex; flex-direction: column; gap:8px; border:1px dashed var(--border); padding:10px; border-radius:6px;' });
+    const container = el('div', {
+      style:
+        'display:flex; flex-direction: column; gap:8px; border:1px dashed var(--border); padding:10px; border-radius:6px;',
+    });
     const hidden = el('input', { type: 'hidden' });
     hidden.dataset.path = field.path;
     hidden.dataset.type = 'subdocument';
     hidden.dataset.isArray = '1';
     hidden.dataset.isFile = '0';
 
-    const itemsWrap = el('div', { style: 'display:flex; flex-direction: column; gap:8px;' });
-    const addBtn = el('button', { textContent: 'Add item', style: 'width:max-content;' });
+    const itemsWrap = el('div', {
+      style: 'display:flex; flex-direction: column; gap:8px;',
+    });
+    const addBtn = el('button', {
+      textContent: 'Add item',
+      style: 'width:max-content;',
+    });
 
     let items = Array.isArray(rawVal) ? rawVal : [];
 
     function render() {
       itemsWrap.innerHTML = '';
       items.forEach((it, idx) => {
-        const row = el('div', { style: 'border:1px solid var(--border); border-radius:6px; padding:8px;' });
-        const header = el('div', { style: 'display:flex; justify-content: space-between; align-items:center; margin-bottom:6px;' }, [
-          el('span', { className: 'muted', textContent: `Item ${idx + 1}` }),
-          (() => {
-            const btn = el('button', { textContent: 'Remove', style: 'background: transparent; color: var(--danger); border:1px solid var(--border);' });
-            btn.onclick = () => {
-              items.splice(idx, 1);
-              syncHidden();
-              render();
-            };
-            return btn;
-          })(),
-        ]);
+        const row = el('div', {
+          style:
+            'border:1px solid var(--border); border-radius:6px; padding:8px;',
+        });
+        const header = el(
+          'div',
+          {
+            style:
+              'display:flex; justify-content: space-between; align-items:center; margin-bottom:6px;',
+          },
+          [
+            el('span', { className: 'muted', textContent: `Item ${idx + 1}` }),
+            (() => {
+              const btn = el('button', {
+                textContent: 'Remove',
+                style:
+                  'background: transparent; color: var(--danger); border:1px solid var(--border);',
+              });
+              btn.onclick = () => {
+                items.splice(idx, 1);
+                syncHidden();
+                render();
+              };
+              return btn;
+            })(),
+          ],
+        );
         const editor = createSubdocEditor({ ...field, isArray: false }, it);
         row.appendChild(header);
         row.appendChild(editor);
@@ -724,7 +867,9 @@
     function syncHidden() {
       try {
         const arr = [];
-        const rows = itemsWrap.querySelectorAll('input[type="hidden"][data-type="subdocument"][data-is-array="0"]');
+        const rows = itemsWrap.querySelectorAll(
+          'input[type="hidden"][data-type="subdocument"][data-is-array="0"]',
+        );
         rows.forEach((h) => {
           try {
             const val = JSON.parse(h.value || '{}');
