@@ -52,7 +52,7 @@ module-name/
 
 - BullMQ with Redis for all background jobs
 - Email queue in [email.queue.ts](mdc:src/queues/email.queue.ts)
-- Admin dashboard at `/admin/queues`
+- Admin dashboard at `/queues`
 
 ### Error Handling
 

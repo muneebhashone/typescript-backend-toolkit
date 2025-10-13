@@ -349,7 +349,7 @@ const styles = {
 
 ### Queue Dashboard
 
-Access BullMQ dashboard at: `http://localhost:3000/admin/queues`
+Access BullMQ dashboard at: `http://localhost:3000/queues`
 
 View:
 
