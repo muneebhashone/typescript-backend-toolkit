@@ -77,6 +77,8 @@ const configSchema = z.object({
 
   TRUST_PROXY: booleanString.default('false'),
   HTTPS_ENABLED: booleanString.default('false'),
+
+  RESPONSE_VALIDATION: z.enum(['strict', 'warn', 'off']).default('strict'),
 });
 
 export type Config = z.infer<typeof configSchema>;

@@ -11,8 +11,13 @@ import {
   successResponseSchema,
 } from '../common/common.schema';
 import { canAccess } from '../middlewares/can-access';
+import { responseValidator } from '../middlewares/response-validator';
 import { validateZodSchema } from '../middlewares/validate-zod-schema';
-import type { RequestZodSchemaType } from '../types';
+import type {
+  RequestZodSchemaType,
+  ResponseExtended,
+  ResponseSchemaEntry,
+} from '../types';
 import {
   camelCaseToTitleCase,
   parseRouteString,
@@ -53,9 +58,25 @@ export type MagicMiddleware = (
   next: NextFunction,
 ) => MaybePromise;
 
+// Response configuration types
+export type ResponseEntry =
+  | ZodTypeAny
+  | {
+      schema: ZodTypeAny;
+      description?: string;
+      contentType?: string;
+      headers?: Record<string, ZodTypeAny>;
+      examples?: Record<string, unknown>;
+    };
+
+export type ResponsesConfig = Record<number, ResponseEntry>;
+
 export type RequestAndResponseType = {
   requestType?: RequestZodSchemaType;
+  // Legacy: treated as 200 response if provided
   responseModel?: ZodTypeAny;
+  // New: supports multiple status codes with detailed config
+  responses?: ResponsesConfig;
   contentType?:
     | 'application/json'
     | 'multipart/form-data'
@@ -77,6 +98,54 @@ export class MagicRouter<PathSet extends boolean = false> {
     return this.rootRoute + parseRouteString(path);
   }
 
+  /**
+   * Normalize response configuration to a Map of status -> ResponseSchemaEntry
+   * Handles backward compatibility with responseModel
+   */
+  private normalizeResponses(
+    requestAndResponseType: RequestAndResponseType,
+  ): Map<number, ResponseSchemaEntry> {
+    const normalized = new Map<number, ResponseSchemaEntry>();
+
+    // New responses config takes priority
+    if (requestAndResponseType.responses) {
+      for (const [status, entry] of Object.entries(
+        requestAndResponseType.responses,
+      )) {
+        const statusCode = Number(status);
+
+        if (typeof entry === 'object' && 'schema' in entry) {
+          // Full ResponseEntry object
+          normalized.set(statusCode, {
+            schema: entry.schema,
+            contentType: entry.contentType || 'application/json',
+            description: entry.description,
+          });
+        } else {
+          // Just a Zod schema
+          normalized.set(statusCode, {
+            schema: entry as ZodTypeAny,
+            contentType: 'application/json',
+          });
+        }
+      }
+    } else if (requestAndResponseType.responseModel) {
+      // Legacy: responseModel treated as 200 response
+      normalized.set(200, {
+        schema: requestAndResponseType.responseModel,
+        contentType: 'application/json',
+      });
+    } else {
+      // Default: successResponseSchema for 200
+      normalized.set(200, {
+        schema: successResponseSchema,
+        contentType: 'application/json',
+      });
+    }
+
+    return normalized;
+  }
+
   private wrapper(
     method: Method,
     path: MagicPathType,
@@ -86,8 +155,9 @@ export class MagicRouter<PathSet extends boolean = false> {
     const bodyType = requestAndResponseType.requestType?.body;
     const paramsType = requestAndResponseType.requestType?.params;
     const queryType = requestAndResponseType.requestType?.query;
-    const responseType =
-      requestAndResponseType.responseModel ?? successResponseSchema;
+
+    // Normalize responses (handles backward compatibility)
+    const normalizedResponses = this.normalizeResponses(requestAndResponseType);
 
     const className = routeToClassName(this.rootRoute);
     const title = camelCaseToTitleCase(
@@ -100,17 +170,59 @@ export class MagicRouter<PathSet extends boolean = false> {
 
     const hasSecurity = middlewares.some((m) => m.name === canAccess().name);
 
-    const attachResponseModelMiddleware = (
+    const contentType =
+      requestAndResponseType.contentType ?? 'application/json';
+
+    // Middleware to attach response schemas to res.locals
+    const attachResponseSchemasMiddleware: MagicMiddleware = (
       _: RequestAny,
       res: ResponseAny,
       next: NextFunction,
     ) => {
-      res.locals.validateSchema = requestAndResponseType.responseModel;
+      const extRes = res as ResponseExtended;
+      extRes.locals.responseSchemas = normalizedResponses;
+      // Legacy support
+      extRes.locals.validateSchema = requestAndResponseType.responseModel;
       next();
     };
 
-    const contentType =
-      requestAndResponseType.contentType ?? 'application/json';
+    // Build OpenAPI responses from normalized config
+    const openapiResponses: Record<
+      string,
+      {
+        description: string;
+        content: Record<string, { schema: ZodTypeAny }>;
+      }
+    > = {};
+
+    for (const [status, entry] of normalizedResponses) {
+      const statusStr = String(status);
+      const ct = entry.contentType || 'application/json';
+
+      openapiResponses[statusStr] = {
+        description: entry.description || '',
+        content: {
+          [ct]: {
+            schema: entry.schema,
+          },
+        },
+      };
+    }
+
+    // Add default error responses if not already configured
+    const defaultErrors = [400, 404, 500];
+    for (const errorStatus of defaultErrors) {
+      if (!normalizedResponses.has(errorStatus)) {
+        openapiResponses[String(errorStatus)] = {
+          description: 'API Error Response',
+          content: {
+            'application/json': {
+              schema: errorResponseSchema,
+            },
+          },
+        };
+      }
+    }
 
     registry.registerPath({
       method: method,
@@ -134,40 +246,7 @@ export class MagicRouter<PathSet extends boolean = false> {
             }
           : {}),
       },
-      responses: {
-        200: {
-          description: '',
-          content: {
-            'application/json': {
-              schema: responseType,
-            },
-          },
-        },
-        400: {
-          description: 'API Error Response',
-          content: {
-            'application/json': {
-              schema: errorResponseSchema,
-            },
-          },
-        },
-        404: {
-          description: 'API Error Response',
-          content: {
-            'application/json': {
-              schema: errorResponseSchema,
-            },
-          },
-        },
-        500: {
-          description: 'API Error Response',
-          content: {
-            'application/json': {
-              schema: errorResponseSchema,
-            },
-          },
-        },
-      },
+      responses: openapiResponses as never,
     });
 
     const requestType = requestAndResponseType.requestType ?? {};
@@ -179,7 +258,8 @@ export class MagicRouter<PathSet extends boolean = false> {
     if (Object.keys(requestType).length) {
       this.router[method](
         path,
-        attachResponseModelMiddleware,
+        attachResponseSchemasMiddleware,
+        responseValidator,
         validateZodSchema(requestType),
         ...middlewares,
         controller,
@@ -187,7 +267,8 @@ export class MagicRouter<PathSet extends boolean = false> {
     } else {
       this.router[method](
         path,
-        attachResponseModelMiddleware,
+        attachResponseSchemasMiddleware,
+        responseValidator,
         ...middlewares,
         controller,
       );
