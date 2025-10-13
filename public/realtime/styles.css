@@ -366,6 +366,11 @@ h2 {
   transition: background var(--transition);
 }
 
+/* Ensure filtered logs are hidden even with .log display styles */
+.log.hidden {
+  display: none;
+}
+
 .log:hover {
   background: rgba(22, 27, 34, 0.4);
 }
