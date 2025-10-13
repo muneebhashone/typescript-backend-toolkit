@@ -3,7 +3,7 @@ import argon2 from 'argon2';
 import { JsonWebTokenError, sign, verify } from 'jsonwebtoken';
 import config from '../config/env';
 import type { RoleType } from '../enums';
-import logger from '../lib/logger.service';
+import logger from '../observability/logger';
 
 export interface GoogleTokenResponse {
   access_token: string;

@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import config from '../config/env';
-import logger from '../lib/logger.service';
+import logger from '../observability/logger';
 import type { RequestExtended, ResponseExtended } from '../types';
 import { errorResponse } from './api.utils';
 

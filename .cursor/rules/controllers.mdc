@@ -316,10 +316,10 @@ StatusCodes.INTERNAL_SERVER_ERROR; // 500
 
 ### Logging
 
-Use Pino logger from [logger.service.ts](mdc:src/lib/logger.service.ts):
+Use Pino logger from [logger.ts](mdc:src/observability/logger.ts):
 
 ```typescript
-import logger from '@/lib/logger.service';
+import logger from '@/observability/logger';
 
 logger.info('Action performed', { userId, action: 'create' });
 logger.error('Error occurred', { error: error.message, userId });
