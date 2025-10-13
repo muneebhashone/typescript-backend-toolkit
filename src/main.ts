@@ -96,6 +96,9 @@ const bootstrapServer = async () => {
     logger.info(`BullBoard: http://localhost:${config.PORT}/queues`);
     logger.info(`Client-side url set to: ${config.CLIENT_SIDE_URL}`);
     logger.info(`Admin dashboard: http://localhost:${config.PORT}/admin`);
+    logger.info(
+      `Socket Testing Suite: http://localhost:${config.PORT}/realtime`,
+    );
   });
 };
 
