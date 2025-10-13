@@ -496,6 +496,10 @@
       style:
         'border:1px solid var(--border); background: var(--bg); border-radius: 6px; display:none;',
     });
+    const recentBox = el('div', {
+      style:
+        'border:1px solid var(--border); background: var(--bg); border-radius: 6px; display:none; margin-top:4px;',
+    });
     const chips = el('div', {
       style: 'display:flex; gap:6px; flex-wrap:wrap;',
     });
@@ -564,6 +568,48 @@
       results.style.display = items.length ? 'block' : 'none';
     }
 
+    function showRecent(items) {
+      recentBox.innerHTML = '';
+      if (!items.length) {
+        recentBox.style.display = 'none';
+        return;
+      }
+      // Header
+      recentBox.appendChild(
+        el(
+          'div',
+          { className: 'muted', style: 'padding:6px 10px; font-size: 12px;' },
+          ['Recent'],
+        ),
+      );
+      items.forEach((opt) => {
+        const row = el(
+          'div',
+          {
+            style:
+              'padding:8px 10px; cursor:pointer; border-top:1px solid var(--border);',
+          },
+          [opt.label],
+        );
+        row.onclick = () => {
+          if (isMulti) {
+            if (!selected.find((s) => s._id === opt._id)) selected.push(opt);
+            setHidden(selected.map((s) => s._id));
+            renderChips(selected);
+          } else {
+            selected = [opt];
+            setHidden(opt._id);
+            selectedLabel.textContent = opt.label;
+          }
+          recentBox.style.display = 'none';
+          search.value = '';
+          updateRowVisibility();
+        };
+        recentBox.appendChild(row);
+      });
+      recentBox.style.display = 'block';
+    }
+
     const selectedLabel = el('div', {
       className: 'muted',
       style:
@@ -623,8 +669,21 @@
     const doSearch = debounce(async () => {
       const q = search.value.trim();
       if (!q) {
+        // Only show recent when the input is focused and empty; otherwise hide
         results.style.display = 'none';
         results.innerHTML = '';
+        if (document.activeElement === search) {
+          try {
+            const resp = await api(
+              `/${state.current}/lookup/${encodeURIComponent(field.path)}?recent=1&limit=10`,
+            );
+            showRecent(resp.options || []);
+          } catch {
+            recentBox.style.display = 'none';
+          }
+        } else {
+          recentBox.style.display = 'none';
+        }
         return;
       }
       try {
@@ -632,6 +691,8 @@
           `/${state.current}/lookup/${encodeURIComponent(field.path)}?q=${encodeURIComponent(q)}`,
         );
         showResults(resp.options || []);
+        // When search results are shown, hide recent suggestions
+        recentBox.style.display = 'none';
       } catch {
         results.style.display = 'none';
       }
@@ -666,7 +727,29 @@
       queueMicrotask(() => updateRowVisibility());
     }
     container.appendChild(search);
+    // Show recent only when input gains focus and is empty
+    search.onfocus = async () => {
+      if (!search.value.trim()) {
+        try {
+          const resp = await api(
+            `/${state.current}/lookup/${encodeURIComponent(field.path)}?recent=1&limit=10`,
+          );
+          showRecent(resp.options || []);
+        } catch {
+          recentBox.style.display = 'none';
+        }
+      }
+    };
+    // Hide recent shortly after blur to allow click selection
+    search.onblur = () => {
+      setTimeout(() => {
+        if (document.activeElement !== search) {
+          recentBox.style.display = 'none';
+        }
+      }, 150);
+    };
     container.appendChild(results);
+    container.appendChild(recentBox);
     container.appendChild(hidden);
     return container;
   }
