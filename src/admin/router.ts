@@ -105,15 +105,23 @@ adminApiRouter.get('/:resource/lookup/:field', async (req, res) => {
     return res.status(404).json({ error: 'relation_field_not_found' });
 
   // Resolve target resource/model and display field
-  const target = adminResources.find((r) => r.name === field.relation!.resource);
+  const target = adminResources.find(
+    (r) => r.name === field.relation!.resource,
+  );
   if (!target)
     return res.status(404).json({ error: 'target_resource_not_found' });
-  const labelField = field.relation!.displayField || target.displayField || 'name';
+  const labelField =
+    field.relation!.displayField || target.displayField || 'name';
 
-  const idsParam = typeof req.query.ids === 'string' ? req.query.ids : undefined;
+  const idsParam =
+    typeof req.query.ids === 'string' ? req.query.ids : undefined;
   const q = typeof req.query.q === 'string' ? req.query.q : undefined;
   const page = Math.max(parseInt(String(req.query.page || '1'), 10) || 1, 1);
-  const limit = Math.min(Math.max(parseInt(String(req.query.limit || '10'), 10) || 10, 1), 100);
+  const limit = Math.min(
+    Math.max(parseInt(String(req.query.limit || '10'), 10) || 10, 1),
+    100,
+  );
+  const recent = req.query.recent === '1' || req.query.recent === 'true';
 
   try {
     if (idsParam) {
@@ -128,7 +136,10 @@ adminApiRouter.get('/:resource/lookup/:field', async (req, res) => {
         .lean();
       const label = (d: any) =>
         d && (d[labelField] ?? d.name ?? d.title ?? d.email ?? String(d._id));
-      const options = docs.map((d: any) => ({ _id: String(d._id), label: String(label(d)) }));
+      const options = docs.map((d: any) => ({
+        _id: String(d._id),
+        label: String(label(d)),
+      }));
       return res.json({ options });
     }
 
@@ -142,13 +153,39 @@ adminApiRouter.get('/:resource/lookup/:field', async (req, res) => {
         .lean();
       const label = (d: any) =>
         d && (d[labelField] ?? d.name ?? d.title ?? d.email ?? String(d._id));
-      const options = docs.map((d: any) => ({ _id: String(d._id), label: String(label(d)) }));
+      const options = docs.map((d: any) => ({
+        _id: String(d._id),
+        label: String(label(d)),
+      }));
       return res.json({ options, page, limit });
     }
 
-    return res.status(400).json({ error: 'missing_query', details: 'Provide ids or q' });
+    // Recent items mode (no q or ids). Prefer newest first based on timestamps if available.
+    if (recent || (!idsParam && !q)) {
+      const sortBy: any = target.model.schema?.paths?.createdAt
+        ? { createdAt: -1 }
+        : { _id: -1 };
+      const docs = await target.model
+        .find({}, { _id: 1, [labelField]: 1 })
+        .sort(sortBy)
+        .limit(limit)
+        .lean();
+      const label = (d: any) =>
+        d && (d[labelField] ?? d.name ?? d.title ?? d.email ?? String(d._id));
+      const options = docs.map((d: any) => ({
+        _id: String(d._id),
+        label: String(label(d)),
+      }));
+      return res.json({ options, page: 1, limit });
+    }
+
+    return res
+      .status(400)
+      .json({ error: 'missing_query', details: 'Provide ids, q, or recent=1' });
   } catch (err: any) {
-    return res.status(400).json({ error: 'lookup_failed', details: err?.message });
+    return res
+      .status(400)
+      .json({ error: 'lookup_failed', details: err?.message });
   }
 });
 
@@ -241,7 +278,10 @@ export function registerAdminUI(app: Application) {
   });
 }
 
-function findFieldByPath(fields: AdminField[], dotted: string): AdminField | undefined {
+function findFieldByPath(
+  fields: AdminField[],
+  dotted: string,
+): AdminField | undefined {
   const parts = dotted.split('.');
   let currentFields = fields;
   let field: AdminField | undefined;
