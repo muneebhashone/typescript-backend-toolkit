@@ -8,6 +8,8 @@
     limit: 10,
     total: 0,
     data: [],
+    // cache relation labels: key => label, where key = `${resource}:${id}`
+    labelCache: Object.create(null),
   };
 
   const $ = (sel) => document.querySelector(sel);
@@ -101,6 +103,7 @@
       '_id',
       ...state.fields.filter((f) => f.path !== '_id').map((f) => f.path),
     ].slice(0, 6);
+    const fieldByPath = Object.fromEntries(state.fields.map((f) => [f.path, f]));
     const table = el('table');
     const thead = el('thead');
     const trh = el('tr');
@@ -112,9 +115,10 @@
     const tbody = el('tbody');
     state.data.forEach((row) => {
       const tr = el('tr');
-      cols.forEach((c) =>
-        tr.appendChild(el('td', { textContent: formatVal(row[c]) })),
-      );
+      cols.forEach((c) => {
+        const f = fieldByPath[c];
+        tr.appendChild(el('td', { textContent: formatCell(row[c], f) }));
+      });
       const actions = el('td');
       const editBtn = el('button', { textContent: 'Edit' });
       editBtn.onclick = () => showForm(row);
@@ -145,6 +149,22 @@
     return String(v);
   }
 
+  function formatCell(v, field) {
+    if (!field) return formatVal(v);
+    if (field.type === 'relation' && field.relation) {
+      if (v == null) return '';
+      const res = field.relation.resource;
+      if (Array.isArray(v)) {
+        const labels = v
+          .map((id) => state.labelCache[`${res}:${id}`] || String(id))
+          .filter(Boolean);
+        return labels.slice(0, 3).join(', ') + (labels.length > 3 ? ' …' : '');
+      }
+      return state.labelCache[`${res}:${v}`] || String(v);
+    }
+    return formatVal(v);
+  }
+
   function showForm(row) {
     const form = $('#form');
     openModal(row ? 'Edit record' : 'Create record');
@@ -160,6 +180,8 @@
         Array.isArray(state.fileFields) && state.fileFields.includes(f.path);
       if (isFile) {
         input = el('input', { type: 'file' });
+      } else if (type === 'relation' && f.relation) {
+        input = createRelationEditor(f, row ? row[f.path] : undefined);
       } else if (f.enumValues && f.enumValues.length) {
         input = el('select');
         input.appendChild(el('option', { value: '', textContent: '' }));
@@ -188,6 +210,9 @@
       if (rawVal != null) {
         if (isFile) {
           val = '';
+        } else if (type === 'relation' && f.relation) {
+          // Value is controlled by relation editor (hidden input maintains value)
+          val = '';
         } else if (f.enumValues && f.enumValues.length) val = String(rawVal);
         else if (type === 'boolean') val = rawVal ? 'true' : 'false';
         else if (type === 'number') val = String(rawVal);
@@ -201,12 +226,20 @@
               : String(rawVal);
         else val = String(rawVal);
       }
-      input.value = val;
-      input.disabled = readOnly.has(f.path);
-      input.dataset.path = f.path;
-      input.dataset.type = type;
-      input.dataset.isArray = f.isArray ? '1' : '0';
-      input.dataset.isFile = isFile ? '1' : '0';
+      if (type === 'relation' && f.relation) {
+        // disable search when readOnly
+        if (readOnly.has(f.path)) {
+          const controls = input.querySelectorAll('input,button');
+          controls.forEach((c) => (c.disabled = true));
+        }
+      } else {
+        input.value = val;
+        input.disabled = readOnly.has(f.path);
+        input.dataset.path = f.path;
+        input.dataset.type = type;
+        input.dataset.isArray = f.isArray ? '1' : '0';
+        input.dataset.isFile = isFile ? '1' : '0';
+      }
       grid.appendChild(label);
       grid.appendChild(input);
       if (isFile && row && typeof rawVal === 'string' && rawVal) {
@@ -314,7 +347,7 @@
         throw new Error('Invalid JSON for array field');
       }
     }
-    if (type === 'mixed') return v; // keep as string per request
+    if (type === 'mixed' || type === 'relation') return v; // keep as-is (relation handled upstream)
     if (v === 'true') return true;
     if (v === 'false') return false;
     const n = Number(v);
@@ -330,6 +363,7 @@
     );
     state.data = data;
     state.total = total;
+    await batchLoadRelationLabels();
     renderList();
   }
 
@@ -388,4 +422,160 @@
         : state.resources[0] && state.resources[0].name;
     if (pick) selectResource(pick);
   });
+
+  // Helpers for relation fields
+  function debounce(fn, ms) {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(null, args), ms);
+    };
+  }
+
+  async function batchLoadRelationLabels() {
+    const relFields = state.fields.filter((f) => f.type === 'relation' && f.relation);
+    const tasks = relFields.map(async (f) => {
+      const ids = new Set();
+      for (const row of state.data) {
+        const v = row[f.path];
+        if (Array.isArray(v)) v.forEach((id) => ids.add(String(id)));
+        else if (v != null) ids.add(String(v));
+      }
+      const missing = Array.from(ids).filter((id) => !state.labelCache[`${f.relation.resource}:${id}`]);
+      if (!missing.length) return;
+      const resp = await api(`/${state.current}/lookup/${encodeURIComponent(f.path)}?ids=${missing.join(',')}`);
+      (resp.options || []).forEach((opt) => {
+        state.labelCache[`${f.relation.resource}:${opt._id}`] = opt.label;
+      });
+    });
+    await Promise.all(tasks);
+  }
+
+  function createRelationEditor(field, rawVal) {
+    const isMulti = !!field.isArray;
+    const container = el('div', { style: 'display:flex; flex-direction: column; gap:6px;' });
+    const hidden = el('input', { type: 'hidden' });
+    // Set dataset on the hidden input so payload builder can read it
+    hidden.dataset.path = field.path;
+    hidden.dataset.type = 'relation';
+    hidden.dataset.isArray = isMulti ? '1' : '0';
+    hidden.dataset.isFile = '0';
+
+    const search = el('input', { type: 'text', placeholder: 'Search…' });
+    const results = el('div', { style: 'border:1px solid var(--border); background: var(--bg); border-radius: 6px; display:none;' });
+    const chips = el('div', { style: 'display:flex; gap:6px; flex-wrap:wrap;' });
+
+    function setHidden(val) {
+      if (isMulti) hidden.value = JSON.stringify(val);
+      else hidden.value = val || '';
+    }
+
+    function renderChips(items) {
+      chips.innerHTML = '';
+      items.forEach((it) => {
+        const chip = el('span', { style: 'padding:4px 8px; border:1px solid var(--border); border-radius:12px; background: var(--panel);' }, [
+          `${it.label} `,
+        ]);
+        const btn = el('button', { textContent: '×', style: 'margin-left:6px; background: transparent; color: var(--muted); border: 1px solid var(--border); padding:0 6px;' });
+        btn.onclick = () => {
+          selected = selected.filter((s) => s._id !== it._id);
+          setHidden(selected.map((s) => s._id));
+          renderChips(selected);
+        };
+        chip.appendChild(btn);
+        chips.appendChild(chip);
+      });
+    }
+
+    function showResults(items) {
+      results.innerHTML = '';
+      items.forEach((opt) => {
+        const row = el('div', { style: 'padding:8px 10px; cursor:pointer; border-bottom:1px solid var(--border);' }, [opt.label]);
+        row.onclick = () => {
+          if (isMulti) {
+            if (!selected.find((s) => s._id === opt._id)) selected.push(opt);
+            setHidden(selected.map((s) => s._id));
+            renderChips(selected);
+          } else {
+            selected = [opt];
+            setHidden(opt._id);
+            selectedLabel.textContent = opt.label;
+          }
+          results.style.display = 'none';
+          search.value = '';
+        };
+        results.appendChild(row);
+      });
+      results.style.display = items.length ? 'block' : 'none';
+    }
+
+    const selectedLabel = el('div', { className: 'muted' });
+    let selected = [];
+
+    // Initialize from raw value
+    (async () => {
+      if (rawVal == null) {
+        setHidden(isMulti ? [] : '');
+        return;
+      }
+      if (isMulti && Array.isArray(rawVal)) {
+        const ids = rawVal.map(String);
+        const missing = ids.filter((id) => !state.labelCache[`${field.relation.resource}:${id}`]);
+        if (missing.length) {
+          const resp = await api(`/${state.current}/lookup/${encodeURIComponent(field.path)}?ids=${missing.join(',')}`);
+          (resp.options || []).forEach((opt) => {
+            state.labelCache[`${field.relation.resource}:${opt._id}`] = opt.label;
+          });
+        }
+        selected = ids.map((id) => ({ _id: id, label: state.labelCache[`${field.relation.resource}:${id}`] || id }));
+        renderChips(selected);
+        setHidden(ids);
+      } else if (!isMulti && typeof rawVal === 'string') {
+        const id = String(rawVal);
+        if (!state.labelCache[`${field.relation.resource}:${id}`]) {
+          const resp = await api(`/${state.current}/lookup/${encodeURIComponent(field.path)}?ids=${id}`);
+          (resp.options || []).forEach((opt) => {
+            state.labelCache[`${field.relation.resource}:${opt._id}`] = opt.label;
+          });
+        }
+        const label = state.labelCache[`${field.relation.resource}:${id}`] || id;
+        selected = [{ _id: id, label }];
+        selectedLabel.textContent = label;
+        setHidden(id);
+      }
+    })();
+
+    const doSearch = debounce(async () => {
+      const q = search.value.trim();
+      if (!q) {
+        results.style.display = 'none';
+        results.innerHTML = '';
+        return;
+      }
+      try {
+        const resp = await api(`/${state.current}/lookup/${encodeURIComponent(field.path)}?q=${encodeURIComponent(q)}`);
+        showResults(resp.options || []);
+      } catch {
+        results.style.display = 'none';
+      }
+    }, 250);
+    search.oninput = doSearch;
+
+    if (isMulti) {
+      container.appendChild(chips);
+    } else {
+      const clearBtn = el('button', { textContent: 'Clear', style: 'width:max-content; background: transparent; color: var(--text); border: 1px solid var(--border);' });
+      clearBtn.onclick = () => {
+        selected = [];
+        selectedLabel.textContent = '';
+        setHidden('');
+      };
+      const row = el('div', { style: 'display:flex; gap:8px; align-items:center;' }, [selectedLabel, clearBtn]);
+      container.appendChild(row);
+    }
+    container.appendChild(search);
+    container.appendChild(results);
+    container.appendChild(hidden);
+    return container;
+  }
 })();
