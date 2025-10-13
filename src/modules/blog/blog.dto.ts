@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { definePaginatedResponse } from "../../common/common.utils";
+import { z } from 'zod';
+import { definePaginatedResponse } from '../../common/common.utils';
 
 export const blogOutSchema = z.object({
   name: z.string(),
@@ -9,7 +9,7 @@ export const blogOutSchema = z.object({
 });
 
 export const blogSchema = blogOutSchema.extend({
-  // Add internal fields here
+  user: z.any(),
 });
 
 export const blogsPaginatedSchema = definePaginatedResponse(blogOutSchema);

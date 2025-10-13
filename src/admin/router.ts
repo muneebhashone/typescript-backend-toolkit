@@ -93,6 +93,64 @@ adminApiRouter.get('/:resource', async (req, res) => {
   res.json({ data, page, limit, total });
 });
 
+// Relation lookup endpoint: search or batch by ids to retrieve label options
+adminApiRouter.get('/:resource/lookup/:field', async (req, res) => {
+  const resource = getResource(req.params.resource);
+  if (!resource) return res.status(404).json({ error: 'resource_not_found' });
+
+  const fieldsMeta = getFields(resource.model, resource.fields);
+  const field = fieldsMeta.find((f) => f.path === req.params.field);
+  if (!field || field.type !== 'relation' || !field.relation)
+    return res.status(404).json({ error: 'relation_field_not_found' });
+
+  // Resolve target resource/model and display field
+  const target = adminResources.find((r) => r.name === field.relation!.resource);
+  if (!target)
+    return res.status(404).json({ error: 'target_resource_not_found' });
+  const labelField = field.relation!.displayField || target.displayField || 'name';
+
+  const idsParam = typeof req.query.ids === 'string' ? req.query.ids : undefined;
+  const q = typeof req.query.q === 'string' ? req.query.q : undefined;
+  const page = Math.max(parseInt(String(req.query.page || '1'), 10) || 1, 1);
+  const limit = Math.min(Math.max(parseInt(String(req.query.limit || '10'), 10) || 10, 1), 100);
+
+  try {
+    if (idsParam) {
+      const ids = idsParam
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (ids.length === 0) return res.json({ options: [] });
+      const docs = await target.model
+        .find({ _id: { $in: ids } }, { _id: 1, [labelField]: 1 })
+        .limit(100)
+        .lean();
+      const label = (d: any) =>
+        d && (d[labelField] ?? d.name ?? d.title ?? d.email ?? String(d._id));
+      const options = docs.map((d: any) => ({ _id: String(d._id), label: String(label(d)) }));
+      return res.json({ options });
+    }
+
+    if (q) {
+      const query: any = { [labelField]: { $regex: q, $options: 'i' } };
+      const docs = await target.model
+        .find(query, { _id: 1, [labelField]: 1 })
+        .sort({ [labelField]: 1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
+      const label = (d: any) =>
+        d && (d[labelField] ?? d.name ?? d.title ?? d.email ?? String(d._id));
+      const options = docs.map((d: any) => ({ _id: String(d._id), label: String(label(d)) }));
+      return res.json({ options, page, limit });
+    }
+
+    return res.status(400).json({ error: 'missing_query', details: 'Provide ids or q' });
+  } catch (err: any) {
+    return res.status(400).json({ error: 'lookup_failed', details: err?.message });
+  }
+});
+
 adminApiRouter.get('/:resource/:id', async (req, res) => {
   const resource = getResource(req.params.resource);
   if (!resource) return res.status(404).json({ error: 'resource_not_found' });

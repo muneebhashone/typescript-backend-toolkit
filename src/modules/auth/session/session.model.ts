@@ -1,7 +1,9 @@
 import mongoose, { Schema, type Document } from 'mongoose';
 import type { SessionRecord, SessionMetadata } from './session.types';
 
-export interface SessionDocument extends Omit<SessionRecord, 'sessionId'>, Document {
+export interface SessionDocument
+  extends Omit<SessionRecord, 'sessionId'>,
+    Document {
   _id: string;
 }
 
@@ -19,7 +21,8 @@ const sessionMetadataSchema = new Schema<SessionMetadata>(
 const sessionSchema = new Schema<SessionDocument>(
   {
     userId: {
-      type: String,
+      type: Schema.Types.ObjectId as any,
+      ref: 'User',
       required: true,
       index: true,
     },
@@ -54,4 +57,7 @@ const sessionSchema = new Schema<SessionDocument>(
 sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 sessionSchema.index({ userId: 1, createdAt: -1 });
 
-export const SessionModel = mongoose.model<SessionDocument>('Session', sessionSchema);
+export const SessionModel = mongoose.model<SessionDocument>(
+  'Session',
+  sessionSchema,
+);

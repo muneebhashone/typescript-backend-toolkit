@@ -1,5 +1,6 @@
 import type { Model } from 'mongoose';
 import type { AdminField } from '../types';
+import { getResourceByModelName } from '../registry';
 
 function mapType(instance?: string): string {
   switch (instance) {
@@ -40,6 +41,38 @@ export function getFields(model: Model<any>, only?: string[]): AdminField[] {
       required = !!options.required;
     }
     const isArray = instance === 'Array';
+
+    // Detect relations
+    let refModelName: string | undefined;
+    if (options && options.ref && (instance === 'ObjectId' || instance === 'ObjectID')) {
+      refModelName = String(options.ref);
+    } else if (isArray) {
+      const caster: any = (schemaType as any).caster || (schemaType as any).$embeddedSchemaType;
+      if (caster && (caster.instance === 'ObjectId' || caster.instance === 'ObjectID') && caster.options && caster.options.ref) {
+        refModelName = String(caster.options.ref);
+      }
+    }
+
+    if (refModelName) {
+      const res = getResourceByModelName(refModelName);
+      const displayField = res?.displayField || guessDisplayField();
+      fields.push({
+        path,
+        type: 'relation',
+        required,
+        enumValues,
+        isArray,
+        relation: res
+          ? {
+              model: refModelName,
+              resource: res.name,
+              displayField,
+            }
+          : undefined,
+      });
+      continue;
+    }
+
     fields.push({
       path,
       type: mapType(instance),
@@ -58,4 +91,8 @@ export function buildSearchQuery(q: string | undefined, fields: AdminField[]) {
   return {
     $or: searchables.map((p) => ({ [p]: { $regex: q, $options: 'i' } })),
   } as Record<string, unknown>;
+}
+
+function guessDisplayField() {
+  return 'name';
 }
