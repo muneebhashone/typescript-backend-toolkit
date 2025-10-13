@@ -1,8 +1,13 @@
-import type { Request, Response } from 'express';
+import type { Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { successResponse, errorResponse } from '../../utils/api.utils';
+import type { ResponseExtended } from '../../types';
+import { errorResponse } from '../../utils/api.utils';
 
-export const handleHealthCheck = async (_: Request, res: Response) => {
+// Healthcheck uses raw response (not the standard envelope)
+export const handleHealthCheck = async (
+  _: Request,
+  res: ResponseExtended,
+): Promise<void> => {
   const healthCheck = {
     uptime: process.uptime(),
     responseTime: process.hrtime(),
@@ -11,15 +16,18 @@ export const handleHealthCheck = async (_: Request, res: Response) => {
   };
 
   try {
-    return successResponse(res, undefined, healthCheck);
+    // Direct JSON response for healthcheck (no envelope)
+    res.status(StatusCodes.OK).json(healthCheck);
+    return;
   } catch (error) {
     healthCheck.message = (error as Error).message;
 
-    return errorResponse(
+    errorResponse(
       res,
       (error as Error).message,
       StatusCodes.SERVICE_UNAVAILABLE,
       healthCheck,
     );
+    return;
   }
 };

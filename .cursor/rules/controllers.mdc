@@ -12,9 +12,8 @@ Controllers are async functions that handle validated requests and return respon
 ## Controller Template
 
 ```typescript
-import type { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
-import { successResponse } from '@/utils/api.utils';
+import type { Request } from 'express';
+import type { ResponseExtended } from '@/types';
 import type { JwtPayload } from '@/utils/auth.utils';
 import type { CreateItemSchemaType, GetItemsSchemaType } from './module.schema';
 import {
@@ -30,26 +29,25 @@ import {
  */
 export const handleAction = async (
   req: Request<unknown, unknown, CreateItemSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   // 1. Extract validated data (already validated by Zod middleware)
   const { email, name } = req.body; // From body schema
   const { id } = req.params; // From params schema
   const { page = 1, limit = 10 } = req.query; // From query schema
 
-  // 2. Access JWT payload (if route uses extractJwt middleware)
+  // 2. Access JWT payload (if route uses canAccess middleware)
   const userId = req.user?.sub;
 
   // 3. Call service layer for business logic
   const result = await createItem({ email, name, userId });
 
-  // 4. Return response using successResponse helper
-  return successResponse(
-    res,
-    'Item created successfully',
-    result,
-    StatusCodes.CREATED,
-  );
+  // 4. Return response using typed helper (NEW PATTERN - RECOMMENDED)
+  return res.created?.({
+    success: true,
+    message: 'Item created successfully',
+    data: result,
+  });
 };
 
 /**
@@ -216,7 +214,39 @@ const url = (req.file as any).location; // S3 URL
 
 ### Response Pattern
 
-**ALWAYS use `successResponse()` helper** from [api.utils.ts](mdc:src/utils/api.utils.ts):
+**NEW (RECOMMENDED): Use typed response helpers** from ResponseExtended:
+
+```typescript
+import type { ResponseExtended } from '@/types';
+
+// 200 OK response
+return res.ok?.({
+  success: true,
+  message: 'Success message',
+  data: item,
+});
+
+// 201 Created response
+return res.created?.({
+  success: true,
+  message: 'Item created',
+  data: newItem,
+});
+
+// 204 No Content response
+return res.noContent?.();
+
+// Paginated list response
+return res.ok?.({
+  success: true,
+  data: {
+    items: results,
+    paginator: paginatorInfo,
+  },
+});
+```
+
+**LEGACY (STILL SUPPORTED): `successResponse()` helper** from [api.utils.ts](mdc:src/utils/api.utils.ts):
 
 ```typescript
 import { successResponse } from '@/utils/api.utils';
@@ -235,16 +265,13 @@ return successResponse(res, 'Created', item, StatusCodes.CREATED);
 return successResponse(res, undefined, { results, paginatorInfo });
 ```
 
-**Function Signature:**
+**Response Helpers Benefits:**
 
-```typescript
-successResponse(
-  res: Response,
-  message?: string,
-  payload?: Record<string, unknown>,
-  statusCode: StatusCodes = StatusCodes.OK,
-): void
-```
+- ✅ Type-safe response structure
+- ✅ Runtime validation (configurable via `RESPONSE_VALIDATION` env var)
+- ✅ Accurate OpenAPI documentation
+- ✅ Consistent response format across your API
+- ✅ Better IDE autocomplete and error detection
 
 **Response Format:**
 

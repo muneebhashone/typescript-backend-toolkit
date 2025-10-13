@@ -108,8 +108,53 @@ Scaffold a fully-typed module with controller, service, router, schema, and mode
 - [ ] Environment variables added to `src/config/env.ts` and `.env.sample` (if needed)
 - [ ] Committed with Conventional Commits format
 
+## Response Validation
+
+Generated modules automatically use the **response validation system**:
+
+- **Response schemas** defined with `R.success()`, `R.paginated()`, `R.error()` helpers
+- **Typed response helpers** (`res.ok()`, `res.created()`, `res.noContent()`) in controllers
+- **OpenAPI documentation** includes accurate per-status response schemas
+- **Runtime validation** ensures responses match schemas (configurable via `RESPONSE_VALIDATION` env var)
+
+### Example from generated code:
+
+**Router:**
+
+```typescript
+import { R } from '../../openapi/response.builders';
+
+router.get(
+  '/',
+  {
+    requestType: { query: getItemsSchema },
+    responses: {
+      200: R.paginated(itemOutSchema),
+    },
+  },
+  canAccess(),
+  handleGetItems,
+);
+```
+
+**Controller:**
+
+```typescript
+import type { ResponseExtended } from '../../types';
+
+export const handleGetItems = async (req, res: ResponseExtended) => {
+  const { results, paginatorInfo } = await getItems(req.query);
+  return res.ok?.({
+    success: true,
+    data: { items: results, paginator: paginatorInfo },
+  });
+};
+```
+
 ## Notes
 
 - Routes must use `MagicRouter`; the generator already sets this up and defines `<MODULE>_ROUTER_ROOT` using the `--path` you pass
+- Generated code uses **new response validation pattern** - see `docs/RESPONSE_VALIDATION.md` for details
+- Legacy `successResponse()` still works but new pattern is recommended
 - Keep environment configs valid, and update `src/config/env.ts` and `.env.sample` if you introduce new variables
 - Commit with Conventional Commits (e.g., `feat(<moduleName>): add <feature>`)

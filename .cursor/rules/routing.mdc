@@ -13,28 +13,48 @@ NEVER use plain Express routing. ALWAYS use MagicRouter from [magic-router.ts](m
 
 ```typescript
 import MagicRouter from '@/openapi/magic-router';
+import { R } from '@/openapi/response.builders';
 import { canAccess } from '@/middlewares/can-access';
 import { handleAction, handleGetById, handleCreate } from './module.controller';
-import { actionSchema, createSchema } from './module.schema';
+import { actionSchema, createSchema, itemOutSchema } from './module.schema';
 
 export const MODULE_ROUTER_ROOT = '/module';
 
 const moduleRouter = new MagicRouter(MODULE_ROUTER_ROOT);
 
-// Public route with schema validation
+// Public route with schema validation and response config
 moduleRouter.post(
   '/action',
-  { requestType: { body: actionSchema } },
+  {
+    requestType: { body: actionSchema },
+    responses: {
+      200: R.success(itemOutSchema),
+    },
+  },
   handleAction,
 );
 
 // Protected route with authentication
-moduleRouter.get('/me', {}, canAccess(), handleGetById);
+moduleRouter.get(
+  '/me',
+  {
+    responses: {
+      200: R.success(userOutSchema),
+    },
+  },
+  canAccess(),
+  handleGetById,
+);
 
-// Protected route with schema and auth
+// Protected route with schema, auth, and response config
 moduleRouter.post(
   '/create',
-  { requestType: { body: createSchema } },
+  {
+    requestType: { body: createSchema },
+    responses: {
+      201: R.success(itemOutSchema),
+    },
+  },
   canAccess(),
   handleCreate,
 );
@@ -42,14 +62,25 @@ moduleRouter.post(
 // Route with params
 moduleRouter.get(
   '/:id',
-  { requestType: { params: idParamsSchema } },
+  {
+    requestType: { params: idParamsSchema },
+    responses: {
+      200: R.success(itemOutSchema),
+      404: R.error(),
+    },
+  },
   handleGetById,
 );
 
-// Route with query params
+// Route with query params (paginated)
 moduleRouter.get(
   '/search',
-  { requestType: { query: searchQuerySchema } },
+  {
+    requestType: { query: searchQuerySchema },
+    responses: {
+      200: R.paginated(itemOutSchema),
+    },
+  },
   handleSearch,
 );
 
@@ -88,12 +119,59 @@ router.method(path, requestType, ...handlers);
     params?: ZodSchema,    // URL params validation
     query?: ZodSchema,     // Query string validation
   },
-  contentType?: string,       // 'application/json' | 'multipart/form-data' | etc.
+  responses?: {            // NEW: Response schemas per status code
+    200?: ResponseSchema,  // Success response
+    201?: ResponseSchema,  // Created response
+    404?: ResponseSchema,  // Not found response
+    // ... other status codes
+  },
+  contentType?: string,    // 'application/json' | 'multipart/form-data' | etc.
 }
 ```
 
 - Use empty object `{}` when no validation needed
 - Can combine `body`, `params`, and `query` in same route
+- **NEW**: Add `responses` object for response schemas (RECOMMENDED)
+
+### Response Configuration (NEW)
+
+Use response builders from `@/openapi/response.builders`:
+
+```typescript
+import { R } from '@/openapi/response.builders';
+
+// Standard success response
+responses: { 200: R.success(itemSchema) }
+
+// Paginated list response
+responses: { 200: R.paginated(itemSchema) }
+
+// Created response
+responses: { 201: R.success(itemSchema) }
+
+// No content response
+responses: { 204: R.noContent() }
+
+// Error response
+responses: { 404: R.error() }
+
+// Multiple status codes
+responses: {
+  200: R.success(itemSchema),
+  404: R.error(),
+}
+
+// Raw response (non-envelope)
+responses: { 200: R.raw(customSchema) }
+```
+
+**Response Builders:**
+
+- `R.success(schema)` - Standard envelope: `{ success, message?, data? }`
+- `R.paginated(itemSchema)` - Paginated list: `{ success, message?, data: { items, paginator } }`
+- `R.noContent()` - Empty 204 response
+- `R.error(schema?)` - Error envelope (optional custom schema)
+- `R.raw(schema)` - Non-envelope response (e.g., healthcheck)
 
 ### Handler Order
 
@@ -245,7 +323,10 @@ MagicRouter automatically generates OpenAPI documentation:
 - **Summary**: Auto-generated from controller function name
 - **Security**: Auto-detected from `canAccess()` middleware
 - **Schemas**: Generated from Zod schemas in `requestType`
-- **Responses**: 200, 400, 404, 500 automatically configured
+- **Responses**: Per-status schemas from `responses` config (NEW)
+  - If `responses` provided: Uses your schemas per status code
+  - If not provided: Defaults to 200, 400, 404, 500
+  - Default errors (400/404/500) added unless overridden
 
 ## Common Mistakes to Avoid
 
