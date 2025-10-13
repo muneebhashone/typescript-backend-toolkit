@@ -7,7 +7,6 @@ import { initializeApp } from './app/app';
 import config from './config/env';
 import { connectDatabase, disconnectDatabase } from './lib/database';
 import logger from './observability/logger';
-import { setupSocketIo } from './lib/realtime.server';
 import { LifecycleManager } from './server/lifecycle';
 import { createOpsRoutes } from './routes/ops';
 import apiRoutes from './routes/routes';
@@ -16,6 +15,7 @@ import { registeredQueues } from './lib/queue.server';
 import { scheduleSessionCleanup } from './queues/session-cleanup.queue';
 import { getSessionManager } from './modules/auth/session/session.manager';
 import { adminApiRouter, registerAdminUI } from './admin/router';
+import { Server as SocketServer } from 'socket.io';
 
 const bootstrapServer = async () => {
   await connectDatabase();
@@ -33,13 +33,6 @@ const bootstrapServer = async () => {
   }
 
   await scheduleSessionCleanup();
-
-  const io = setupSocketIo(server);
-
-  app.use((req, _, next) => {
-    req.io = io;
-    next();
-  });
 
   // Mock routes for ops health checks - don't forget to implement the actual checks
   const opsRoutes = createOpsRoutes({
@@ -87,7 +80,8 @@ const bootstrapServer = async () => {
 
   lifecycle.registerCleanup(async () => {
     await disconnectDatabase();
-    io.disconnectSockets(true);
+    const io = app.locals?.io as SocketServer | undefined;
+    io?.disconnectSockets(true);
   });
 
   lifecycle.setupSignalHandlers();
