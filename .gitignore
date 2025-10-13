@@ -138,3 +138,7 @@ dist
 .dump
 
 openapi.yml 
+
+src/generated
+
+Api.ts

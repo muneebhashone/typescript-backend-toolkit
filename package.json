@@ -16,7 +16,8 @@
     "openapi": "dotenv -e .env.development -- tsx scripts/gen-openapi.ts",
     "seed": "dotenv -e .env.development -- tsx scripts/seed.ts",
     "email:dev": "email dev --dir ./src/email/templates",
-    "tbk": "dotenv -e .env.development -- tsx bin/tbk"
+    "tbk": "dotenv -e .env.development -- tsx bin/tbk",
+    "gen-sdk": "npx swagger-typescript-api generate --path ./openapi.yml --output ./src/generated"
   },
   "devDependencies": {
     "@eslint/js": "^9.4.0",
