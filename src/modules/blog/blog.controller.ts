@@ -1,51 +1,78 @@
-import type { Request, Response } from "express";
-import { StatusCodes } from "http-status-codes";
-import type { MongoIdSchemaType } from "../../common/common.schema";
-import { successResponse } from "../../utils/api.utils";
-import type { CreateBlogSchemaType, GetBlogsSchemaType, UpdateBlogSchemaType } from "./blog.schema";
-import { createBlog, deleteBlog, getBlogById, getBlogs, updateBlog } from "./blog.services";
+import type { Request } from 'express';
+import type { MongoIdSchemaType } from '../../common/common.schema';
+import type { ResponseExtended } from '../../types';
+import { successResponse } from '../../utils/api.utils';
+import type {
+  CreateBlogSchemaType,
+  GetBlogsSchemaType,
+  UpdateBlogSchemaType,
+} from './blog.schema';
+import {
+  createBlog,
+  deleteBlog,
+  getBlogById,
+  getBlogs,
+  updateBlog,
+} from './blog.services';
 
+// Using new res.created() helper
 export const handleCreateBlog = async (
   req: Request<unknown, unknown, CreateBlogSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   const blog = await createBlog(req.body);
-  return successResponse(
-    res,
-    "Blog created successfully",
-    blog,
-    StatusCodes.CREATED,
-  );
+  return res.json({
+    success: true,
+    message: 'Blog created successfully',
+    data: blog,
+  }) as unknown as void;
 };
 
+// Using new res.ok() helper with paginated response
 export const handleGetBlogs = async (
   req: Request<unknown, unknown, unknown, GetBlogsSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   const { results, paginatorInfo } = await getBlogs(req.query);
-  return successResponse(res, undefined, { results, paginatorInfo });
+  return res.json({
+    success: true,
+    data: {
+      items: results,
+      paginator: paginatorInfo,
+    },
+  }) as unknown as void;
 };
 
+// Using new res.ok() helper
 export const handleGetBlogById = async (
   req: Request<MongoIdSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   const blog = await getBlogById(req.params.id);
-  return successResponse(res, undefined, blog);
+  return res.ok?.({
+    success: true,
+    data: blog,
+  });
 };
 
+// Using new res.ok() helper
 export const handleUpdateBlog = async (
   req: Request<MongoIdSchemaType, unknown, UpdateBlogSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   const blog = await updateBlog(req.params.id, req.body);
-  return successResponse(res, "Blog updated successfully", blog);
+  return res.ok?.({
+    success: true,
+    message: 'Blog updated successfully',
+    data: blog,
+  });
 };
 
+// Keeping legacy pattern for comparison
 export const handleDeleteBlog = async (
   req: Request<MongoIdSchemaType>,
-  res: Response,
+  res: ResponseExtended,
 ) => {
   await deleteBlog({ id: req.params.id });
-  return successResponse(res, "Blog deleted successfully");
+  return successResponse(res, 'Blog deleted successfully');
 };
