@@ -5,6 +5,7 @@ import * as yaml from 'yaml';
 import type { OpenAPIObject } from 'openapi3-ts/oas30';
 import config from '../config/env';
 import { registry } from './swagger-instance';
+import path from 'node:path';
 
 export const getOpenApiDocumentation = (): OpenAPIObject => {
   const generator = new OpenApiGeneratorV3(registry.definitions);
@@ -36,7 +37,11 @@ export const convertDocumentationToYaml = (): string => {
 export const writeDocumentationToDisk = async (): Promise<void> => {
   const fileContent = convertDocumentationToYaml();
 
-  await fs.writeFile(`${__dirname}/openapi-docs.yml`, fileContent, {
-    encoding: 'utf-8',
-  });
+  await fs.writeFile(
+    path.join(process.cwd(), 'public', 'openapi.yml'),
+    fileContent,
+    {
+      encoding: 'utf-8',
+    },
+  );
 };
