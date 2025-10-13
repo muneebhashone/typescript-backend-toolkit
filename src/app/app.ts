@@ -9,6 +9,7 @@ import { securityPlugin } from '../plugins/security';
 import { observabilityPlugin } from '../plugins/observability';
 import { openApiPlugin } from '../plugins/openapi';
 import { authPlugin } from '../plugins/auth';
+import { realtimePlugin } from '../plugins/realtime';
 
 export async function initializeApp() {
   const { app, server, plugins } = await createApp({
@@ -35,6 +36,7 @@ export async function initializeApp() {
         logging: true,
         metrics: config.METRICS_ENABLED,
       }),
+      realtimePlugin(),
       openApiPlugin({
         path: '/api-docs',
         enabled: config.NODE_ENV !== 'production',
