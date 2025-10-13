@@ -12,7 +12,7 @@ import { LifecycleManager } from './server/lifecycle';
 import { createOpsRoutes } from './routes/ops';
 import apiRoutes from './routes/routes';
 import globalErrorHandler from './utils/globalErrorHandler';
-import { getRegisteredQueues } from './lib/queue.server';
+import { registeredQueues } from './lib/queue.server';
 import { scheduleSessionCleanup } from './queues/session-cleanup.queue';
 import { getSessionManager } from './modules/auth/session/session.manager';
 import { adminApiRouter, registerAdminUI } from './admin/router';
@@ -72,7 +72,7 @@ const bootstrapServer = async () => {
   serverAdapter.setBasePath('/admin/queues');
 
   createBullBoard({
-    queues: Object.entries(getRegisteredQueues() || {}).map(
+    queues: Object.entries(registeredQueues || {}).map(
       ([, values]) => new BullMQAdapter(values.queue),
     ),
     serverAdapter,

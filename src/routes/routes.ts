@@ -6,7 +6,9 @@ import healthCheckRouter, {
   HEALTH_ROUTER_ROOT,
 } from '../healthcheck/healthcheck.routes';
 import userRouter, { USER_ROUTER_ROOT } from '../modules/user/user.router';
-import uploadRouter, { UPLOAD_ROUTER_ROOT } from '../upload/upload.router';
+import uploadRouter, {
+  UPLOAD_ROUTER_ROOT,
+} from '../modules/upload/upload.router';
 
 const router = express.Router();
 
