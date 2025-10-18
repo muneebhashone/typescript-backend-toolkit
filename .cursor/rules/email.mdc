@@ -9,7 +9,7 @@ description: Email system using React Email and Mailgun with queue-based sending
 
 - **Templates**: React Email components in [src/email/templates/](mdc:src/email/templates/)
 - **Service**: Email service in [src/email/email.service.ts](mdc:src/email/email.service.ts)
-- **Provider**: Mailgun integration in [src/lib/mailgun.server.ts](mdc:src/lib/mailgun.server.ts)
+- **Provider**: Email provider abstraction in [src/lib/email.ts](mdc:src/lib/email.ts) (supports Mailgun & SMTP)
 - **Queue**: Background sending via [src/queues/email.queue.ts](mdc:src/queues/email.queue.ts)
 - **Development**: Preview server for templates
 
@@ -18,13 +18,20 @@ description: Email system using React Email and Mailgun with queue-based sending
 ### Environment Variables
 
 ```bash
-# Mailgun
+# Option 1: Mailgun (Recommended)
 MAILGUN_API_KEY=your-mailgun-api-key
 MAILGUN_DOMAIN=your-domain.com
-MAILGUN_FROM=noreply@your-domain.com
+MAILGUN_FROM_EMAIL=noreply@your-domain.com
 
-# Optional: Override recipient in dev
-MAILGUN_TO_OVERRIDE=dev@example.com
+# Option 2: SMTP (Fallback)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM=noreply@your-domain.com
+EMAIL_FROM=noreply@your-domain.com
+
+# Note: Provider auto-selects Mailgun if configured, otherwise SMTP
 ```
 
 ## Creating Email Templates
