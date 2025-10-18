@@ -24,6 +24,13 @@ export interface GoogleUserInfo {
   locale: string;
 }
 
+export interface GoogleAuthUrlParams {
+  clientId: string;
+  redirectUri: string;
+  scope?: string;
+  responseType?: string;
+}
+
 /**
  * Exchange Google OAuth authorization code for access tokens
  * @param params - Request parameters containing the authorization code
@@ -84,3 +91,14 @@ export const getUserInfo = async (
 
   return userInfoResponse.json();
 };
+
+export const generateGoogleAuthUrl = (params: GoogleAuthUrlParams) => {
+  const googleURL = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  googleURL.searchParams.set('response_type', params.responseType ?? 'code');
+  googleURL.searchParams.set('client_id', params.clientId);
+  googleURL.searchParams.set('redirect_uri', params.redirectUri);
+  googleURL.searchParams.set('scope', params.scope ?? 'email profile');
+
+  return googleURL.toString();
+}
+

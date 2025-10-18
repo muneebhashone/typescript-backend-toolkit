@@ -28,6 +28,7 @@ import {
   registerUserByEmail,
   resetPassword,
 } from './auth.service';
+import { generateGoogleAuthUrl } from '@/utils/google-oauth.utils';
 
 // Using new res.ok() helper
 export const handleResetPassword = async (
@@ -149,7 +150,11 @@ export const handleGoogleLogin = async (_: Request, res: ResponseExtended) => {
     throw new Error('Google credentials are not set');
   }
 
-  const googleAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${config.GOOGLE_CLIENT_ID}&redirect_uri=${config.GOOGLE_REDIRECT_URI}&scope=email profile`;
+  const googleAuthURL = generateGoogleAuthUrl({
+    clientId: config.GOOGLE_CLIENT_ID,
+    redirectUri: config.GOOGLE_REDIRECT_URI,
+    scope: 'email profile',
+  });
 
   res.redirect(googleAuthURL);
 };
