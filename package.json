@@ -11,6 +11,7 @@
     "start:local": "dotenv -e .env.local -- node ./dist/main.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "openapi": "dotenv -e .env.development -- tsx scripts/gen-openapi.ts",
     "seed": "dotenv -e .env.development -- tsx scripts/seed.ts",
     "email:dev": "email dev --dir ./src/email/templates",
