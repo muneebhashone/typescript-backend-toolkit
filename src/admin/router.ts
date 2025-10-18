@@ -1,26 +1,25 @@
 import path from 'path';
-import fs from 'fs';
 import { type Application, Router, type RequestHandler } from 'express';
 import formidable from 'formidable';
 import type { FilterQuery } from 'mongoose';
 import { adminResources, getResource } from './registry';
 import { buildSearchQuery, getFields } from './utils/schema-introspection';
 import type { AdminField } from './types';
+import { LocalStorageProvider } from '../lib/storage';
+import type { FormFile } from '../types';
+import logger from '../observability/logger';
 
 export const adminApiRouter = Router();
 
-// Local uploads directory under public/uploads
-const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-function ensureUploadsDir() {
-  try {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  } catch {
-    // no co-op
-  }
-}
-ensureUploadsDir();
+// Admin module uses local storage by default for simplicity
+// Files are stored in public/uploads/admin and served at /uploads/admin
+const adminStorageProvider = new LocalStorageProvider();
 
-function uploadForResource(req: any, res: any, next: any) {
+/**
+ * Middleware to handle file uploads for admin resources
+ * Uses the configured storage provider (S3, R2, or local)
+ */
+async function uploadForResource(req: any, res: any, next: any) {
   const resource = getResource(req.params.resource);
   if (!resource || !resource.fileFields || resource.fileFields.length === 0)
     return next();
@@ -28,7 +27,6 @@ function uploadForResource(req: any, res: any, next: any) {
   if (!ct.startsWith('multipart/form-data')) return next();
 
   const form = formidable({
-    uploadDir: uploadsDir,
     keepExtensions: true,
     maxFileSize: 10 * 1024 * 1024, // 10MB
     filename: (_name, _ext, part) => {
@@ -37,43 +35,79 @@ function uploadForResource(req: any, res: any, next: any) {
     },
   });
 
-  form.parse(req, (err: Error | null, fields: formidable.Fields, files: formidable.Files) => {
+  form.parse(req, async (err: Error | null, fields: formidable.Fields, files: formidable.Files) => {
     if (err) {
       return res.status(400).json({ error: 'Failed to parse multipart data', details: err.message });
     }
 
-    // Normalize fields
-    const normalizedFields: Record<string, any> = {};
-    for (const [key, value] of Object.entries(fields)) {
-      normalizedFields[key] = Array.isArray(value) && value.length === 1 ? value[0] : value;
-    }
-
-    // Normalize files: store relative path for admin panel
-    const normalizedFiles: Record<string, any> = {};
-    for (const [key, value] of Object.entries(files)) {
-      if (Array.isArray(value)) {
-        normalizedFiles[key] = value.map((f: formidable.File) => ({
-          path: `/uploads/${path.basename(f.filepath)}`,
-          filename: f.originalFilename,
-          size: f.size,
-          mimetype: f.mimetype,
-        }));
-      } else if (value) {
-        const file = value as formidable.File;
-        normalizedFiles[key] = {
-          path: `/uploads/${path.basename(file.filepath)}`,
-          filename: file.originalFilename,
-          size: file.size,
-          mimetype: file.mimetype,
-        };
+    try {
+      // Normalize fields
+      const normalizedFields: Record<string, any> = {};
+      for (const [key, value] of Object.entries(fields)) {
+        normalizedFields[key] = Array.isArray(value) && value.length === 1 ? value[0] : value;
       }
+
+      // Upload files to storage provider and get URLs
+      const uploadedFiles: Record<string, any> = {};
+      for (const [key, value] of Object.entries(files)) {
+        if (!resource.fileFields?.includes(key)) continue;
+
+        const fileArray = Array.isArray(value) ? value : [value];
+        const uploadResults = [];
+
+        for (const file of fileArray) {
+          if (!file) continue;
+
+          // Convert formidable.File to FormFile format
+          const formFile: FormFile = {
+            filepath: file.filepath,
+            originalFilename: file.originalFilename || 'file',
+            mimetype: file.mimetype || 'application/octet-stream',
+            size: file.size,
+          };
+
+          // Generate unique key for storage
+          const originalName = formFile.originalFilename || 'file';
+          const ext = path.extname(originalName);
+          const basename = path.basename(originalName, ext);
+          const safeBasename = basename.replace(/[^a-zA-Z0-9._-]+/g, '-');
+          const storageKey = `admin/${resource.name}/${Date.now()}-${safeBasename}${ext}`;
+
+          // Upload to storage provider
+          const result = await adminStorageProvider.upload({
+            file: formFile,
+            key: storageKey,
+          });
+
+          uploadResults.push({
+            url: result.url,
+            key: result.key,
+            filename: formFile.originalFilename,
+            size: formFile.size,
+            mimetype: formFile.mimetype,
+          });
+        }
+
+        // Store results
+        if (Array.isArray(value)) {
+          uploadedFiles[key] = uploadResults;
+        } else {
+          uploadedFiles[key] = uploadResults[0];
+        }
+      }
+
+      // Merge into req.body
+      req.body = { ...normalizedFields };
+      req.uploadedFiles = uploadedFiles;
+
+      next();
+    } catch (uploadErr: any) {
+      logger.error({ err: uploadErr, resource: resource.name }, 'Failed to upload files');
+      return res.status(500).json({
+        error: 'Failed to upload files',
+        details: uploadErr.message
+      });
     }
-
-    // Merge into req.body
-    req.body = { ...normalizedFields, ...normalizedFiles };
-    req.files = normalizedFiles;
-
-    next();
   });
 }
 
@@ -245,15 +279,26 @@ adminApiRouter.post('/:resource', uploadForResource, async (req: any, res) => {
   if (!resource) return res.status(404).json({ error: 'resource_not_found' });
   try {
     const body = { ...(req.body || {}) } as Record<string, unknown>;
-    if (resource.fileFields && req.files) {
+
+    // Handle uploaded files - store the URL from storage provider
+    if (resource.fileFields && req.uploadedFiles) {
       for (const field of resource.fileFields) {
-        const fileArr = (req.files as any)[field] as any[];
-        if (fileArr && fileArr[0]) {
-          const f = fileArr[0];
-          body[field] = `/uploads/${f.filename}`;
+        const uploadedFile = req.uploadedFiles[field];
+        if (uploadedFile) {
+          // Store the URL (and optionally the key for deletion)
+          if (Array.isArray(uploadedFile)) {
+            body[field] = uploadedFile[0]?.url;
+            // Store key for future deletion
+            body[`${field}_key`] = uploadedFile[0]?.key;
+          } else {
+            body[field] = uploadedFile.url;
+            // Store key for future deletion
+            body[`${field}_key`] = uploadedFile.key;
+          }
         }
       }
     }
+
     const created = await resource.model.create(body);
     res.status(201).json({ data: created });
   } catch (err: any) {
@@ -269,19 +314,45 @@ adminApiRouter.put(
     if (!resource) return res.status(404).json({ error: 'resource_not_found' });
     const readOnly = new Set([...(resource.readOnlyFields || []), '_id']);
     const payload: Record<string, unknown> = {};
+
+    // Copy non-readonly fields
     for (const [k, v] of Object.entries(req.body || {})) {
       if (!readOnly.has(k)) payload[k] = v;
     }
-    if (resource.fileFields && req.files) {
+
+    // Handle uploaded files
+    if (resource.fileFields && req.uploadedFiles) {
+      // First, get the existing document to delete old files
+      const existing = await resource.model.findById(req.params.id).lean() as any;
+
       for (const field of resource.fileFields) {
         if (readOnly.has(field)) continue;
-        const fileArr = (req.files as any)[field] as any[];
-        if (fileArr && fileArr[0]) {
-          const f = fileArr[0];
-          payload[field] = `/uploads/${f.filename}`;
+
+        const uploadedFile = req.uploadedFiles[field];
+        if (uploadedFile) {
+          // Delete old file if it exists
+          const oldKey = existing?.[`${field}_key`];
+          if (oldKey) {
+            try {
+              await adminStorageProvider.delete(oldKey);
+              logger.info({ key: oldKey, field, resource: resource.name }, 'Deleted old file during update');
+            } catch (deleteErr: any) {
+              logger.error({ err: deleteErr, key: oldKey }, 'Failed to delete old file');
+            }
+          }
+
+          // Store new file URL and key
+          if (Array.isArray(uploadedFile)) {
+            payload[field] = uploadedFile[0]?.url;
+            payload[`${field}_key`] = uploadedFile[0]?.key;
+          } else {
+            payload[field] = uploadedFile.url;
+            payload[`${field}_key`] = uploadedFile.key;
+          }
         }
       }
     }
+
     try {
       const updated = await resource.model.findByIdAndUpdate(
         req.params.id,
@@ -304,8 +375,30 @@ adminApiRouter.put(
 adminApiRouter.delete('/:resource/:id', async (req, res) => {
   const resource = getResource(req.params.resource);
   if (!resource) return res.status(404).json({ error: 'resource_not_found' });
+
+  // Get document before deletion to access file keys
+  const doc = await resource.model.findById(req.params.id).lean() as any;
+  if (!doc) return res.status(404).json({ error: 'not_found' });
+
+  // Delete the document
   const deleted = await resource.model.findByIdAndDelete(req.params.id);
   if (!deleted) return res.status(404).json({ error: 'not_found' });
+
+  // Delete associated files from storage
+  if (resource.fileFields && resource.fileFields.length > 0) {
+    for (const field of resource.fileFields) {
+      const fileKey = doc[`${field}_key`];
+      if (fileKey) {
+        try {
+          await adminStorageProvider.delete(fileKey);
+          logger.info({ key: fileKey, field, resource: resource.name, id: req.params.id }, 'Deleted file after resource deletion');
+        } catch (deleteErr: any) {
+          logger.error({ err: deleteErr, key: fileKey, field }, 'Failed to delete file from storage');
+        }
+      }
+    }
+  }
+
   res.json({ ok: true });
 });
 
@@ -323,7 +416,31 @@ adminApiRouter.post('/:resource/bulk-delete', async (req, res) => {
       .json({ error: 'invalid_request', details: 'ids[] required' });
 
   try {
+    // Get documents before deletion to access file keys
+    const docs = resource.fileFields && resource.fileFields.length > 0
+      ? await resource.model.find({ _id: { $in: ids } }).lean() as any[]
+      : [];
+
+    // Delete documents from database
     const result = await resource.model.deleteMany({ _id: { $in: ids } });
+
+    // Delete associated files from storage
+    if (docs.length > 0 && resource.fileFields) {
+      for (const doc of docs) {
+        for (const field of resource.fileFields) {
+          const fileKey = doc[`${field}_key`];
+          if (fileKey) {
+            try {
+              await adminStorageProvider.delete(fileKey);
+              logger.info({ key: fileKey, field, resource: resource.name, id: doc._id }, 'Deleted file during bulk delete');
+            } catch (deleteErr: any) {
+              logger.error({ err: deleteErr, key: fileKey, field }, 'Failed to delete file from storage');
+            }
+          }
+        }
+      }
+    }
+
     return res.json({ deletedCount: result?.deletedCount ?? 0 });
   } catch (err: any) {
     return res
@@ -337,7 +454,31 @@ adminApiRouter.post('/:resource/clear', async (req, res) => {
   const resource = getResource(req.params.resource);
   if (!resource) return res.status(404).json({ error: 'resource_not_found' });
   try {
+    // Get all documents before deletion to access file keys
+    const docs = resource.fileFields && resource.fileFields.length > 0
+      ? await resource.model.find({}).lean() as any[]
+      : [];
+
+    // Delete all documents from database
     const result = await resource.model.deleteMany({});
+
+    // Delete associated files from storage
+    if (docs.length > 0 && resource.fileFields) {
+      for (const doc of docs) {
+        for (const field of resource.fileFields) {
+          const fileKey = doc[`${field}_key`];
+          if (fileKey) {
+            try {
+              await adminStorageProvider.delete(fileKey);
+              logger.info({ key: fileKey, field, resource: resource.name, id: doc._id }, 'Deleted file during clear');
+            } catch (deleteErr: any) {
+              logger.error({ err: deleteErr, key: fileKey, field }, 'Failed to delete file from storage');
+            }
+          }
+        }
+      }
+    }
+
     return res.json({ deletedCount: result?.deletedCount ?? 0 });
   } catch (err: any) {
     return res
