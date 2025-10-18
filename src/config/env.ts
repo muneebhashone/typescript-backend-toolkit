@@ -69,11 +69,25 @@ const configSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_REDIRECT_URI: z.string().optional(),
 
+  // Storage Configuration
+  STORAGE_PROVIDER: z.enum(['s3', 'r2', 'local']).default('s3'),
+
   // AWS S3 Configuration
   AWS_REGION: z.string().default('us-east-1'),
   AWS_S3_BUCKET: z.string().min(1).default("default"),
   AWS_ACCESS_KEY_ID: z.string().optional(),
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
+
+  // Cloudflare R2 Configuration
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET: z.string().optional(),
+  R2_PUBLIC_URL: z.string().url().optional(),
+
+  // Local Storage Configuration
+  LOCAL_STORAGE_PATH: z.string().default('./uploads'),
+  LOCAL_STORAGE_BASE_URL: z.string().url().optional(),
 
   APP_NAME: z.string().default('API V1'),
   APP_VERSION: z.string().default('1.0.0'),
