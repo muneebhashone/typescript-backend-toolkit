@@ -2,7 +2,7 @@ import type { Processor, QueueOptions, WorkerOptions } from 'bullmq';
 import { Queue as BullQueue, Worker } from 'bullmq';
 
 import logger from '../observability/logger';
-import { cacheClient } from './cache';
+import { cacheProvider, RedisProvider } from './cache';
 import { QueueError } from './errors';
 
 type RegisteredQueue = {
@@ -27,13 +27,20 @@ export function Queue<Payload>(
   }
 
   try {
+    // Get Redis client for queue connection
+    if (!(cacheProvider instanceof RedisProvider)) {
+      throw new QueueError('Queue requires Redis cache provider. Set CACHE_PROVIDER=redis');
+    }
+
+    const redisClient = cacheProvider.getClient();
+
     const queue = new BullQueue<Payload>(name, {
-      connection: cacheClient,
+      connection: redisClient,
       ...queueOptions,
     });
 
     const worker = new Worker<Payload>(name, handler, {
-      connection: cacheClient,
+      connection: redisClient,
       ...workerOptions,
     });
 

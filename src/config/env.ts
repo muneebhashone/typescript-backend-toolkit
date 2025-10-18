@@ -98,6 +98,14 @@ const configSchema = z.object({
   METRICS_ENABLED: booleanString.default('true'),
   HEALTH_ENABLED: booleanString.default('true'),
 
+  // Cache Configuration
+  CACHE_PROVIDER: z.enum(['redis', 'memory']).default('redis'),
+  CACHE_ENABLED: booleanString.default('true'),
+  CACHE_PREFIX: z.string().default('app:'),
+  CACHE_DEFAULT_TTL: z.string().transform(Number).default('3600'),
+  CACHE_COMPRESSION_ENABLED: booleanString.default('false'),
+  CACHE_COMPRESSION_THRESHOLD: z.string().transform(Number).default('1024'),
+
   CORS_ENABLED: booleanString.default('true'),
   RATE_LIMIT_ENABLED: booleanString.default('false'),
   RATE_LIMIT_WINDOW_MS: z.string().transform(Number).default('900000'),

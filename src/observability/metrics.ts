@@ -5,6 +5,8 @@ export class MetricsCollector {
   private httpRequestDuration: Histogram<string>;
   private httpRequestTotal: Counter<string>;
   private httpRequestsInProgress: Gauge<string>;
+  private cacheHits: Counter<string>;
+  private cacheMisses: Counter<string>;
 
   constructor() {
     this.register = new Registry();
@@ -35,6 +37,20 @@ export class MetricsCollector {
       labelNames: ['method', 'route'],
       registers: [this.register],
     });
+
+    this.cacheHits = new Counter({
+      name: 'cache_hits_total',
+      help: 'Total number of cache hits',
+      labelNames: ['key'],
+      registers: [this.register],
+    });
+
+    this.cacheMisses = new Counter({
+      name: 'cache_misses_total',
+      help: 'Total number of cache misses',
+      labelNames: ['key'],
+      registers: [this.register],
+    });
   }
 
   recordRequest(method: string, route: string, statusCode: number, duration: number): void {
@@ -50,6 +66,14 @@ export class MetricsCollector {
 
   endRequest(method: string, route: string): void {
     this.httpRequestsInProgress.dec({ method, route });
+  }
+
+  incrementCacheHits(key: string): void {
+    this.cacheHits.inc({ key });
+  }
+
+  incrementCacheMisses(key: string): void {
+    this.cacheMisses.inc({ key });
   }
 
   async getMetrics(): Promise<string> {
