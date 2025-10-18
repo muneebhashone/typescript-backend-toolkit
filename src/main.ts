@@ -26,8 +26,16 @@ import {
 } from './admin/admin-auth';
 import { Server as SocketServer } from 'socket.io';
 import path from 'path';
+import { resolvePort } from './server/port-resolver';
 
 const bootstrapServer = async () => {
+
+  // Resolve port availability (dev-only interactive prompt)
+  const selectedPort =
+    config.NODE_ENV === 'development'
+      ? await resolvePort({ desiredPort: config.PORT })
+      : config.PORT;
+
   await connectDatabase();
 
   const { app, server } = await initializeApp();
@@ -146,18 +154,18 @@ const bootstrapServer = async () => {
 
   lifecycle.setupSignalHandlers();
 
-  server.listen(config.PORT, () => {
-    logger.info(`Server is running on http://localhost:${config.PORT}`);
-    logger.info(`RESTful API: http://localhost:${config.PORT}/api`);
-    logger.info(`OpenAPI Docs: http://localhost:${config.PORT}/docs`);
-    logger.info(`Health: http://localhost:${config.PORT}/ops/health`);
-    logger.info(`Readiness: http://localhost:${config.PORT}/ops/readiness`);
-    logger.info(`Metrics: http://localhost:${config.PORT}/ops/metrics`);
-    logger.info(`BullBoard: http://localhost:${config.PORT}/queues`);
+  server.listen(selectedPort, () => {
+    logger.info(`Server is running on http://localhost:${selectedPort}`);
+    logger.info(`RESTful API: http://localhost:${selectedPort}/api`);
+    logger.info(`OpenAPI Docs: http://localhost:${selectedPort}/docs`);
+    logger.info(`Health: http://localhost:${selectedPort}/ops/health`);
+    logger.info(`Readiness: http://localhost:${selectedPort}/ops/readiness`);
+    logger.info(`Metrics: http://localhost:${selectedPort}/ops/metrics`);
+    logger.info(`BullBoard: http://localhost:${selectedPort}/queues`);
     logger.info(`Client-side url set to: ${config.CLIENT_SIDE_URL}`);
-    logger.info(`Admin dashboard: http://localhost:${config.PORT}/admin`);
+    logger.info(`Admin dashboard: http://localhost:${selectedPort}/admin`);
     logger.info(
-      `Socket Testing Suite: http://localhost:${config.PORT}/realtime`,
+      `Socket Testing Suite: http://localhost:${selectedPort}/realtime`,
     );
   });
 };
