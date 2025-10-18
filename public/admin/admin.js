@@ -1,4 +1,4 @@
-(() => {
+document.addEventListener('DOMContentLoaded', () => {
   const state = {
     resources: [],
     current: null,
@@ -495,7 +495,7 @@
   $('#logoutBtn').onclick = async () => {
     if (confirm('Are you sure you want to logout?')) {
       try {
-        await fetch('/admin/logout', { method: 'POST' });
+        await fetch('/admin/logout', { method: 'POST', headers: { accept: 'application/json' } });
         window.location.href = '/admin/login';
       } catch (e) {
         alert('Logout failed. Please try again.');
@@ -1143,4 +1143,4 @@
     container.appendChild(hidden);
     return container;
   }
-})();
+});

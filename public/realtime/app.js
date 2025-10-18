@@ -1,4 +1,4 @@
-(() => {
+document.addEventListener('DOMContentLoaded', () => {
   const $ = (id) => document.getElementById(id);
   const statusEl = $('status');
   const sidEl = $('sid');
@@ -604,4 +604,4 @@
     // populate UI inputs already done; just connect
     connect();
   }
-})();
+});

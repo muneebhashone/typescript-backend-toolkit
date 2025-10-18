@@ -1,6 +1,6 @@
 import type { NextFunction } from 'express';
 import { StatusCodes } from '@/openapi/status-codes';
-import type { RoleType } from '../enums';
+import type { RoleType } from '@/enums';
 import { errorResponse } from '@/utils/response.utils';
 import type { JwtPayload } from '@/utils/jwt.utils';
 import type { RequestAny, ResponseAny } from '@/openapi/magic-router';
