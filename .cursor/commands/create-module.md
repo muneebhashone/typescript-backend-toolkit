@@ -112,24 +112,40 @@ Scaffold a fully-typed module with controller, service, router, schema, and mode
 
 Generated modules automatically use the **response validation system**:
 
-- **Response schemas** defined with `R.success()`, `R.paginated()`, `R.error()` helpers
+- **Response schemas** defined in schema files using `R.success()`, `R.paginated()`, `R.error()` helpers
+- **Response types** exported from schema files for type-safe controllers
 - **Typed response helpers** (`res.ok()`, `res.created()`, `res.noContent()`) in controllers
 - **OpenAPI documentation** includes accurate per-status response schemas
 - **Runtime validation** ensures responses match schemas (configurable via `RESPONSE_VALIDATION` env var)
 
 ### Example from generated code:
 
-**Router:**
+**Schema file (module.schema.ts):**
 
 ```typescript
 import { R } from '../../openapi/response.builders';
+import { itemOutSchema } from './item.dto';
+
+// Response schemas
+export const getItemsResponseSchema = R.paginated(itemOutSchema);
+export const createItemResponseSchema = R.success(itemOutSchema);
+
+// Response types
+export type GetItemsResponseSchema = z.infer<typeof getItemsResponseSchema>;
+export type CreateItemResponseSchema = z.infer<typeof createItemResponseSchema>;
+```
+
+**Router (module.router.ts):**
+
+```typescript
+import { getItemsResponseSchema } from './module.schema';
 
 router.get(
   '/',
   {
     requestType: { query: getItemsSchema },
     responses: {
-      200: R.paginated(itemOutSchema),
+      200: getItemsResponseSchema,
     },
   },
   canAccess(),
@@ -137,12 +153,16 @@ router.get(
 );
 ```
 
-**Controller:**
+**Controller (module.controller.ts):**
 
 ```typescript
 import type { ResponseExtended } from '../../types';
+import type { GetItemsResponseSchema } from './module.schema';
 
-export const handleGetItems = async (req, res: ResponseExtended) => {
+export const handleGetItems = async (
+  req: Request<unknown, unknown, unknown, GetItemsSchemaType>,
+  res: ResponseExtended<GetItemsResponseSchema>,
+) => {
   const { results, paginatorInfo } = await getItems(req.query);
   return res.ok?.({
     success: true,

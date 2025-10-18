@@ -4,7 +4,13 @@ import config from '../../config/env';
 import type { ResponseExtended } from '../../types';
 import { successResponse } from '../../utils/api.utils';
 import { generateRandomPassword } from '../../utils/auth.utils';
-import type { CreateUserSchemaType, GetUsersSchemaType } from './user.schema';
+import type { 
+  CreateUserSchemaType, 
+  GetUsersSchemaType,
+  CreateUserResponseSchema,
+  GetUsersResponseSchema,
+  CreateSuperAdminResponseSchema,
+} from './user.schema';
 import { createUser, deleteUser, getUsers } from './user.services';
 
 export const handleDeleteUser = async (
@@ -19,7 +25,7 @@ export const handleDeleteUser = async (
 // Using new res.created() helper
 export const handleCreateUser = async (
   req: Request<unknown, unknown, CreateUserSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<CreateUserResponseSchema>,
 ) => {
   const data = req.body;
 
@@ -39,7 +45,7 @@ export const handleCreateUser = async (
 // Using new res.created() helper
 export const handleCreateSuperAdmin = async (
   _: Request<unknown, unknown, unknown>,
-  res: ResponseExtended,
+  res: ResponseExtended<CreateSuperAdminResponseSchema>,
 ) => {
   const user = await createUser({
     email: config.ADMIN_EMAIL,
@@ -61,7 +67,7 @@ export const handleCreateSuperAdmin = async (
 // Using new res.ok() helper with paginated response
 export const handleGetUsers = async (
   req: Request<unknown, unknown, unknown, GetUsersSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<GetUsersResponseSchema>,
 ) => {
   const { results, paginatorInfo } = await getUsers(
     {

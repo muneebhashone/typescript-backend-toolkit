@@ -257,15 +257,66 @@ export const createItemSchema = z.object({
 });
 ```
 
+## Response Schemas (NEW - RECOMMENDED)
+
+Define response schemas in your schema file using response builders:
+
+```typescript
+import { R } from '../../openapi/response.builders';
+import { itemOutSchema } from './item.dto';
+
+// Response schemas
+export const createItemResponseSchema = R.success(itemOutSchema);
+export const getItemsResponseSchema = R.paginated(itemOutSchema);
+export const getItemByIdResponseSchema = R.success(itemOutSchema);
+export const updateItemResponseSchema = R.success(itemOutSchema);
+
+// Custom response schemas
+export const customActionResponseSchema = R.success(z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    actionId: z.string(),
+    status: z.enum(['pending', 'completed']),
+  }),
+}));
+
+// Response types
+export type CreateItemResponseSchema = z.infer<typeof createItemResponseSchema>;
+export type GetItemsResponseSchema = z.infer<typeof getItemsResponseSchema>;
+export type GetItemByIdResponseSchema = z.infer<typeof getItemByIdResponseSchema>;
+export type UpdateItemResponseSchema = z.infer<typeof updateItemResponseSchema>;
+export type CustomActionResponseSchema = z.infer<typeof customActionResponseSchema>;
+```
+
+**Benefits:**
+- ✅ Type-safe responses in controllers
+- ✅ Accurate OpenAPI documentation
+- ✅ Runtime validation (configurable)
+- ✅ Centralized response structure
+- ✅ Better IDE autocomplete
+
+**Response Builders:**
+- `R.success(schema)` - Standard envelope: `{ success, message?, data? }`
+- `R.paginated(itemSchema)` - Paginated list: `{ success, message?, data: { items, paginator } }`
+- `R.noContent()` - Empty 204 response
+- `R.error(schema?)` - Error envelope
+- `R.raw(schema)` - Non-envelope response
+
 ## Type Inference
 
 Export TypeScript types from schemas:
 
 ```typescript
+// Request types
 export type CreateItemSchemaType = z.infer<typeof createItemSchema>;
 export type UpdateItemSchemaType = z.infer<typeof updateItemSchema>;
 export type ListItemsQuerySchemaType = z.infer<typeof listItemsQuerySchema>;
 export type ItemParamsSchemaType = z.infer<typeof itemParamsSchema>;
+
+// Response types (NEW)
+export type CreateItemResponseSchema = z.infer<typeof createItemResponseSchema>;
+export type GetItemsResponseSchema = z.infer<typeof getItemsResponseSchema>;
 ```
 
 ## Key Patterns to Follow
@@ -280,8 +331,11 @@ export type ItemParamsSchemaType = z.infer<typeof itemParamsSchema>;
 ✅ DO use `.strict()` to disallow extra properties
 ✅ DO use `.refine()` for cross-field validation
 ✅ DO create reusable schema functions in common.schema.ts
+✅ DO define response schemas using R.success() / R.paginated() (NEW)
+✅ DO export response types from response schemas (NEW)
 
 ❌ DON'T use `.openapi()` method in schema files
 ❌ DON'T wrap schemas in request/response objects (that's for routers)
 ❌ DON'T use regex for MongoDB IDs (use validator.isMongoId)
 ❌ DON'T forget to handle query parameter transforms with .transform(Number)
+❌ DON'T define response schemas inline in routers (define in schema files)

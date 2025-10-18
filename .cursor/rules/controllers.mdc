@@ -15,7 +15,12 @@ Controllers are async functions that handle validated requests and return respon
 import type { Request } from 'express';
 import type { ResponseExtended } from '@/types';
 import type { JwtPayload } from '@/utils/auth.utils';
-import type { CreateItemSchemaType, GetItemsSchemaType } from './module.schema';
+import type { 
+  CreateItemSchemaType, 
+  GetItemsSchemaType,
+  CreateItemResponseSchema,
+  GetItemsResponseSchema,
+} from './module.schema';
 import {
   createItem,
   deleteItem,
@@ -29,7 +34,7 @@ import {
  */
 export const handleAction = async (
   req: Request<unknown, unknown, CreateItemSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<CreateItemResponseSchema>,
 ) => {
   // 1. Extract validated data (already validated by Zod middleware)
   const { email, name } = req.body; // From body schema
@@ -51,38 +56,38 @@ export const handleAction = async (
 };
 
 /**
- * Example: Get single item
+ * Example: Get single item (NEW PATTERN)
  */
 export const handleGetById = async (
   req: Request<{ id: string }, unknown, unknown>,
-  res: Response,
+  res: ResponseExtended<GetItemByIdResponseSchema>,
 ) => {
   const { id } = req.params;
 
   const item = await findById(id);
 
-  if (!item) {
-    return successResponse(
-      res,
-      'Item not found',
-      undefined,
-      StatusCodes.NOT_FOUND,
-    );
-  }
-
-  return successResponse(res, undefined, item);
+  return res.ok?.({
+    success: true,
+    data: item,
+  });
 };
 
 /**
- * Example: List with pagination
+ * Example: List with pagination (NEW PATTERN)
  */
 export const handleGetItems = async (
   req: Request<unknown, unknown, unknown, GetItemsSchemaType>,
-  res: Response,
+  res: ResponseExtended<GetItemsResponseSchema>,
 ) => {
   const { results, paginatorInfo } = await getItems(req.query);
 
-  return successResponse(res, undefined, { results, paginatorInfo });
+  return res.ok?.({
+    success: true,
+    data: {
+      items: results,
+      paginator: paginatorInfo,
+    },
+  });
 };
 
 /**

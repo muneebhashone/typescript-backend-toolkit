@@ -13,10 +13,19 @@ NEVER use plain Express routing. ALWAYS use MagicRouter from [magic-router.ts](m
 
 ```typescript
 import MagicRouter from '@/openapi/magic-router';
-import { R } from '@/openapi/response.builders';
 import { canAccess } from '@/middlewares/can-access';
-import { handleAction, handleGetById, handleCreate } from './module.controller';
-import { actionSchema, createSchema, itemOutSchema } from './module.schema';
+import { handleAction, handleGetById, handleCreate, handleSearch } from './module.controller';
+import { 
+  actionSchema, 
+  createSchema, 
+  idParamsSchema,
+  searchQuerySchema,
+  actionResponseSchema,
+  getMeResponseSchema,
+  createItemResponseSchema,
+  getItemByIdResponseSchema,
+  searchItemsResponseSchema,
+} from './module.schema';
 
 export const MODULE_ROUTER_ROOT = '/module';
 
@@ -28,7 +37,7 @@ moduleRouter.post(
   {
     requestType: { body: actionSchema },
     responses: {
-      200: R.success(itemOutSchema),
+      200: actionResponseSchema,
     },
   },
   handleAction,
@@ -39,7 +48,7 @@ moduleRouter.get(
   '/me',
   {
     responses: {
-      200: R.success(userOutSchema),
+      200: getMeResponseSchema,
     },
   },
   canAccess(),
@@ -52,7 +61,7 @@ moduleRouter.post(
   {
     requestType: { body: createSchema },
     responses: {
-      201: R.success(itemOutSchema),
+      201: createItemResponseSchema,
     },
   },
   canAccess(),
@@ -65,8 +74,7 @@ moduleRouter.get(
   {
     requestType: { params: idParamsSchema },
     responses: {
-      200: R.success(itemOutSchema),
-      404: R.error(),
+      200: getItemByIdResponseSchema,
     },
   },
   handleGetById,
@@ -78,7 +86,7 @@ moduleRouter.get(
   {
     requestType: { query: searchQuerySchema },
     responses: {
-      200: R.paginated(itemOutSchema),
+      200: searchItemsResponseSchema,
     },
   },
   handleSearch,
@@ -133,9 +141,29 @@ router.method(path, requestType, ...handlers);
 - Can combine `body`, `params`, and `query` in same route
 - **NEW**: Add `responses` object for response schemas (RECOMMENDED)
 
-### Response Configuration (NEW)
+### Response Configuration (NEW - RECOMMENDED)
 
-Use response builders from `@/openapi/response.builders`:
+**BEST PRACTICE:** Define response schemas in your schema file and import them:
+
+```typescript
+// In module.schema.ts
+import { R } from '../../openapi/response.builders';
+import { itemOutSchema } from './module.dto';
+
+export const createItemResponseSchema = R.success(itemOutSchema);
+export const getItemsResponseSchema = R.paginated(itemOutSchema);
+
+export type CreateItemResponseSchema = z.infer<typeof createItemResponseSchema>;
+export type GetItemsResponseSchema = z.infer<typeof getItemsResponseSchema>;
+
+// In module.router.ts
+import { createItemResponseSchema, getItemsResponseSchema } from './module.schema';
+
+responses: { 201: createItemResponseSchema }
+responses: { 200: getItemsResponseSchema }
+```
+
+**Alternative (inline):** Use response builders directly in router:
 
 ```typescript
 import { R } from '@/openapi/response.builders';
@@ -172,6 +200,12 @@ responses: { 200: R.raw(customSchema) }
 - `R.noContent()` - Empty 204 response
 - `R.error(schema?)` - Error envelope (optional custom schema)
 - `R.raw(schema)` - Non-envelope response (e.g., healthcheck)
+
+**Why define in schema files?**
+- ✅ Type-safe controller responses with `ResponseExtended<T>`
+- ✅ Centralized response definitions
+- ✅ Easier to maintain and update
+- ✅ Better code organization
 
 ### Handler Order
 
