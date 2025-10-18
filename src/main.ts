@@ -5,13 +5,16 @@ import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
 import { initializeApp } from './app/app';
 import config from './config/env';
-import { connectDatabase, disconnectDatabase } from './lib/database';
+import { connectDatabase, disconnectDatabase, checkDatabaseHealth } from './lib/database';
 import logger from './observability/logger';
 import { LifecycleManager } from './server/lifecycle';
 import { createOpsRoutes } from './routes/ops';
 import apiRoutes from './routes/routes';
 import errorHandler from './middlewares/error-handler';
-import { registeredQueues } from './lib/queue.server';
+import { registeredQueues, closeAllQueues, checkQueueHealth } from './lib/queue';
+import { cacheClient, checkCacheHealth } from './lib/cache';
+import { checkEmailHealth } from './lib/email';
+import { checkStorageHealth } from './lib/storage';
 import { scheduleSessionCleanup } from './queues/session-cleanup.queue';
 import { getSessionManager } from './modules/auth/session/session.manager';
 import { adminApiRouter, registerAdminUI } from './admin/router';
@@ -52,21 +55,14 @@ const bootstrapServer = async () => {
 
   await scheduleSessionCleanup();
 
-  // Mock routes for ops health checks - don't forget to implement the actual checks
+  // Setup ops routes with actual health checks
   const opsRoutes = createOpsRoutes({
     healthChecks: [
-      {
-        name: 'database',
-        check: async () => {
-          return true;
-        },
-      },
-      {
-        name: 'redis',
-        check: async () => {
-          return true;
-        },
-      },
+      { name: 'database', check: checkDatabaseHealth() },
+      { name: 'cache', check: checkCacheHealth() },
+      { name: 'queues', check: checkQueueHealth() },
+      { name: 'email', check: checkEmailHealth() },
+      { name: 'storage', check: checkStorageHealth() },
     ],
     metricsEnabled: config.METRICS_ENABLED,
   });
@@ -148,6 +144,8 @@ const bootstrapServer = async () => {
 
   lifecycle.registerCleanup(async () => {
     await disconnectDatabase();
+    await closeAllQueues();
+    await cacheClient.quit();
     const io = app.locals?.io as SocketServer | undefined;
     io?.disconnectSockets(true);
   });

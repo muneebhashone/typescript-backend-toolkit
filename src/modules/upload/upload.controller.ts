@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import { uploadToS3 } from '@/lib/s3-upload';
+import { uploadFile } from '@/lib/storage';
 import type { ResponseExtended } from '@/types';
 import { errorResponse } from '@/utils/response.utils';
 import type { UserType } from '../user/user.dto';
@@ -21,7 +21,7 @@ export const handleProfileUpload = async (
 
     // Upload to S3
     const key = `user-${currentUser._id}/profile/${avatar.originalFilename}`;
-    const { url } = await uploadToS3(avatar, key);
+    const { url } = await uploadFile({ file: avatar, key });
 
     // Update user profile
     await updateUser(String(currentUser._id), {

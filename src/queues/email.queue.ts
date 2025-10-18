@@ -3,7 +3,7 @@ import {
   sendResetPasswordEmail,
 } from '../email/email.service';
 import logger from '../observability/logger';
-import { Queue } from '../lib/queue.server';
+import { Queue } from '../lib/queue';
 
 export const ResetPasswordQueue = Queue<SendResetPasswordTypePayload>(
   'ResetPasswordQueue',
