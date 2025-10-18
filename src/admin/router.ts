@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { type Application, Router, type RequestHandler } from 'express';
-import multer from 'multer';
+import formidable from 'formidable';
 import type { FilterQuery } from 'mongoose';
 import { adminResources, getResource } from './registry';
 import { buildSearchQuery, getFields } from './utils/schema-introspection';
@@ -9,7 +9,7 @@ import type { AdminField } from './types';
 
 export const adminApiRouter = Router();
 
-// Multer storage for simple local uploads under public/uploads
+// Local uploads directory under public/uploads
 const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
 function ensureUploadsDir() {
   try {
@@ -19,15 +19,6 @@ function ensureUploadsDir() {
   }
 }
 ensureUploadsDir();
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadsDir),
-  filename: (_req, file, cb) => {
-    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]+/g, '-');
-    const name = `${Date.now()}-${safe}`;
-    cb(null, name);
-  },
-});
-const uploader = multer({ storage });
 
 function uploadForResource(req: any, res: any, next: any) {
   const resource = getResource(req.params.resource);
@@ -35,8 +26,55 @@ function uploadForResource(req: any, res: any, next: any) {
     return next();
   const ct = String(req.headers['content-type'] || '');
   if (!ct.startsWith('multipart/form-data')) return next();
-  const fields = resource.fileFields.map((name) => ({ name, maxCount: 1 }));
-  return (uploader.fields(fields) as any)(req, res, next);
+
+  const form = formidable({
+    uploadDir: uploadsDir,
+    keepExtensions: true,
+    maxFileSize: 10 * 1024 * 1024, // 10MB
+    filename: (_name, _ext, part) => {
+      const safe = (part.originalFilename || 'file').replace(/[^a-zA-Z0-9._-]+/g, '-');
+      return `${Date.now()}-${safe}`;
+    },
+  });
+
+  form.parse(req, (err: Error | null, fields: formidable.Fields, files: formidable.Files) => {
+    if (err) {
+      return res.status(400).json({ error: 'Failed to parse multipart data', details: err.message });
+    }
+
+    // Normalize fields
+    const normalizedFields: Record<string, any> = {};
+    for (const [key, value] of Object.entries(fields)) {
+      normalizedFields[key] = Array.isArray(value) && value.length === 1 ? value[0] : value;
+    }
+
+    // Normalize files: store relative path for admin panel
+    const normalizedFiles: Record<string, any> = {};
+    for (const [key, value] of Object.entries(files)) {
+      if (Array.isArray(value)) {
+        normalizedFiles[key] = value.map((f: formidable.File) => ({
+          path: `/uploads/${path.basename(f.filepath)}`,
+          filename: f.originalFilename,
+          size: f.size,
+          mimetype: f.mimetype,
+        }));
+      } else if (value) {
+        const file = value as formidable.File;
+        normalizedFiles[key] = {
+          path: `/uploads/${path.basename(file.filepath)}`,
+          filename: file.originalFilename,
+          size: file.size,
+          mimetype: file.mimetype,
+        };
+      }
+    }
+
+    // Merge into req.body
+    req.body = { ...normalizedFields, ...normalizedFiles };
+    req.files = normalizedFiles;
+
+    next();
+  });
 }
 
 adminApiRouter.get('/meta', (_req, res) => {

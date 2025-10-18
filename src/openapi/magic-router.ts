@@ -5,7 +5,11 @@ import {
   Router,
 } from 'express';
 import asyncHandler from 'express-async-handler';
+import formidable from 'formidable';
+import { StatusCodes } from 'http-status-codes';
 import type { ZodTypeAny } from 'zod';
+import type { FormFile } from '../types';
+import { errorResponse } from '../utils/api.utils';
 import {
   errorResponseSchema,
   successResponseSchema,
@@ -71,6 +75,17 @@ export type ResponseEntry =
 
 export type ResponsesConfig = Record<number, ResponseEntry>;
 
+// Multipart configuration options for formidable
+export type MultipartOptions = {
+  maxFileSize?: number; // bytes
+  allowEmptyFiles?: boolean;
+  multiples?: boolean; // allow multiple files per field
+  keepExtensions?: boolean;
+  uploadDir?: string; // optional temp dir
+  maxFields?: number;
+  maxFiles?: number;
+};
+
 export type RequestAndResponseType = {
   requestType?: RequestZodSchemaType;
   // Legacy: treated as 200 response if provided
@@ -81,6 +96,8 @@ export type RequestAndResponseType = {
     | 'application/json'
     | 'multipart/form-data'
     | 'application/x-www-form-urlencoded';
+  // Per-route multipart configuration
+  multipart?: true | MultipartOptions;
 };
 
 export class MagicRouter<PathSet extends boolean = false> {
@@ -186,6 +203,99 @@ export class MagicRouter<PathSet extends boolean = false> {
       next();
     };
 
+    // Multipart parser middleware for formidable
+    const multipartParser: MagicMiddleware = (
+      req: RequestAny,
+      res: ResponseAny,
+      next: NextFunction,
+    ) => {
+      // Only parse if content-type is multipart/form-data
+      const ct = String(req.headers['content-type'] || '');
+      if (!ct.startsWith('multipart/form-data')) {
+        return next();
+      }
+
+      // Build formidable options from route config
+      const multipartConfig = requestAndResponseType.multipart;
+      const options: formidable.Options = {
+        maxFileSize: 10 * 1024 * 1024, // 10MB default
+        allowEmptyFiles: false,
+        multiples: true,
+        keepExtensions: true,
+      };
+
+      // Merge user options if provided
+      if (multipartConfig && typeof multipartConfig === 'object') {
+        Object.assign(options, multipartConfig);
+      }
+
+      const form = formidable(options);
+
+      form.parse(req, (err: Error | null, fields: formidable.Fields, files: formidable.Files) => {
+        if (err) {
+          return errorResponse(
+            res,
+            'Failed to parse multipart data',
+            StatusCodes.BAD_REQUEST,
+            err,
+          );
+        }
+
+        // Normalize fields: convert single-element arrays to values
+        const normalizedFields: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(fields)) {
+          if (Array.isArray(value)) {
+            normalizedFields[key] = value.length === 1 ? value[0] : value;
+          } else {
+            normalizedFields[key] = value;
+          }
+        }
+
+        // Normalize files: convert formidable.File to FormFile
+        const normalizedFiles: Record<string, FormFile | FormFile[]> = {};
+        for (const [key, value] of Object.entries(files)) {
+          if (Array.isArray(value)) {
+            const formFiles = value.map((f: any) => ({
+              filepath: f.filepath,
+              originalFilename: f.originalFilename,
+              mimetype: f.mimetype,
+              size: f.size,
+              hash: f.hash,
+              lastModifiedDate: f.lastModifiedDate,
+            }));
+            normalizedFiles[key] = formFiles.length === 1 ? formFiles[0] : formFiles;
+          } else if (value) {
+            const file = value as any;
+            normalizedFiles[key] = {
+              filepath: file.filepath,
+              originalFilename: file.originalFilename,
+              mimetype: file.mimetype,
+              size: file.size,
+              hash: file.hash,
+              lastModifiedDate: file.lastModifiedDate,
+            };
+          }
+        }
+
+        // Merge fields and files into req.body
+        req.body = { ...normalizedFields, ...normalizedFiles };
+
+        // Set req.files for compatibility
+        req.files = normalizedFiles;
+
+        // Set req.file if there's exactly one file field with a single file
+        const fileKeys = Object.keys(normalizedFiles);
+        if (fileKeys.length === 1) {
+          const singleFile = normalizedFiles[fileKeys[0]];
+          if (!Array.isArray(singleFile)) {
+            req.file = singleFile;
+          }
+        }
+
+        next();
+      });
+    };
+
     // Build OpenAPI responses from normalized config
     const openapiResponses: Record<
       string,
@@ -255,11 +365,17 @@ export class MagicRouter<PathSet extends boolean = false> {
 
     middlewares.pop();
 
+    // Determine if multipart parsing is needed
+    const needsMultipart =
+      contentType === 'multipart/form-data' &&
+      requestAndResponseType.multipart;
+
     if (Object.keys(requestType).length) {
       this.router[method](
         path,
         attachResponseSchemasMiddleware,
         responseValidator,
+        ...(needsMultipart ? [multipartParser] : []),
         validateZodSchema(requestType),
         ...middlewares,
         controller,
@@ -269,6 +385,7 @@ export class MagicRouter<PathSet extends boolean = false> {
         path,
         attachResponseSchemasMiddleware,
         responseValidator,
+        ...(needsMultipart ? [multipartParser] : []),
         ...middlewares,
         controller,
       );
