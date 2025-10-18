@@ -1,8 +1,7 @@
-import crypto from 'node:crypto';
 import { customAlphabet } from 'nanoid';
 import config from '../config/env';
 
-export const numericNanoId = customAlphabet('0123456789', 6);
+export const numeric = '0123456789';
 export const hexChars = '0123456789abcdef';
 export const alphanumericChars =
   '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -31,14 +30,12 @@ export const generateOtp = (options: GenerateOtpOptions = {}): string => {
 
   switch (charset) {
     case 'numeric': {
-      const generator = customAlphabet('0123456789', length);
+      const generator = customAlphabet(numeric, length);
       return generator();
     }
     case 'hex': {
-      return crypto
-        .randomBytes(Math.ceil(length / 2))
-        .toString('hex')
-        .slice(0, length);
+      const generator = customAlphabet(hexChars, length);
+      return generator();
     }
     case 'alphanumeric': {
       const generator = customAlphabet(alphanumericChars, length);
@@ -55,5 +52,5 @@ export const generateOtp = (options: GenerateOtpOptions = {}): string => {
  * @returns Random password string
  */
 export const generateRandomPassword = (length = 16): string => {
-  return crypto.randomBytes(length).toString('hex');
+  return customAlphabet(alphanumericChars, length)();
 };

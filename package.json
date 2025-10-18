@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "concurrently \"pnpm start:dev\" \"pnpm email:dev\"",
     "start:dev": "dotenv -e .env.development -- tsx --watch ./src/main.ts",
-    "build": "tsup --config build.ts",
-    "start": "node ./dist/main.js",
+    "build": "rimraf dist && tsup --config build.ts",
     "start:prod": "dotenv -e .env.production -- node ./dist/main.js",
     "start:local": "dotenv -e .env.local -- node ./dist/main.js",
     "typecheck": "tsc --noEmit",

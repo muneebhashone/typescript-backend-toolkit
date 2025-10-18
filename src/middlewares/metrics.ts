@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { metricsCollector } from '../observability/metrics';
+import { metricsCollector } from '@/observability/metrics';
 
 export function metricsMiddleware(
   req: Request,

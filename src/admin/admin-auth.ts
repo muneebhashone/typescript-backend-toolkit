@@ -82,7 +82,7 @@ export function verifyAdminSession(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function setAdminCookie(res: Response, token: string): void {
-  const isSecure = config.NODE_ENV === 'production' || config.HTTPS_ENABLED;
+  const isSecure = config.NODE_ENV === 'production' && config.HTTPS_ENABLED;
   res.cookie(config.ADMIN_COOKIE_NAME, token, {
     httpOnly: true,
     secure: isSecure,
