@@ -10,7 +10,7 @@ import { MongoSessionStore } from './mongo.session.store';
 import { RedisSessionStore } from './redis.session.store';
 import { hashToken, isSessionExpired } from './session.utils';
 import { createChildLogger } from '../../../observability/logger';
-import { cacheClient } from '../../../lib/cache';
+import { cacheProvider, RedisProvider } from '../../../lib/cache';
 import config from '../../../config/env';
 
 const logger = createChildLogger({ context: 'SessionManager' });
@@ -38,7 +38,10 @@ export class SessionManager {
 
   private createStore(): SessionStore {
     if (this.config.driver === 'redis') {
-      return new RedisSessionStore(cacheClient);
+      if (!(cacheProvider instanceof RedisProvider)) {
+        throw new Error('Redis session driver requires Redis cache provider. Set CACHE_PROVIDER=redis');
+      }
+      return new RedisSessionStore(cacheProvider.getClient());
     }
     return new MongoSessionStore();
   }

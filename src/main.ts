@@ -12,7 +12,7 @@ import { createOpsRoutes } from './routes/ops';
 import apiRoutes from './routes/routes';
 import errorHandler from './middlewares/error-handler';
 import { registeredQueues, closeAllQueues, checkQueueHealth } from './lib/queue';
-import { cacheClient, checkCacheHealth } from './lib/cache';
+import { cacheProvider, RedisProvider, checkCacheHealth } from './lib/cache';
 import { checkEmailHealth } from './lib/email';
 import { checkStorageHealth } from './lib/storage';
 import { scheduleSessionCleanup } from './queues/session-cleanup.queue';
@@ -145,7 +145,10 @@ const bootstrapServer = async () => {
   lifecycle.registerCleanup(async () => {
     await disconnectDatabase();
     await closeAllQueues();
-    await cacheClient.quit();
+    // Disconnect cache if using Redis
+    if (cacheProvider instanceof RedisProvider) {
+      await cacheProvider.getClient().quit();
+    }
     const io = app.locals?.io as SocketServer | undefined;
     io?.disconnectSockets(true);
   });
