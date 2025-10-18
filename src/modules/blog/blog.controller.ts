@@ -6,6 +6,10 @@ import type {
   CreateBlogSchemaType,
   GetBlogsSchemaType,
   UpdateBlogSchemaType,
+  CreateBlogResponseSchema,
+  GetBlogsResponseSchema,
+  GetBlogByIdResponseSchema,
+  UpdateBlogResponseSchema,
 } from './blog.schema';
 import {
   createBlog,
@@ -18,7 +22,7 @@ import {
 // Using new res.created() helper
 export const handleCreateBlog = async (
   req: Request<unknown, unknown, CreateBlogSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<CreateBlogResponseSchema>,
 ) => {
   const blog = await createBlog(req.body);
   return res.json({
@@ -31,7 +35,7 @@ export const handleCreateBlog = async (
 // Using new res.ok() helper with paginated response
 export const handleGetBlogs = async (
   req: Request<unknown, unknown, unknown, GetBlogsSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<GetBlogsResponseSchema>,
 ) => {
   const { results, paginatorInfo } = await getBlogs(req.query);
   return res.json({
@@ -46,7 +50,7 @@ export const handleGetBlogs = async (
 // Using new res.ok() helper
 export const handleGetBlogById = async (
   req: Request<MongoIdSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<GetBlogByIdResponseSchema>,
 ) => {
   const blog = await getBlogById(req.params.id);
   return res.ok?.({
@@ -58,7 +62,7 @@ export const handleGetBlogById = async (
 // Using new res.ok() helper
 export const handleUpdateBlog = async (
   req: Request<MongoIdSchemaType, unknown, UpdateBlogSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<UpdateBlogResponseSchema>,
 ) => {
   const blog = await updateBlog(req.params.id, req.body);
   return res.ok?.({

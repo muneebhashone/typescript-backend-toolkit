@@ -1,8 +1,5 @@
-import { z } from 'zod';
 import { canAccess } from '../../middlewares/can-access';
 import MagicRouter from '../../openapi/magic-router';
-import { R } from '../../openapi/response.builders';
-import { userOutSchema } from '../user/user.dto';
 import {
   handleChangePassword,
   handleForgetPassword,
@@ -23,8 +20,17 @@ import {
   loginUserByEmailSchema,
   registerUserByEmailSchema,
   resetPasswordSchema,
+  loginResponseSchema,
+  registerResponseSchema,
+  logoutResponseSchema,
+  getCurrentUserResponseSchema,
+  forgetPasswordResponseSchema,
+  changePasswordResponseSchema,
+  resetPasswordResponseSchema,
+  listSessionsResponseSchema,
+  revokeSessionResponseSchema,
+  revokeAllSessionsResponseSchema,
 } from './auth.schema';
-import { sessionRecordSchema } from './session/session.schema';
 
 export const AUTH_ROUTER_ROOT = '/auth';
 
@@ -36,7 +42,7 @@ authRouter.post(
   {
     requestType: { body: loginUserByEmailSchema },
     responses: {
-      200: R.success(z.object({ token: z.string() })),
+      200: loginResponseSchema,
     },
   },
   handleLoginByEmail,
@@ -48,7 +54,7 @@ authRouter.post(
   {
     requestType: { body: registerUserByEmailSchema },
     responses: {
-      201: R.success(z.object({ token: z.string() })),
+      201: registerResponseSchema,
     },
   },
   handleRegisterUser,
@@ -59,12 +65,7 @@ authRouter.post(
   '/logout',
   {
     responses: {
-      200: R.success(
-        z.object({
-          success: z.boolean(),
-          message: z.string(),
-        }),
-      ),
+      200: logoutResponseSchema,
     },
   },
   handleLogout,
@@ -75,7 +76,7 @@ authRouter.get(
   '/me',
   {
     responses: {
-      200: R.success(userOutSchema),
+      200: getCurrentUserResponseSchema,
     },
   },
   canAccess(),
@@ -88,7 +89,7 @@ authRouter.post(
   {
     requestType: { body: forgetPasswordSchema },
     responses: {
-      200: R.success(z.object({ userId: z.string() })),
+      200: forgetPasswordResponseSchema,
     },
   },
   handleForgetPassword,
@@ -100,12 +101,7 @@ authRouter.post(
   {
     requestType: { body: changePasswordSchema },
     responses: {
-      200: R.success(
-        z.object({
-          success: z.boolean(),
-          message: z.string(),
-        }),
-      ),
+      200: changePasswordResponseSchema,
     },
   },
   canAccess(),
@@ -118,12 +114,7 @@ authRouter.post(
   {
     requestType: { body: resetPasswordSchema },
     responses: {
-      200: R.success(
-        z.object({
-          success: z.boolean(),
-          message: z.string(),
-        }),
-      ),
+      200: resetPasswordResponseSchema,
     },
   },
   handleResetPassword,
@@ -138,7 +129,7 @@ authRouter.get(
   '/sessions',
   {
     responses: {
-      200: R.success(z.array(sessionRecordSchema)),
+      200: listSessionsResponseSchema,
     },
   },
   canAccess(),
@@ -149,12 +140,7 @@ authRouter.delete(
   '/sessions/:sessionId',
   {
     responses: {
-      200: R.success(
-        z.object({
-          success: z.boolean(),
-          message: z.string(),
-        }),
-      ),
+      200: revokeSessionResponseSchema,
     },
   },
   canAccess(),
@@ -165,12 +151,7 @@ authRouter.delete(
   '/sessions',
   {
     responses: {
-      200: R.success(
-        z.object({
-          success: z.boolean(),
-          message: z.string(),
-        }),
-      ),
+      200: revokeAllSessionsResponseSchema,
     },
   },
   canAccess(),

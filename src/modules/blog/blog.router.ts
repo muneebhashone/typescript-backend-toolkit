@@ -1,7 +1,6 @@
 import { mongoIdSchema } from '../../common/common.schema';
 import { canAccess } from '../../middlewares/can-access';
 import MagicRouter from '../../openapi/magic-router';
-import { R } from '../../openapi/response.builders';
 import {
   handleCreateBlog,
   handleDeleteBlog,
@@ -9,11 +8,14 @@ import {
   handleGetBlogs,
   handleUpdateBlog,
 } from './blog.controller';
-import { blogOutSchema } from './blog.dto';
 import {
   createBlogSchema,
   getBlogsSchema,
   updateBlogSchema,
+  createBlogResponseSchema,
+  getBlogsResponseSchema,
+  getBlogByIdResponseSchema,
+  updateBlogResponseSchema,
 } from './blog.schema';
 
 export const BLOG_ROUTER_ROOT = '/blogs';
@@ -26,7 +28,7 @@ blogRouter.get(
   {
     requestType: { query: getBlogsSchema },
     responses: {
-      200: R.paginated(blogOutSchema),
+      200: getBlogsResponseSchema,
     },
   },
   // canAccess(),
@@ -39,7 +41,7 @@ blogRouter.post(
   {
     requestType: { body: createBlogSchema },
     responses: {
-      201: R.success(blogOutSchema),
+      201: createBlogResponseSchema,
     },
   },
   canAccess(),
@@ -52,8 +54,7 @@ blogRouter.get(
   {
     requestType: { params: mongoIdSchema },
     responses: {
-      200: R.success(blogOutSchema),
-      404: R.error(),
+      200: getBlogByIdResponseSchema,
     },
   },
   canAccess(),
@@ -69,8 +70,7 @@ blogRouter.patch(
       body: updateBlogSchema,
     },
     responses: {
-      200: R.success(blogOutSchema),
-      404: R.error(),
+      200: updateBlogResponseSchema,
     },
   },
   canAccess(),

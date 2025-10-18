@@ -10,6 +10,15 @@ import type {
   LoginUserByEmailSchemaType,
   RegisterUserByEmailSchemaType,
   ResetPasswordSchemaType,
+  ResetPasswordResponseSchema,
+  ForgetPasswordResponseSchema,
+  ChangePasswordResponseSchema,
+  LogoutResponseSchema,
+  LoginResponseSchema,
+  GetCurrentUserResponseSchema,
+  ListSessionsResponseSchema,
+  RevokeSessionResponseSchema,
+  RevokeAllSessionsResponseSchema,
 } from './auth.schema';
 import {
   changePassword,
@@ -23,7 +32,7 @@ import {
 // Using new res.ok() helper
 export const handleResetPassword = async (
   req: Request<unknown, unknown, ResetPasswordSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<ResetPasswordResponseSchema>,
 ) => {
   await resetPassword(req.body);
 
@@ -36,7 +45,7 @@ export const handleResetPassword = async (
 // Using new res.ok() helper
 export const handleForgetPassword = async (
   req: Request<unknown, unknown, ForgetPasswordSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<ForgetPasswordResponseSchema>,
 ) => {
   const user = await forgetPassword(req.body);
 
@@ -50,7 +59,7 @@ export const handleForgetPassword = async (
 // Using new res.ok() helper
 export const handleChangePassword = async (
   req: Request<unknown, unknown, ChangePasswordSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<ChangePasswordResponseSchema>,
 ) => {
   await changePassword((req.user as JwtPayload).sub, req.body);
 
@@ -75,7 +84,7 @@ export const handleRegisterUser = async (
 };
 
 // Using new res.ok() helper
-export const handleLogout = async (req: Request, res: ResponseExtended) => {
+export const handleLogout = async (req: Request, res: ResponseExtended<LogoutResponseSchema>) => {
   if (config.SET_SESSION && req.session && req.app.locals.sessionManager) {
     const sessionManager = req.app.locals.sessionManager;
     await sessionManager.revokeSession(req.session.sessionId);
@@ -92,7 +101,7 @@ export const handleLogout = async (req: Request, res: ResponseExtended) => {
 // Using new res.ok() helper (login uses 200, not 201)
 export const handleLoginByEmail = async (
   req: Request<unknown, unknown, LoginUserByEmailSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<LoginResponseSchema>,
 ) => {
   const metadata = {
     userAgent: req.headers['user-agent'],
@@ -120,7 +129,7 @@ export const handleLoginByEmail = async (
 // Using new res.ok() helper
 export const handleGetCurrentUser = async (
   req: Request,
-  res: ResponseExtended,
+  res: ResponseExtended<GetCurrentUserResponseSchema>,
 ) => {
   const user = req.user;
 
@@ -169,7 +178,7 @@ export const handleGoogleCallback = async (
 // Using new res.ok() helper
 export const handleListSessions = async (
   req: Request,
-  res: ResponseExtended,
+  res: ResponseExtended<ListSessionsResponseSchema>,
 ) => {
   if (!config.SET_SESSION || !req.app.locals.sessionManager) {
     throw new Error('Session management is not enabled');
@@ -188,7 +197,7 @@ export const handleListSessions = async (
 // Using new res.ok() helper
 export const handleRevokeSession = async (
   req: Request<{ sessionId: string }>,
-  res: ResponseExtended,
+  res: ResponseExtended<RevokeSessionResponseSchema>,
 ) => {
   if (!config.SET_SESSION || !req.app.locals.sessionManager) {
     throw new Error('Session management is not enabled');
@@ -206,7 +215,7 @@ export const handleRevokeSession = async (
 // Using new res.ok() helper
 export const handleRevokeAllSessions = async (
   req: Request,
-  res: ResponseExtended,
+  res: ResponseExtended<RevokeAllSessionsResponseSchema>,
 ) => {
   if (!config.SET_SESSION || !req.app.locals.sessionManager) {
     throw new Error('Session management is not enabled');

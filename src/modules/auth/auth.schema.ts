@@ -1,7 +1,10 @@
 import validator from "validator";
 import z from "zod";
 import { passwordValidationSchema } from "../../common/common.schema";
+import { R } from "../../openapi/response.builders";
 import { baseCreateUser } from "../user/user.schema";
+import { userOutSchema } from "../user/user.dto";
+import { sessionRecordSchema } from "./session/session.schema";
 
 export const resetPasswordSchema = z.object({
 	userId: z
@@ -58,3 +61,42 @@ export type LoginUserByEmailSchemaType = z.infer<typeof loginUserByEmailSchema>;
 export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
 export type ForgetPasswordSchemaType = z.infer<typeof forgetPasswordSchema>;
 export type ResetPasswordSchemaType = z.infer<typeof resetPasswordSchema>;
+
+// Response schemas
+export const loginResponseSchema = R.success(z.object({ token: z.string() }));
+export const registerResponseSchema = R.success(z.object({ token: z.string() }));
+export const logoutResponseSchema = R.success(z.object({
+	success: z.boolean(),
+	message: z.string(),
+}));
+export const getCurrentUserResponseSchema = R.success(userOutSchema);
+export const forgetPasswordResponseSchema = R.success(z.object({ userId: z.string() }));
+export const changePasswordResponseSchema = R.success(z.object({
+	success: z.boolean(),
+	message: z.string(),
+}));
+export const resetPasswordResponseSchema = R.success(z.object({
+	success: z.boolean(),
+	message: z.string(),
+}));
+export const listSessionsResponseSchema = R.success(z.array(sessionRecordSchema));
+export const revokeSessionResponseSchema = R.success(z.object({
+	success: z.boolean(),
+	message: z.string(),
+}));
+export const revokeAllSessionsResponseSchema = R.success(z.object({
+	success: z.boolean(),
+	message: z.string(),
+}));
+
+// Response types
+export type LoginResponseSchema = z.infer<typeof loginResponseSchema>;
+export type RegisterResponseSchema = z.infer<typeof registerResponseSchema>;
+export type LogoutResponseSchema = z.infer<typeof logoutResponseSchema>;
+export type GetCurrentUserResponseSchema = z.infer<typeof getCurrentUserResponseSchema>;
+export type ForgetPasswordResponseSchema = z.infer<typeof forgetPasswordResponseSchema>;
+export type ChangePasswordResponseSchema = z.infer<typeof changePasswordResponseSchema>;
+export type ResetPasswordResponseSchema = z.infer<typeof resetPasswordResponseSchema>;
+export type ListSessionsResponseSchema = z.infer<typeof listSessionsResponseSchema>;
+export type RevokeSessionResponseSchema = z.infer<typeof revokeSessionResponseSchema>;
+export type RevokeAllSessionsResponseSchema = z.infer<typeof revokeAllSessionsResponseSchema>;

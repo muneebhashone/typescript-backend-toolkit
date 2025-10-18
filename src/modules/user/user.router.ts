@@ -1,14 +1,17 @@
-import { z } from 'zod';
 import { canAccess } from '../../middlewares/can-access';
 import MagicRouter from '../../openapi/magic-router';
-import { R } from '../../openapi/response.builders';
 import {
   handleCreateSuperAdmin,
   handleCreateUser,
   handleGetUsers,
 } from './user.controller';
-import { userOutSchema } from './user.dto';
-import { createUserSchema, getUsersSchema } from './user.schema';
+import { 
+  createUserSchema, 
+  getUsersSchema,
+  createUserResponseSchema,
+  getUsersResponseSchema,
+  createSuperAdminResponseSchema,
+} from './user.schema';
 
 export const USER_ROUTER_ROOT = '/users';
 
@@ -20,7 +23,7 @@ userRouter.get(
   {
     requestType: { query: getUsersSchema },
     responses: {
-      200: R.paginated(userOutSchema),
+      200: getUsersResponseSchema,
     },
   },
   canAccess(),
@@ -33,7 +36,7 @@ userRouter.post(
   {
     requestType: { body: createUserSchema },
     responses: {
-      201: R.success(userOutSchema),
+      201: createUserResponseSchema,
     },
   },
   canAccess('roles', ['SUPER_ADMIN']),
@@ -45,12 +48,7 @@ userRouter.post(
   '/_super-admin',
   {
     responses: {
-      201: R.success(
-        z.object({
-          email: z.string().email(),
-          password: z.string(),
-        }),
-      ),
+      201: createSuperAdminResponseSchema,
     },
   },
   handleCreateSuperAdmin,

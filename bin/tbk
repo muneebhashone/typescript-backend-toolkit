@@ -164,6 +164,8 @@ export default ${className};
 
       // 3. Schema file (validation)
       const schemaContent = `import { z } from "zod";
+import { R } from "../../openapi/response.builders";
+import { ${moduleName}OutSchema } from "./${moduleName}.dto";
 
 export const create${className}Schema = z.object({
   name: z.string({ required_error: "Name is required" }).min(1),
@@ -198,6 +200,23 @@ export const get${className}sSchema = z.object({
 export type Create${className}SchemaType = z.infer<typeof create${className}Schema>;
 export type Update${className}SchemaType = z.infer<typeof update${className}Schema>;
 export type Get${className}sSchemaType = z.infer<typeof get${className}sSchema>;
+
+// Response schemas
+export const create${className}ResponseSchema = R.success(${moduleName}OutSchema);
+export const get${className}sResponseSchema = R.paginated(${moduleName}OutSchema);
+export const get${className}ByIdResponseSchema = R.success(${moduleName}OutSchema);
+export const update${className}ResponseSchema = R.success(${moduleName}OutSchema);
+export const delete${className}ResponseSchema = R.success(z.object({
+  success: z.boolean(),
+  message: z.string(),
+}));
+
+// Response types
+export type Create${className}ResponseSchema = z.infer<typeof create${className}ResponseSchema>;
+export type Get${className}sResponseSchema = z.infer<typeof get${className}sResponseSchema>;
+export type Get${className}ByIdResponseSchema = z.infer<typeof get${className}ByIdResponseSchema>;
+export type Update${className}ResponseSchema = z.infer<typeof update${className}ResponseSchema>;
+export type Delete${className}ResponseSchema = z.infer<typeof delete${className}ResponseSchema>;
 `;
 
       // 4. Services file
@@ -285,13 +304,22 @@ export const get${className}s = async (
       const controllerContent = `import type { Request } from "express";
 import type { MongoIdSchemaType } from "../../common/common.schema";
 import type { ResponseExtended } from "../../types";
-import type { Create${className}SchemaType, Get${className}sSchemaType, Update${className}SchemaType } from "./${moduleName}.schema";
+import type { 
+  Create${className}SchemaType, 
+  Get${className}sSchemaType, 
+  Update${className}SchemaType,
+  Create${className}ResponseSchema,
+  Get${className}sResponseSchema,
+  Get${className}ByIdResponseSchema,
+  Update${className}ResponseSchema,
+  Delete${className}ResponseSchema,
+} from "./${moduleName}.schema";
 import { create${className}, delete${className}, get${className}ById, get${className}s, update${className} } from "./${moduleName}.services";
 
 // Using new res.created() helper
 export const handleCreate${className} = async (
   req: Request<unknown, unknown, Create${className}SchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<Create${className}ResponseSchema>,
 ) => {
   const ${moduleName} = await create${className}(req.body);
   return res.created?.({
@@ -304,7 +332,7 @@ export const handleCreate${className} = async (
 // Using new res.ok() helper with paginated response
 export const handleGet${className}s = async (
   req: Request<unknown, unknown, unknown, Get${className}sSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<Get${className}sResponseSchema>,
 ) => {
   const { results, paginatorInfo } = await get${className}s(req.query);
   return res.ok?.({
@@ -319,7 +347,7 @@ export const handleGet${className}s = async (
 // Using new res.ok() helper
 export const handleGet${className}ById = async (
   req: Request<MongoIdSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<Get${className}ByIdResponseSchema>,
 ) => {
   const ${moduleName} = await get${className}ById(req.params.id);
   return res.ok?.({
@@ -331,7 +359,7 @@ export const handleGet${className}ById = async (
 // Using new res.ok() helper
 export const handleUpdate${className} = async (
   req: Request<MongoIdSchemaType, unknown, Update${className}SchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<Update${className}ResponseSchema>,
 ) => {
   const ${moduleName} = await update${className}(req.params.id, req.body);
   return res.ok?.({
@@ -344,7 +372,7 @@ export const handleUpdate${className} = async (
 // Using new res.ok() helper
 export const handleDelete${className} = async (
   req: Request<MongoIdSchemaType>,
-  res: ResponseExtended,
+  res: ResponseExtended<Delete${className}ResponseSchema>,
 ) => {
   await delete${className}({ id: req.params.id });
   return res.ok?.({
@@ -355,11 +383,9 @@ export const handleDelete${className} = async (
 `;
 
       // 6. Router file
-      const routerContent = `import { z } from "zod";
-import { mongoIdSchema } from "../../common/common.schema";
+      const routerContent = `import { mongoIdSchema } from "../../common/common.schema";
 import { canAccess } from "../../middlewares/can-access";
 import MagicRouter from "../../openapi/magic-router";
-import { R } from "../../openapi/response.builders";
 import {
   handleCreate${className},
   handleDelete${className},
@@ -367,8 +393,16 @@ import {
   handleGet${className}s,
   handleUpdate${className},
 } from "./${moduleName}.controller";
-import { ${moduleName}OutSchema } from "./${moduleName}.dto";
-import { create${className}Schema, get${className}sSchema, update${className}Schema } from "./${moduleName}.schema";
+import { 
+  create${className}Schema, 
+  get${className}sSchema, 
+  update${className}Schema,
+  create${className}ResponseSchema,
+  get${className}sResponseSchema,
+  get${className}ByIdResponseSchema,
+  update${className}ResponseSchema,
+  delete${className}ResponseSchema,
+} from "./${moduleName}.schema";
 
 export const ${moduleName.toUpperCase()}_ROUTER_ROOT = "${options.path}/${moduleName}s";
 
@@ -380,7 +414,7 @@ ${moduleName}Router.get(
   {
     requestType: { query: get${className}sSchema },
     responses: {
-      200: R.paginated(${moduleName}OutSchema),
+      200: get${className}sResponseSchema,
     },
   },
   canAccess(),
@@ -393,7 +427,7 @@ ${moduleName}Router.post(
   {
     requestType: { body: create${className}Schema },
     responses: {
-      201: R.success(${moduleName}OutSchema),
+      201: create${className}ResponseSchema,
     },
   },
   canAccess(),
@@ -406,8 +440,7 @@ ${moduleName}Router.get(
   {
     requestType: { params: mongoIdSchema },
     responses: {
-      200: R.success(${moduleName}OutSchema),
-      404: R.error(),
+      200: get${className}ByIdResponseSchema,
     },
   },
   canAccess(),
@@ -423,8 +456,7 @@ ${moduleName}Router.patch(
       body: update${className}Schema,
     },
     responses: {
-      200: R.success(${moduleName}OutSchema),
-      404: R.error(),
+      200: update${className}ResponseSchema,
     },
   },
   canAccess(),
@@ -437,10 +469,7 @@ ${moduleName}Router.delete(
   {
     requestType: { params: mongoIdSchema },
     responses: {
-      200: R.success(z.object({
-        success: z.boolean(),
-        message: z.string(),
-      })),
+      200: delete${className}ResponseSchema,
     },
   },
   canAccess(),
