@@ -2,8 +2,8 @@ import type { Request } from 'express';
 import type { MongoIdSchemaType } from '../../common/common.schema';
 import config from '../../config/env';
 import type { ResponseExtended } from '../../types';
-import { successResponse } from '../../utils/api.utils';
-import { generateRandomPassword } from '../../utils/auth.utils';
+import { successResponse } from '../../utils/response.utils';
+import { generateRandomPassword } from '../../utils/otp.utils';
 import type { 
   CreateUserSchemaType, 
   GetUsersSchemaType,

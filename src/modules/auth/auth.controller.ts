@@ -1,8 +1,8 @@
 import type { Request } from 'express';
-import config from '../../config/env';
-import type { GoogleCallbackQuery, ResponseExtended } from '../../types';
-import { successResponse } from '../../utils/api.utils';
-import type { JwtPayload } from '../../utils/auth.utils';
+import config from '@/config/env';
+import type { GoogleCallbackQuery, ResponseExtended } from '@/types';
+import { successResponse } from '@/utils/response.utils';
+import type { JwtPayload } from '@/utils/jwt.utils';
 import { AUTH_COOKIE_KEY, COOKIE_CONFIG } from './auth.constants';
 import type {
   ChangePasswordSchemaType,
@@ -135,7 +135,12 @@ export const handleGetCurrentUser = async (
 
   return res.ok?.({
     success: true,
-    data: user,
+    data: {
+      email: user.email || '' ,
+      username: user.username || '',
+      role: user.role || '',
+      phoneNo: user.phoneNo || '',
+    },
   });
 };
 // Google OAuth redirects - no response schema needed

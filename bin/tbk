@@ -125,7 +125,7 @@ program
 
       // 1. DTO file
       const dtoContent = `import { z } from "zod";
-import { definePaginatedResponse } from "../../common/common.utils";
+import { definePaginatedResponse } from "@/common/common.utils";
 
 export const ${moduleName}OutSchema = z.object({
   name: z.string(),
@@ -164,7 +164,7 @@ export default ${className};
 
       // 3. Schema file (validation)
       const schemaContent = `import { z } from "zod";
-import { R } from "../../openapi/response.builders";
+import { R } from "@/openapi/response.builders";
 import { ${moduleName}OutSchema } from "./${moduleName}.dto";
 
 export const create${className}Schema = z.object({
@@ -221,8 +221,8 @@ export type Delete${className}ResponseSchema = z.infer<typeof delete${className}
 
       // 4. Services file
       const servicesContent = `import type { FilterQuery } from "mongoose";
-import type { MongoIdSchemaType } from "../../common/common.schema";
-import { getPaginator } from "../../utils/getPaginator";
+import type { MongoIdSchemaType } from "@/common/common.schema";
+import { getPaginator } from "@/utils/pagination.utils";
 import type { ${className}Type } from "./${moduleName}.dto";
 import ${className}, { type I${className}Document } from "./${moduleName}.model";
 import type { Create${className}SchemaType, Get${className}sSchemaType, Update${className}SchemaType } from "./${moduleName}.schema";
@@ -302,8 +302,8 @@ export const get${className}s = async (
 
       // 5. Controller file
       const controllerContent = `import type { Request } from "express";
-import type { MongoIdSchemaType } from "../../common/common.schema";
-import type { ResponseExtended } from "../../types";
+import type { MongoIdSchemaType } from "@/common/common.schema";
+import type { ResponseExtended } from "@/types";
 import type { 
   Create${className}SchemaType, 
   Get${className}sSchemaType, 
@@ -383,9 +383,9 @@ export const handleDelete${className} = async (
 `;
 
       // 6. Router file
-      const routerContent = `import { mongoIdSchema } from "../../common/common.schema";
-import { canAccess } from "../../middlewares/can-access";
-import MagicRouter from "../../openapi/magic-router";
+      const routerContent = `import { mongoIdSchema } from "@/common/common.schema";
+import { canAccess } from "@/middlewares/can-access";
+import MagicRouter from "@/openapi/magic-router";
 import {
   handleCreate${className},
   handleDelete${className},
@@ -586,7 +586,7 @@ program
     const fs = await import('fs/promises');
     const path = await import('path');
 
-    const content = `import type { Seeder } from '../../../seeders/types';
+    const content = `import type { Seeder } from '@/seeders/types';
 
 export const ${className}: Seeder = {
   name: '${className}',

@@ -7,27 +7,27 @@ import {
 import asyncHandler from 'express-async-handler';
 import formidable from 'formidable';
 import type { ZodTypeAny } from 'zod';
-import type { FormFile } from '../types';
-import { errorResponse } from '../utils/api.utils';
+import type { FormFile } from '@/types';
+import { errorResponse } from '@/utils/response.utils';
 import {
   errorResponseSchema,
   successResponseSchema,
-} from '../common/common.schema';
-import { canAccess } from '../middlewares/can-access';
-import { responseValidator } from '../middlewares/response-validator';
-import { validateZodSchema } from '../middlewares/validate-zod-schema';
+} from '@/common/common.schema';
+import { canAccess } from '@/middlewares/can-access';
+import { responseValidator } from '@/middlewares/response-validator';
+import { validateZodSchema } from '@/middlewares/validate-zod-schema';
 import type {
   RequestZodSchemaType,
   ResponseExtended,
   ResponseSchemaEntry,
-} from '../types';
+} from '@/types';
 import {
   camelCaseToTitleCase,
   parseRouteString,
   routeToClassName,
-} from './openapi.utils';
-import { bearerAuth, registry } from './swagger-instance';
-import { StatusCodes, StatusCodesValues } from './status-codes';
+} from '@/openapi/openapi.utils';
+import { bearerAuth, registry } from '@/openapi/swagger-instance';
+import { StatusCodes, StatusCodesValues } from '@/openapi/status-codes';
 
 type Method =
   | 'get'

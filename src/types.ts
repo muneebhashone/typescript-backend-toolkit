@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
 import type { Server } from 'socket.io';
 import type { AnyZodObject, ZodEffects, ZodSchema } from 'zod';
-import type { JwtPayload } from './utils/auth.utils';
-import { SessionRecord } from './modules/auth/session/session.types';
+import type { JwtPayload } from '@/utils/jwt.utils';
+import { SessionRecord } from '@/modules/auth/session/session.types';
 
 export type ZodObjectWithEffect =
   | AnyZodObject

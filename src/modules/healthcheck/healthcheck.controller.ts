@@ -1,7 +1,7 @@
 import type { Request } from 'express';
 import { StatusCodes } from '@/openapi/status-codes';
-import type { ResponseExtended } from '../../types';
-import { errorResponse } from '../../utils/api.utils';
+import type { ResponseExtended } from '@/types';
+import { errorResponse } from '@/utils/response.utils';
 
 // Healthcheck uses raw response (not the standard envelope)
 export const handleHealthCheck = async (

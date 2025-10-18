@@ -1,16 +1,11 @@
-import config from '../../config/env';
-import { ROLE_ENUM, type RoleType, SOCIAL_ACCOUNT_ENUM } from '../../enums';
-import type { GoogleCallbackQuery } from '../../types';
-import {
-  type JwtPayload,
-  compareHash,
-  fetchGoogleTokens,
-  generateOTP,
-  getUserInfo,
-  hashPassword,
-  signToken,
-} from '../../utils/auth.utils';
-import { generateRandomNumbers } from '../../utils/common.utils';
+import config from '@/config/env';
+import { ROLE_ENUM, type RoleType, SOCIAL_ACCOUNT_ENUM } from '@/enums';
+import type { GoogleCallbackQuery } from '@/types';
+import type { JwtPayload } from '@/utils/jwt.utils';
+import { signToken } from '@/utils/jwt.utils';
+import { compareHash, hashPassword } from '@/utils/password.utils';
+import { fetchGoogleTokens, getUserInfo } from '@/utils/google-oauth.utils';
+import { generateOtp } from '@/utils/otp.utils';
 import type { UserType } from '../user/user.dto';
 import {
   createUser,
@@ -60,7 +55,7 @@ export const forgetPassword = async (
     throw new Error("user doesn't exists");
   }
 
-  const code = generateRandomNumbers(4);
+  const code = generateOtp({ length: 4, charset: 'numeric' });
 
   await updateUser(user._id, { passwordResetCode: code });
 
@@ -107,7 +102,7 @@ export const registerUserByEmail = async (
 
   const { confirmPassword, ...rest } = payload;
 
-  const otp = config.OTP_VERIFICATION_ENABLED ? generateOTP() : null;
+  const otp = config.OTP_VERIFICATION_ENABLED ? generateOtp({ length: 6, charset: 'hex' }) : null;
 
   const user = await createUser({ ...rest, role: 'DEFAULT_USER', otp }, false);
 
@@ -196,7 +191,7 @@ export const googleLogin = async (
       username: name,
       avatar: picture,
       role: ROLE_ENUM.DEFAULT_USER,
-      password: generateRandomNumbers(4),
+      password: generateOtp({ length: 16, charset: 'alphanumeric' }),
       socialAccount: [
         {
           refreshToken: refresh_token,

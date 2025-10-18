@@ -1,7 +1,7 @@
 import type { Request } from 'express';
-import { uploadToS3, validateImage } from '../../lib/s3-upload';
-import type { ResponseExtended } from '../../types';
-import { errorResponse } from '../../utils/api.utils';
+import { uploadToS3, validateImage } from '@/lib/s3-upload';
+import type { ResponseExtended } from '@/types';
+import { errorResponse } from '@/utils/response.utils';
 import type { UserType } from '../user/user.dto';
 import { updateUser } from '../user/user.services';
 import { UploadSchema, UploadResponseSchema } from './upload.schema';
@@ -13,7 +13,7 @@ export const handleProfileUpload = async (
   try {
     const avatar = req.body.avatar;
     const multipleFiles = req.body.multipleFiles
-    const currentUser = req.user as UserType;
+    const currentUser = req.user as unknown as UserType;
 
     if (!avatar) {
       return errorResponse(res, 'File not uploaded, Please try again');
