@@ -250,7 +250,7 @@ return res.ok?.({
 
 ```typescript
 import { successResponse } from '@/utils/api.utils';
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes } from '@/openapi/status-codes';
 
 // Basic success (200 OK)
 return successResponse(res, 'Success message');
@@ -327,10 +327,10 @@ throw error;
 
 ### Status Codes
 
-Use `http-status-codes` package for type-safe status codes:
+Use `@/openapi/status-codes` for type-safe status codes:
 
 ```typescript
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes } from '@/openapi/status-codes';
 
 StatusCodes.OK; // 200
 StatusCodes.CREATED; // 201

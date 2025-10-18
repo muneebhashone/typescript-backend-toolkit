@@ -1,5 +1,5 @@
 import type { NextFunction } from 'express';
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes } from '@/openapi/status-codes';
 import { ZodError, type ZodSchema } from 'zod';
 import type { RequestZodSchemaType } from '../types';
 import { errorResponse } from '../utils/api.utils';

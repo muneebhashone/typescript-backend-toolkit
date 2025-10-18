@@ -3,6 +3,7 @@ import config from '../config/env';
 import logger from '../observability/logger';
 import type { RequestExtended, ResponseExtended } from '../types';
 import { errorResponse } from './api.utils';
+import { StatusCodesValues } from '../openapi/status-codes';
 
 interface CustomError extends Error {
   status?: number;
@@ -23,7 +24,7 @@ export const globalErrorHandler = (
   errorResponse(
     res as ResponseExtended,
     errorMessage,
-    statusCode,
+    statusCode as StatusCodesValues,
     err,
     config.NODE_ENV === 'development' ? err.stack : undefined,
   );

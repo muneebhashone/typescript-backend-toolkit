@@ -6,7 +6,6 @@ import {
 } from 'express';
 import asyncHandler from 'express-async-handler';
 import formidable from 'formidable';
-import { StatusCodes } from 'http-status-codes';
 import type { ZodTypeAny } from 'zod';
 import type { FormFile } from '../types';
 import { errorResponse } from '../utils/api.utils';
@@ -28,6 +27,7 @@ import {
   routeToClassName,
 } from './openapi.utils';
 import { bearerAuth, registry } from './swagger-instance';
+import { StatusCodes, StatusCodesValues } from './status-codes';
 
 type Method =
   | 'get'
@@ -73,7 +73,7 @@ export type ResponseEntry =
       examples?: Record<string, unknown>;
     };
 
-export type ResponsesConfig = Record<number, ResponseEntry>;
+export type ResponsesConfig = Partial<Record<StatusCodesValues, ResponseEntry>>;
 
 // Multipart configuration options for formidable
 export type MultipartOptions = {

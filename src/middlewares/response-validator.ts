@@ -1,5 +1,5 @@
 import type { NextFunction, Request } from 'express';
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes } from '@/openapi/status-codes';
 import config from '../config/env';
 import logger from '../observability/logger';
 import type { ResponseExtended } from '../types';

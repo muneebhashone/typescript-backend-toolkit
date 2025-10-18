@@ -68,7 +68,7 @@ const bootstrapServer = async () => {
   app.use('/api', apiRoutes);
 
   // Admin authentication routes
-  app.get('/admin/login', (req, res) => {
+  app.get('/admin/login', (_req, res) => {
     const loginPath = path.join(process.cwd(), 'public', 'admin', 'login.html');
     res.sendFile(loginPath);
   });

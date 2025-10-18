@@ -1,10 +1,7 @@
-import { z } from 'zod';
 import { canAccess } from '../../middlewares/can-access';
 import MagicRouter from '../../openapi/magic-router';
-import { R } from '../../openapi/response.builders';
-import { zFile, zFiles } from '../../openapi/zod-extend';
 import { handleProfileUpload } from './upload.controller';
-import { uploadSchema } from './upload.schema';
+import { uploadResponseSchema, uploadSchema } from './upload.schema';
 
 export const UPLOAD_ROUTER_ROOT = '/upload';
 
@@ -18,13 +15,7 @@ uploadRouter.post(
     contentType: 'multipart/form-data',
     multipart: true,
     responses: {
-      201: R.success(
-        z.object({
-          key: zFile(),
-          filer: zFile(),
-          multipleFiles: zFiles(),
-        }),
-      ),
+    "201": uploadResponseSchema,
     },
   },
   canAccess(),
