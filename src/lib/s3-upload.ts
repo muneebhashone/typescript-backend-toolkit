@@ -1,6 +1,5 @@
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { createReadStream } from 'node:fs';
-import path from 'node:path';
 import type { FormFile } from '../types';
 import s3, { BUCKET_NAME } from './aws.service';
 
@@ -34,28 +33,4 @@ export const uploadToS3 = async (
   const url = `https://${BUCKET_NAME}.s3.amazonaws.com/${key}`;
 
   return { url, key };
-};
-
-/**
- * Validates if a file is an image based on mimetype and extension
- * @param file - FormFile to validate
- * @param allowedTypes - Array of allowed mimetypes (default: jpeg, jpg, png)
- * @returns true if valid image
- */
-export const validateImage = (
-  file: FormFile,
-  allowedTypes: string[] = ['image/jpeg', 'image/jpg', 'image/png'],
-): boolean => {
-  if (!file.mimetype) return false;
-
-  const mimetypeValid = allowedTypes.includes(file.mimetype);
-
-  if (!file.originalFilename) return mimetypeValid;
-
-  const filetypes = /jpeg|jpg|png/;
-  const extname = filetypes.test(
-    path.extname(file.originalFilename).toLowerCase(),
-  );
-
-  return mimetypeValid && extname;
 };

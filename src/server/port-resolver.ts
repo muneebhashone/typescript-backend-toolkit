@@ -62,9 +62,7 @@ async function promptForPort(
   });
 
   try {
-    console.log(
-      `\n⚠️  Port ${busyPort} is already in use.\n`,
-    );
+    console.log(`\n⚠️  Port ${busyPort} is already in use.\n`);
 
     const answer = await rl.question(
       `Would you like to use port ${suggestedPort} instead? [Y/n] or enter a custom port (q to quit): `,
@@ -141,14 +139,13 @@ export async function resolvePort(
     return desiredPort;
   }
 
-  logger.warn(
-    { port: desiredPort },
-    `Port ${desiredPort} is not available`,
-  );
+  logger.warn({ port: desiredPort }, `Port ${desiredPort} is not available`);
 
   // Non-interactive mode: auto-find next port
   if (!interactive) {
-    logger.info('Running in non-interactive mode, finding next available port...');
+    logger.info(
+      'Running in non-interactive mode, finding next available port...',
+    );
     const nextPort = await findNextFreePort(desiredPort + 1, maxAttempts, host);
 
     if (nextPort === null) {
@@ -190,9 +187,7 @@ export async function resolvePort(
       selectedPort = userChoice;
       console.log(`✅ Using port ${selectedPort}\n`);
     } else {
-      console.log(
-        `❌ Port ${userChoice} is also in use. Let's try again.\n`,
-      );
+      console.log(`❌ Port ${userChoice} is also in use. Let's try again.\n`);
       // Loop will continue with a new suggestion
     }
   }
