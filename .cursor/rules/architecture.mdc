@@ -56,7 +56,7 @@ module-name/
 
 ### Error Handling
 
-- Global error handler in [globalErrorHandler.ts](mdc:src/utils/globalErrorHandler.ts)
+- Global error handler in [error-handler.ts](mdc:src/middlewares/error-handler.ts)
 - Throw errors with proper HTTP status codes
 - Errors are automatically caught and formatted
 

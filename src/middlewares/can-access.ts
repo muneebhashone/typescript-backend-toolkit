@@ -1,9 +1,9 @@
 import type { NextFunction } from 'express';
 import { StatusCodes } from '@/openapi/status-codes';
 import type { RoleType } from '../enums';
-import { errorResponse } from '../utils/api.utils';
-import type { JwtPayload } from '../utils/auth.utils';
-import type { RequestAny, ResponseAny } from '../openapi/magic-router';
+import { errorResponse } from '@/utils/response.utils';
+import type { JwtPayload } from '@/utils/jwt.utils';
+import type { RequestAny, ResponseAny } from '@/openapi/magic-router';
 
 export type CanAccessByType = 'roles';
 

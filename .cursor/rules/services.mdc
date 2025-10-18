@@ -181,7 +181,16 @@ const items = await Model.find().lean();
 
 ### Pagination Helper
 
-Use pagination utility from [getPaginator.ts](mdc:src/utils/getPaginator.ts) if available, or implement manually:
+Use pagination utility from [pagination.utils.ts](mdc:src/utils/pagination.utils.ts):
+
+```typescript
+import { getPaginator } from '@/utils/pagination.utils';
+
+const paginatorInfo = getPaginator(limit, page, totalRecords);
+const items = await Model.find().skip(paginatorInfo.skip).limit(paginatorInfo.limit);
+```
+
+Or implement manually:
 
 ```typescript
 const skip = (page - 1) * limit;
@@ -237,27 +246,32 @@ await deleteFromS3(fileKey);
 
 ### Authentication & Tokens
 
-Use auth utilities from [auth.utils.ts](mdc:src/utils/auth.utils.ts):
+Use auth utilities from the src/utils folder:
 
 ```typescript
-import {
-  generateToken,
-  verifyToken,
-  hashPassword,
-  comparePassword,
-} from '@/utils/auth.utils';
+import { signToken, verifyToken } from '@/utils/jwt.utils';
+import { hashPassword, compareHash } from '@/utils/password.utils';
+import { generateOtp } from '@/utils/otp.utils';
 
 // Generate JWT
-const token = generateToken({ userId: user._id });
+const token = await signToken({ 
+  sub: user._id, 
+  email: user.email,
+  username: user.username,
+  role: user.role 
+});
 
 // Verify JWT
-const payload = verifyToken(token);
+const payload = await verifyToken(token);
 
 // Hash password
 const hashed = await hashPassword(plainPassword);
 
 // Compare password
-const isValid = await comparePassword(plainPassword, hashedPassword);
+const isValid = await compareHash(hashedPassword, plainPassword);
+
+// Generate OTP
+const otp = generateOtp({ length: 6, charset: 'numeric' });
 ```
 
 ### Error Handling

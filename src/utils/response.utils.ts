@@ -3,6 +3,14 @@ import { StatusCodes, StatusCodesValues } from '@/openapi/status-codes';
 import config from '../config/env';
 import type { ResponseExtended } from '../types';
 
+/**
+ * Send an error response
+ * @param res - Express response object
+ * @param message - Error message
+ * @param statusCode - HTTP status code (default: 400)
+ * @param payload - Optional error payload
+ * @param stack - Optional stack trace (only included in development)
+ */
 export const errorResponse = (
   res: ResponseExtended | Response,
   message?: string,
@@ -10,16 +18,25 @@ export const errorResponse = (
   payload?: unknown,
   stack?: string,
 ): void => {
+  const isDevelopment = config.NODE_ENV === 'development';
+
   res.status(statusCode ?? StatusCodes.BAD_REQUEST).json({
     success: false,
     message: message,
-    data: payload,
-    stack: config.NODE_ENV === 'development' ? stack : undefined,
+    data: isDevelopment ? payload : undefined,
+    stack: isDevelopment ? stack : undefined,
   });
 
   return;
 };
 
+/**
+ * Send a success response
+ * @param res - Express response object
+ * @param message - Success message
+ * @param payload - Response data payload
+ * @param statusCode - HTTP status code (default: 200)
+ */
 export const successResponse = (
   res: ResponseExtended | Response,
   message?: string,
@@ -31,12 +48,4 @@ export const successResponse = (
     .json({ success: true, message: message, data: payload });
 
   return;
-};
-
-export const generateResetPasswordLink = (token: string) => {
-  return `${config.CLIENT_SIDE_URL}/reset-password?token=${token}`;
-};
-
-export const generateSetPasswordLink = (token: string) => {
-  return `${config.CLIENT_SIDE_URL}/set-password?token=${token}`;
 };

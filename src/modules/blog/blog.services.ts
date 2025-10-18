@@ -1,6 +1,6 @@
 import type { FilterQuery } from "mongoose";
-import type { MongoIdSchemaType } from "../../common/common.schema";
-import { getPaginator } from "../../utils/getPaginator";
+import type { MongoIdSchemaType } from "@/common/common.schema";
+import { getPaginator } from "@/utils/pagination.utils";
 import type { BlogType } from "./blog.dto";
 import Blog, { type IBlogDocument } from "./blog.model";
 import type { CreateBlogSchemaType, GetBlogsSchemaType, UpdateBlogSchemaType } from "./blog.schema";

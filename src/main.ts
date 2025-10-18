@@ -10,7 +10,7 @@ import logger from './observability/logger';
 import { LifecycleManager } from './server/lifecycle';
 import { createOpsRoutes } from './routes/ops';
 import apiRoutes from './routes/routes';
-import globalErrorHandler from './utils/globalErrorHandler';
+import errorHandler from './middlewares/error-handler';
 import { registeredQueues } from './lib/queue.server';
 import { scheduleSessionCleanup } from './queues/session-cleanup.queue';
 import { getSessionManager } from './modules/auth/session/session.manager';
@@ -133,7 +133,7 @@ const bootstrapServer = async () => {
 
   app.use('/queues', serverAdapter.getRouter());
 
-  app.use(globalErrorHandler);
+  app.use(errorHandler);
 
   const lifecycle = new LifecycleManager({ gracefulShutdownTimeout: 30000 });
   lifecycle.registerServer(server);

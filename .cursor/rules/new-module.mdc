@@ -77,7 +77,7 @@ The generated files follow project patterns but need customization for your spec
 
 - **Rule:** `@controllers`
 - Handle HTTP request/response
-- Use `successResponse` from `utils/api.utils`
+- Use `successResponse` from `@/utils/response.utils`
 - Use proper HTTP status codes from `@/openapi/status-codes`
 - Keep controllers thin - delegate logic to services
 

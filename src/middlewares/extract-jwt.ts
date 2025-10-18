@@ -1,9 +1,9 @@
 import type { NextFunction } from 'express';
-import { type JwtPayload, verifyToken } from '../utils/auth.utils';
-import type { RequestAny, ResponseAny } from '../openapi/magic-router';
-import config from '../config/env';
+import { type JwtPayload, verifyToken } from '@/utils/jwt.utils';
+import type { RequestAny, ResponseAny } from '@/openapi/magic-router';
+import config from '@/config/env';
 
-import { createChildLogger } from '../observability/logger';
+import { createChildLogger } from '@/observability/logger';
 
 const logger = createChildLogger({ context: 'extract-jwt' });
 

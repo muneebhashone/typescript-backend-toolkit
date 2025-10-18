@@ -1,16 +1,20 @@
 import type { NextFunction, Request, Response } from 'express';
-import config from '../config/env';
-import logger from '../observability/logger';
-import type { RequestExtended, ResponseExtended } from '../types';
-import { errorResponse } from './api.utils';
-import { StatusCodesValues } from '../openapi/status-codes';
+import config from '@/config/env';
+import logger from '@/observability/logger';
+import type { RequestExtended, ResponseExtended } from '@/types';
+import { errorResponse } from '@/utils/response.utils';
+import { StatusCodesValues } from '@/openapi/status-codes';
 
 interface CustomError extends Error {
   status?: number;
   message: string;
 }
 
-export const globalErrorHandler = (
+/**
+ * Global error handler middleware for Express
+ * Catches all errors and sends a standardized error response
+ */
+export const errorHandler = (
   err: CustomError,
   _: RequestExtended | Request,
   res: ResponseExtended | Response,
@@ -25,11 +29,11 @@ export const globalErrorHandler = (
     res as ResponseExtended,
     errorMessage,
     statusCode as StatusCodesValues,
-    err,
+    undefined,
     config.NODE_ENV === 'development' ? err.stack : undefined,
   );
 
   return;
 };
 
-export default globalErrorHandler;
+export default errorHandler;

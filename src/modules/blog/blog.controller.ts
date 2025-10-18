@@ -1,7 +1,7 @@
 import type { Request } from 'express';
-import type { MongoIdSchemaType } from '../../common/common.schema';
-import type { ResponseExtended } from '../../types';
-import { successResponse } from '../../utils/api.utils';
+import type { MongoIdSchemaType } from '@/common/common.schema';
+import type { ResponseExtended } from '@/types';
+import { successResponse } from '@/utils/response.utils';
 import type {
   CreateBlogSchemaType,
   GetBlogsSchemaType,

@@ -14,7 +14,7 @@ Controllers are async functions that handle validated requests and return respon
 ```typescript
 import type { Request } from 'express';
 import type { ResponseExtended } from '@/types';
-import type { JwtPayload } from '@/utils/auth.utils';
+import type { JwtPayload } from '@/utils/jwt.utils';
 import type { 
   CreateItemSchemaType, 
   GetItemsSchemaType,
@@ -183,7 +183,7 @@ Request<{ id: string }, unknown, UpdateUserSchemaType>; // params + body
 When route uses `extractJwt` middleware from [extract-jwt-schema.ts](mdc:src/middlewares/extract-jwt-schema.ts):
 
 ```typescript
-import type { JwtPayload } from '@/utils/auth.utils';
+import type { JwtPayload } from '@/utils/jwt.utils';
 
 // Access JWT payload via req.user
 const userId = req.user?.sub; // User ID
@@ -251,10 +251,10 @@ return res.ok?.({
 });
 ```
 
-**LEGACY (STILL SUPPORTED): `successResponse()` helper** from [api.utils.ts](mdc:src/utils/api.utils.ts):
+**LEGACY (STILL SUPPORTED): `successResponse()` helper** from [response.utils.ts](mdc:src/utils/response.utils.ts):
 
 ```typescript
-import { successResponse } from '@/utils/api.utils';
+import { successResponse } from '@/utils/response.utils';
 import { StatusCodes } from '@/openapi/status-codes';
 
 // Basic success (200 OK)
@@ -307,7 +307,7 @@ res.cookie(AUTH_COOKIE_KEY, undefined, COOKIE_CONFIG);
 ### Error Handling
 
 - Controllers don't need try-catch blocks
-- Global error handler in [globalErrorHandler.ts](mdc:src/utils/globalErrorHandler.ts) catches all errors
+- Global error handler in [error-handler.ts](mdc:src/middlewares/error-handler.ts) catches all errors
 - Just throw errors - they'll be handled automatically:
 
 ```typescript

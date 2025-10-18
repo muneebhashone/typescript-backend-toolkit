@@ -1,8 +1,8 @@
 import { Server } from 'socket.io';
-import { JwtPayload } from '../utils/auth.utils';
-import { Config } from './src/config/env';
-import { SessionRecord } from './src/modules/auth/session/session.types';
-import { SessionManager } from './src/modules/auth/session/session.manager';
+import { JwtPayload } from '@/utils/jwt.utils';
+import { Config } from '@/config/env';
+import { SessionRecord } from '@/modules/auth/session/session.types';
+import { SessionManager } from '@/modules/auth/session/session.manager';
 
 declare global {
   namespace Express {

@@ -1,10 +1,10 @@
 import type { NextFunction } from 'express';
 import { StatusCodes } from '@/openapi/status-codes';
 import { ZodError, type ZodSchema } from 'zod';
-import type { RequestZodSchemaType } from '../types';
-import { errorResponse } from '../utils/api.utils';
-import { sanitizeRecord } from '../utils/common.utils';
-import type { RequestAny, ResponseAny } from '../openapi/magic-router';
+import type { RequestZodSchemaType } from '@/types';
+import { errorResponse } from '@/utils/response.utils';
+import { sanitizeRecord } from '@/utils/record.utils';
+import type { RequestAny, ResponseAny } from '@/openapi/magic-router';
 
 export const validateZodSchema =
   (payload: RequestZodSchemaType) =>
