@@ -232,16 +232,22 @@ await sendEmail({
 
 ### File Storage (S3)
 
-Use AWS service from [aws.service.ts](mdc:src/lib/aws.service.ts):
+Use storage service from [storage.ts](mdc:src/lib/storage.ts):
 
 ```typescript
-import { s3Client, uploadToS3, deleteFromS3 } from '@/lib/aws.service';
+import { uploadFile, deleteFile, getFileUrl } from '@/lib/storage';
 
-// Upload is handled by multer middleware
-// Just save the URL returned in controller
+// Upload file (usually in controller, after file is uploaded)
+const { url, key } = await uploadFile({
+  file: uploadedFile,
+  key: `uploads/${userId}/${filename}`
+});
 
 // Delete file
-await deleteFromS3(fileKey);
+await deleteFile(fileKey);
+
+// Get file URL
+const url = getFileUrl(fileKey);
 ```
 
 ### Authentication & Tokens
@@ -344,16 +350,19 @@ try {
 ### Caching with Redis
 
 ```typescript
-import { redisClient } from '@/lib/redis.server';
+import { cacheClient } from '@/lib/cache';
 
 // Get from cache
-const cached = await redisClient.get(`key:${id}`);
+const cached = await cacheClient.get(`key:${id}`);
 if (cached) {
   return JSON.parse(cached);
 }
 
 // Set cache
-await redisClient.set(`key:${id}`, JSON.stringify(data), 'EX', 3600); // 1 hour
+await cacheClient.set(`key:${id}`, JSON.stringify(data), 'EX', 3600); // 1 hour
+
+// Delete from cache
+await cacheClient.del(`key:${id}`);
 ```
 
 ## Common Mistakes to Avoid
