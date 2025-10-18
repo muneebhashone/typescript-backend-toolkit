@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import { uploadToS3, validateImage } from '@/lib/s3-upload';
+import { uploadToS3 } from '@/lib/s3-upload';
 import type { ResponseExtended } from '@/types';
 import { errorResponse } from '@/utils/response.utils';
 import type { UserType } from '../user/user.dto';
@@ -12,16 +12,11 @@ export const handleProfileUpload = async (
 ) => {
   try {
     const avatar = req.body.avatar;
-    const multipleFiles = req.body.multipleFiles
+    const multipleFiles = req.body.multipleFiles;
     const currentUser = req.user as unknown as UserType;
 
     if (!avatar) {
       return errorResponse(res, 'File not uploaded, Please try again');
-    }
-
-    // Validate image type
-    if (!validateImage(avatar)) {
-      return errorResponse(res, 'Invalid file type. Only JPEG and PNG are allowed');
     }
 
     // Upload to S3
@@ -33,12 +28,12 @@ export const handleProfileUpload = async (
       avatar: url,
     });
     return res.created?.({
-     success: true,
-     message: 'File uploaded successfully',
-     data: {
-       key: avatar,
-       multipleFiles,
-     }
+      success: true,
+      message: 'File uploaded successfully',
+      data: {
+        key: avatar,
+        multipleFiles,
+      },
     });
   } catch (err) {
     return errorResponse(res, (err as Error).message);
