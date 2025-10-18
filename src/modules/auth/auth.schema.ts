@@ -53,6 +53,11 @@ export const loginUserByEmailSchema = z.object({
 	password: z.string().min(1, "Password is required"),
 });
 
+export const googleCallbackSchema = z.object({
+	code: z.string({ required_error: "Code is required" }),
+	error: z.string().optional(),
+});
+
 export type RegisterUserByEmailSchemaType = z.infer<
 	typeof registerUserByEmailSchema
 >;
@@ -61,6 +66,7 @@ export type LoginUserByEmailSchemaType = z.infer<typeof loginUserByEmailSchema>;
 export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
 export type ForgetPasswordSchemaType = z.infer<typeof forgetPasswordSchema>;
 export type ResetPasswordSchemaType = z.infer<typeof resetPasswordSchema>;
+export type GoogleCallbackSchemaType = z.infer<typeof googleCallbackSchema>;
 
 // Response schemas
 export const loginResponseSchema = R.success(z.object({ token: z.string() }));
@@ -89,6 +95,17 @@ export const revokeAllSessionsResponseSchema = R.success(z.object({
 	message: z.string(),
 }));
 
+export const googleLoginResponseSchema = R.success(z.object({
+	url: z.string(),
+}));
+
+export const googleCallbackResponseSchema = R.success(z.object({
+	token: z.string(),
+	sessionId: z.string().optional(),
+}));
+
+
+
 // Response types
 export type LoginResponseSchema = z.infer<typeof loginResponseSchema>;
 export type RegisterResponseSchema = z.infer<typeof registerResponseSchema>;
@@ -100,3 +117,5 @@ export type ResetPasswordResponseSchema = z.infer<typeof resetPasswordResponseSc
 export type ListSessionsResponseSchema = z.infer<typeof listSessionsResponseSchema>;
 export type RevokeSessionResponseSchema = z.infer<typeof revokeSessionResponseSchema>;
 export type RevokeAllSessionsResponseSchema = z.infer<typeof revokeAllSessionsResponseSchema>;
+export type GoogleLoginResponseSchema = z.infer<typeof googleLoginResponseSchema>;
+export type GoogleCallbackResponseSchema = z.infer<typeof googleCallbackResponseSchema>;
