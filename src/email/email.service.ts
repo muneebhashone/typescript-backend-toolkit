@@ -1,7 +1,7 @@
 import { render } from '@react-email/render';
-import config from '../config/env';
 import logger from '../observability/logger';
-import mailgunClient from '../lib/mailgun.server';
+import { emailProvider } from '../lib/email';
+import { EmailError } from '../lib/errors';
 import ResetPasswordEmail from './templates/ResetPassword';
 
 export type SendResetPasswordTypePayload = {
@@ -9,16 +9,6 @@ export type SendResetPasswordTypePayload = {
   resetLink: string;
   userName: string;
 };
-
-class EmailError extends Error {
-  constructor(
-    message: string,
-    public readonly cause?: unknown,
-  ) {
-    super(message);
-    this.name = 'EmailError';
-  }
-}
 
 // Utility functions for sending emails
 export const sendEmail = async ({
@@ -31,17 +21,11 @@ export const sendEmail = async ({
   html: string;
 }) => {
   try {
-    const messageData = {
-      from: config.MAILGUN_FROM_EMAIL,
+    const result = await emailProvider.send({
       to,
       subject,
       html,
-    };
-
-    const result = await mailgunClient.messages.create(
-      config.MAILGUN_DOMAIN,
-      messageData,
-    );
+    });
 
     logger.info({
       msg: 'Email sent successfully',

@@ -1,4 +1,4 @@
-import { Queue } from '../lib/queue.server';
+import { Queue } from '../lib/queue';
 import { getSessionManager } from '../modules/auth/session/session.manager';
 import { createChildLogger } from '../observability/logger';
 import config from '../config/env';
