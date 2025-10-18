@@ -5,7 +5,7 @@ module.exports = {
       script: './dist/main.js',
       instances: 'max',
       exec_mode: 'cluster',
-      env_file: '.env.production',
+      env_file: '.env',
       env: {
         NODE_ENV: 'production',
       },
