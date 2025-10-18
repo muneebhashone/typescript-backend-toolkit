@@ -1,6 +1,5 @@
 import config from '@/config/env';
 import { ROLE_ENUM, type RoleType, SOCIAL_ACCOUNT_ENUM } from '@/enums';
-import type { GoogleCallbackQuery } from '@/types';
 import type { JwtPayload } from '@/utils/jwt.utils';
 import { signToken } from '@/utils/jwt.utils';
 import { compareHash, hashPassword } from '@/utils/password.utils';
@@ -19,6 +18,7 @@ import type {
   LoginUserByEmailSchemaType,
   RegisterUserByEmailSchemaType,
   ResetPasswordSchemaType,
+  GoogleCallbackSchemaType,
 } from './auth.schema';
 import { getSessionManager } from './session/session.manager';
 
@@ -163,7 +163,7 @@ export const loginUserByEmail = async (
 };
 
 export const googleLogin = async (
-  payload: GoogleCallbackQuery,
+  payload: GoogleCallbackSchemaType,
   metadata?: { userAgent?: string; ipAddress?: string },
 ): Promise<{ user: UserType; token: string; sessionId?: string }> => {
   const { code, error } = payload;

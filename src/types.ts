@@ -27,11 +27,6 @@ export type FormFile = {
   lastModifiedDate?: Date | null;
 };
 
-export interface GoogleCallbackQuery {
-  code: string;
-  error?: string;
-}
-
 export type RequestZodSchemaType = {
   params?: ZodObjectWithEffect;
   query?: ZodObjectWithEffect;

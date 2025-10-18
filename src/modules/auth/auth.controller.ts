@@ -1,6 +1,6 @@
 import type { Request } from 'express';
 import config from '@/config/env';
-import type { GoogleCallbackQuery, ResponseExtended } from '@/types';
+import type { ResponseExtended } from '@/types';
 import { successResponse } from '@/utils/response.utils';
 import type { JwtPayload } from '@/utils/jwt.utils';
 import { AUTH_COOKIE_KEY, COOKIE_CONFIG } from './auth.constants';
@@ -19,6 +19,9 @@ import type {
   ListSessionsResponseSchema,
   RevokeSessionResponseSchema,
   RevokeAllSessionsResponseSchema,
+  GoogleLoginResponseSchema,
+  GoogleCallbackResponseSchema,
+  GoogleCallbackSchemaType,
 } from './auth.schema';
 import {
   changePassword,
@@ -137,15 +140,15 @@ export const handleGetCurrentUser = async (
   return res.ok?.({
     success: true,
     data: {
-      email: user.email || '' ,
+      email: user.email || '',
       username: user.username || '',
       role: user.role || '',
       phoneNo: user.phoneNo || '',
     },
   });
 };
-// Google OAuth redirects - no response schema needed
-export const handleGoogleLogin = async (_: Request, res: ResponseExtended) => {
+
+export const handleGoogleLogin = async (_: Request, res: ResponseExtended<GoogleLoginResponseSchema>) => {
   if (!config.GOOGLE_CLIENT_ID || !config.GOOGLE_REDIRECT_URI) {
     throw new Error('Google credentials are not set');
   }
@@ -156,12 +159,19 @@ export const handleGoogleLogin = async (_: Request, res: ResponseExtended) => {
     scope: 'email profile',
   });
 
-  res.redirect(googleAuthURL);
+  return res.ok?.({
+    success: true,
+    message: 'Google auth URL retrieved',
+    data: {
+      url: googleAuthURL,
+    },
+  });
+
 };
 
 export const handleGoogleCallback = async (
-  req: Request<unknown, unknown, unknown, GoogleCallbackQuery>,
-  res: ResponseExtended,
+  req: Request<unknown, unknown, unknown, GoogleCallbackSchemaType>,
+  res: ResponseExtended<GoogleCallbackResponseSchema>,
 ) => {
   const metadata = {
     userAgent: req.headers['user-agent'],
@@ -179,9 +189,13 @@ export const handleGoogleCallback = async (
     res.cookie(AUTH_COOKIE_KEY, result.token, COOKIE_CONFIG);
   }
 
-  return successResponse(res, 'Logged in successfully', {
-    token: result.token,
-    sessionId: result.sessionId,
+  return res.ok?.({
+    success: true,
+    message: 'Logged in successfully',
+    data: {
+      token: result.token,
+      sessionId: result.sessionId,
+    },
   });
 };
 

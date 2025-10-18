@@ -30,6 +30,9 @@ import {
   listSessionsResponseSchema,
   revokeSessionResponseSchema,
   revokeAllSessionsResponseSchema,
+  googleLoginResponseSchema,
+  googleCallbackSchema,
+  googleCallbackResponseSchema,
 } from './auth.schema';
 
 export const AUTH_ROUTER_ROOT = '/auth';
@@ -120,9 +123,9 @@ authRouter.post(
   handleResetPassword,
 );
 
-// Google OAuth (redirects, no response schemas needed)
-authRouter.get('/google', {}, handleGoogleLogin);
-authRouter.get('/google/callback', {}, handleGoogleCallback);
+authRouter.get('/google', { responses: { 200: googleLoginResponseSchema } }, handleGoogleLogin);
+
+authRouter.get('/google/callback', { requestType: { query: googleCallbackSchema }, responses: { 200: googleCallbackResponseSchema } }, handleGoogleCallback);
 
 // Session management
 authRouter.get(
