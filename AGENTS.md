@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-- `src/` holds runtime code: `app/` (Express setup), `modules/` (domain logic), `lib/` (DB, queues, email), `routes/` (HTTP wiring).
+- `src/` holds runtime code: `app/` (Express setup), `modules/` (domain logic), `lib/` (DB, queues, email, storage), `routes/` (HTTP wiring).
 - Shared helpers: `src/common/`, `src/utils/`, `src/observability/` — prefer reuse over new utilities.
 - Assets: emails in `src/email/templates/`, static files in `public/`.
 - Configuration: `src/config/` with environment schema in `src/config/env.ts`.
