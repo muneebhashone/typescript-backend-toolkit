@@ -48,6 +48,13 @@
       : { 'Content-Type': 'application/json' };
     const headers = { ...baseHeaders, ...(opts.headers || {}) };
     const res = await fetch(`/admin/api${path}`, { ...opts, headers });
+    
+    // Handle unauthorized - redirect to login
+    if (res.status === 401) {
+      window.location.href = '/admin/login?next=' + encodeURIComponent(window.location.pathname);
+      throw new Error('Unauthorized');
+    }
+    
     if (!res.ok) throw new Error((await res.json()).error || res.statusText);
     return res.json();
   }
@@ -485,6 +492,16 @@
 
   $('#refresh').onclick = refresh;
   $('#new').onclick = () => showForm(null);
+  $('#logoutBtn').onclick = async () => {
+    if (confirm('Are you sure you want to logout?')) {
+      try {
+        await fetch('/admin/logout', { method: 'POST' });
+        window.location.href = '/admin/login';
+      } catch (e) {
+        alert('Logout failed. Please try again.');
+      }
+    }
+  };
   // Sorting select next to Clear All
   (function initToolbarSort() {
     const s = $('#sortSelect');

@@ -10,16 +10,35 @@
       #sidebar {
         width: 280px;
       }
-      #sidebar::before {
-        content: 'Admin Dashboard';
-        display: block;
+      .sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         padding: 24px 20px 20px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
+      }
+      .sidebar-title {
         font-size: 20px;
         font-weight: 700;
         letter-spacing: -0.02em;
         color: var(--text);
-        border-bottom: 1px solid var(--border);
-        background: var(--bg);
+      }
+      #logoutBtn {
+        padding: 6px 12px;
+        font-size: 12px;
+        background: rgba(248, 81, 73, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(248, 81, 73, 0.3);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: all var(--transition);
+        font-weight: 500;
+      }
+      #logoutBtn:hover {
+        background: rgba(248, 81, 73, 0.2);
+        border-color: var(--danger);
+        transform: translateY(-1px);
       }
       h3 {
         margin: 0;
@@ -267,6 +286,10 @@
   </head>
   <body>
     <div id="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Admin Dashboard</span>
+        <button id="logoutBtn">Logout</button>
+      </div>
       <h3>Resources</h3>
       <div id="resources"></div>
     </div>

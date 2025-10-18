@@ -54,6 +54,14 @@ const configSchema = z.object({
   ADMIN_EMAIL: z.string().email(),
   ADMIN_PASSWORD: z.string().min(1),
 
+  // Admin panel authentication (separate from app auth)
+  ADMIN_AUTH_ENABLED: booleanString.default('true'),
+  ADMIN_USERNAME: z.string().min(1).default('admin'),
+  ADMIN_PANEL_PASSWORD: z.string().min(1).default("admin"),
+  ADMIN_SESSION_SECRET: z.string().min(32).default("z2fvHbkFRXlK3n7G10nmMm2wwjPTQhZ7jp2uNwoRhJc="),
+  ADMIN_SESSION_TTL: z.string().transform(Number).default('86400'),
+  ADMIN_COOKIE_NAME: z.string().default('admin_session'),
+
   OTP_VERIFICATION_ENABLED: booleanString,
   STATIC_OTP: z.enum(['1', '0']).transform(Number).optional(),
 
