@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { canAccess } from '../../middlewares/can-access';
-import { uploadProfile } from '../../middlewares/multer-s3';
 import MagicRouter from '../../openapi/magic-router';
 import { R } from '../../openapi/response.builders';
-import { zFile } from '../../openapi/zod-extend';
+import { zFile, zFiles } from '../../openapi/zod-extend';
 import { handleProfileUpload } from './upload.controller';
+import { uploadSchema } from './upload.schema';
 
 export const UPLOAD_ROUTER_ROOT = '/upload';
 
@@ -14,19 +14,20 @@ const uploadRouter = new MagicRouter(UPLOAD_ROUTER_ROOT);
 uploadRouter.post(
   '/profile',
   {
-    requestType: { body: z.object({ avatar: zFile() }) },
+    requestType: { body: uploadSchema },
     contentType: 'multipart/form-data',
+    multipart: true,
     responses: {
       201: R.success(
         z.object({
-          url: z.string().url(),
-          key: z.string().optional(),
+          key: zFile(),
+          filer: zFile(),
+          multipleFiles: zFiles(),
         }),
       ),
     },
   },
   canAccess(),
-  uploadProfile,
   handleProfileUpload,
 );
 
