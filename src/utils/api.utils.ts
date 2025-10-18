@@ -1,12 +1,12 @@
 import type { Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes, StatusCodesValues } from '@/openapi/status-codes';
 import config from '../config/env';
 import type { ResponseExtended } from '../types';
 
 export const errorResponse = (
   res: ResponseExtended | Response,
   message?: string,
-  statusCode?: StatusCodes,
+  statusCode?: StatusCodesValues,
   payload?: unknown,
   stack?: string,
 ): void => {
@@ -24,7 +24,7 @@ export const successResponse = (
   res: ResponseExtended | Response,
   message?: string,
   payload?: Record<string, unknown>,
-  statusCode: StatusCodes = StatusCodes.OK,
+  statusCode: StatusCodesValues = StatusCodes.OK,
 ): void => {
   res
     .status(statusCode)

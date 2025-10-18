@@ -78,7 +78,7 @@ The generated files follow project patterns but need customization for your spec
 - **Rule:** `@controllers`
 - Handle HTTP request/response
 - Use `successResponse` from `utils/api.utils`
-- Use proper HTTP status codes from `http-status-codes`
+- Use proper HTTP status codes from `@/openapi/status-codes`
 - Keep controllers thin - delegate logic to services
 
 #### 2.6 Update Router (`<module-name>.router.ts`)

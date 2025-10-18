@@ -1,5 +1,5 @@
 import type { NextFunction } from 'express';
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes } from '@/openapi/status-codes';
 import type { RoleType } from '../enums';
 import { errorResponse } from '../utils/api.utils';
 import type { JwtPayload } from '../utils/auth.utils';

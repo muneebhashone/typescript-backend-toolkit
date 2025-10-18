@@ -1,4 +1,4 @@
-import { StatusCodes } from "http-status-codes";
+import { StatusCodes, StatusCodesValues } from "../openapi/status-codes";
 import z from "zod";
 
 export const searchAndPaginationSchema = z.object({
@@ -10,7 +10,7 @@ export const searchAndPaginationSchema = z.object({
 export const returnMessageSchema = z.object({
 	status: z
 		.number()
-		.refine((value) => Object.values(StatusCodes).includes(value)),
+		.refine((value) => Object.values(StatusCodes).includes(value as StatusCodesValues)),
 	message: z.string(),
 });
 

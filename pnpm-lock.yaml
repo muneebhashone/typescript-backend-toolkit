@@ -77,9 +77,6 @@ importers:
       helmet:
         specifier: ^6.0.1
         version: 6.2.0
-      http-status-codes:
-        specifier: ^2.3.0
-        version: 2.3.0
       ioredis:
         specifier: ^5.3.2
         version: 5.5.0
