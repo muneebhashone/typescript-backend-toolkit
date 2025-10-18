@@ -15,7 +15,17 @@ import { registeredQueues } from './lib/queue.server';
 import { scheduleSessionCleanup } from './queues/session-cleanup.queue';
 import { getSessionManager } from './modules/auth/session/session.manager';
 import { adminApiRouter, registerAdminUI } from './admin/router';
+import {
+  adminAuthGuardApi,
+  adminAuthGuardUI,
+  signAdminSession,
+  setAdminCookie,
+  clearAdminCookie,
+  compareCredentials,
+  checkAdminLoginRateLimit,
+} from './admin/admin-auth';
 import { Server as SocketServer } from 'socket.io';
+import path from 'path';
 
 const bootstrapServer = async () => {
   await connectDatabase();
@@ -57,9 +67,59 @@ const bootstrapServer = async () => {
 
   app.use('/api', apiRoutes);
 
-  // Admin dashboard (CRUD) — UI and JSON API
-  registerAdminUI(app);
-  app.use('/admin/api', adminApiRouter);
+  // Admin authentication routes
+  app.get('/admin/login', (req, res) => {
+    const loginPath = path.join(process.cwd(), 'public', 'admin', 'login.html');
+    res.sendFile(loginPath);
+  });
+
+  app.post('/admin/login', (req, res) => {
+    const { username, password } = req.body;
+    const identifier = req.ip || 'unknown';
+
+    // Rate limiting
+    if (!checkAdminLoginRateLimit(identifier)) {
+      logger.warn({ identifier }, 'Admin login rate limit exceeded');
+      return res.status(429).json({ error: 'too_many_attempts' });
+    }
+
+    // Validate credentials
+    if (!username || !password || !compareCredentials(username, password)) {
+      logger.warn({ username, ip: identifier }, 'Failed admin login attempt');
+      return res.status(401).json({ error: 'invalid_credentials' });
+    }
+
+    // Create session
+    const token = signAdminSession(username);
+    setAdminCookie(res, token);
+
+    logger.info({ username, ip: identifier }, 'Admin login successful');
+
+    // Redirect or return JSON based on Accept header
+    const acceptsJson = req.headers.accept?.includes('application/json');
+    if (acceptsJson) {
+      return res.json({ ok: true });
+    }
+
+    const next = typeof req.query.next === 'string' ? req.query.next : '/admin';
+    res.redirect(next);
+  });
+
+  app.post('/admin/logout', (req, res) => {
+    clearAdminCookie(res);
+    logger.info({ adminUser: (req as any).adminUser }, 'Admin logout');
+
+    const acceptsJson = req.headers.accept?.includes('application/json');
+    if (acceptsJson) {
+      return res.json({ ok: true });
+    }
+
+    res.redirect('/admin/login');
+  });
+
+  // Admin dashboard (CRUD) — UI and JSON API (protected)
+  registerAdminUI(app, adminAuthGuardUI);
+  app.use('/admin/api', adminAuthGuardApi, adminApiRouter);
 
   const serverAdapter = new ExpressAdapter();
   serverAdapter.setBasePath('/queues');

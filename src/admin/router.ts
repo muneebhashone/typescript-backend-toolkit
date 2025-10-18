@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { type Application, Router } from 'express';
+import { type Application, Router, type RequestHandler } from 'express';
 import multer from 'multer';
 import type { FilterQuery } from 'mongoose';
 import { adminResources, getResource } from './registry';
@@ -308,11 +308,17 @@ adminApiRouter.post('/:resource/clear', async (req, res) => {
   }
 });
 
-export function registerAdminUI(app: Application) {
-  app.get('/admin', (_req, res) => {
+export function registerAdminUI(
+  app: Application,
+  guard?: RequestHandler,
+) {
+  const handlers: RequestHandler[] = [];
+  if (guard) handlers.push(guard);
+  handlers.push((_req, res) => {
     const indexPath = path.join(process.cwd(), 'public', 'admin', 'index.html');
     res.sendFile(indexPath);
   });
+  app.get('/admin', ...handlers);
 }
 
 function findFieldByPath(
