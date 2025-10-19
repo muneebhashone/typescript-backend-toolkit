@@ -29,11 +29,28 @@ export const UserSeeder: Seeder = {
 
     // Dev fixtures
     if (ctx.env.group === 'dev') {
-      const count = await User.countDocuments({ email: { $regex: /^user\d+@example\.com$/ } });
+      const count = await User.countDocuments({
+        email: { $regex: /^user\d+@example\.com$/ },
+      });
       if (count === 0) {
-        await userFactory.createMany(5);
+        const users = await userFactory.createMany(5);
+        // Store user IDs for other seeders to use
+        ctx.refs.set(
+          'user:seeded',
+          users.map((u) => String(u._id)),
+        );
+      } else {
+        // If users already exist, fetch and store their IDs
+        const existingUsers = await User.find({
+          email: { $regex: /^user\d+@example\.com$/ },
+        })
+          .select('_id')
+          .lean();
+        ctx.refs.set(
+          'user:seeded',
+          existingUsers.map((u) => String(u._id)),
+        );
       }
     }
   },
 };
-

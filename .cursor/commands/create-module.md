@@ -102,7 +102,7 @@ Scaffold a fully-typed module with controller, service, router, schema, and mode
 
 - [ ] Module files generated successfully
 - [ ] Router registered in `src/routes/routes.ts`
-- [ ] Module registered in admin dashboard (`src/admin/registry.ts`) (if needed)
+- [ ] Module registered in admin dashboard (`src/plugins/admin/registry.ts`) (if needed)
 - [ ] OpenAPI documentation rebuilt
 - [ ] Code passes typecheck and lint
 - [ ] Environment variables added to `src/config/env.ts` and `.env.sample` (if needed)

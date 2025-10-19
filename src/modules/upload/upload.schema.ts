@@ -5,7 +5,7 @@ import { R } from '@/plugins/magic/response.builders';
 export const uploadSchema = z.object({
   avatar: zFile({
     maxSize: 5 * 1024 * 1024, // 5MB
-    allowedTypes: MIME_GROUPS.DOCUMENTS,
+    allowedTypes: MIME_GROUPS.IMAGES,
   }),
   multipleFiles: zFiles({
     maxSize: 2 * 1024 * 1024, // 2MB per file
