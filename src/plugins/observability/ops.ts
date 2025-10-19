@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express';
-import { metricsCollector } from '../observability/metrics';
+import { metricsCollector } from './metrics';
 
 export type HealthCheck = {
   name: string;
@@ -67,7 +67,10 @@ export function createOpsRoutes(options: OpsRoutesOptions = {}): Router {
         res.send(metrics);
       } catch (error) {
         res.status(500).json({
-          error: error instanceof Error ? error.message : 'Failed to collect metrics',
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to collect metrics',
         });
       }
     });

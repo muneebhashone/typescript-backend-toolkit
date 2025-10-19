@@ -1,6 +1,6 @@
 import pino from 'pino';
 import pinoHttp from 'pino-http';
-import type { RequestExtended } from '../types';
+import type { RequestExtended } from '../../types';
 import { ServerResponse as ResponseHTTP } from 'node:http';
 
 const isDevelopment = process.env.NODE_ENV === 'development';

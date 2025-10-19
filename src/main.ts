@@ -5,18 +5,14 @@ import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
 import { initializeApp } from './app/app';
 import config from './config/env';
-import { connectDatabase, disconnectDatabase, checkDatabaseHealth } from './lib/database';
-import logger from './observability/logger';
-import { LifecycleManager } from './server/lifecycle';
-import { createOpsRoutes } from './routes/ops';
+import { connectDatabase, disconnectDatabase } from './lib/database';
+import logger from '@/plugins/observability/logger';
+import { LifecycleManager } from '@/server/lifecycle';
 import apiRoutes from './routes/routes';
 import errorHandler from './middlewares/error-handler';
-import { registeredQueues, closeAllQueues, checkQueueHealth } from './lib/queue';
-import { cacheProvider, RedisProvider, checkCacheHealth } from './lib/cache';
-import { checkEmailHealth } from './lib/email';
-import { checkStorageHealth } from './lib/storage';
-import { scheduleSessionCleanup } from './queues/session-cleanup.queue';
-import { getSessionManager } from './modules/auth/session/session.manager';
+import { registeredQueues, closeAllQueues } from './lib/queue';
+import { cacheProvider, RedisProvider } from './lib/cache';
+
 import { adminApiRouter, registerAdminUI } from './admin/router';
 import {
   adminAuthGuardApi,
@@ -32,7 +28,6 @@ import path from 'path';
 import { resolvePort } from './server/port-resolver';
 
 const bootstrapServer = async () => {
-
   // Resolve port availability (dev-only interactive prompt)
   const selectedPort =
     config.NODE_ENV === 'development'
@@ -42,32 +37,6 @@ const bootstrapServer = async () => {
   await connectDatabase();
 
   const { app, server } = await initializeApp();
-
-  if (config.SET_SESSION) {
-    try {
-      const sessionManager = getSessionManager();
-      const stats = await sessionManager.cleanupSessions('revoked');
-      logger.info({ stats }, 'Startup session cleanup completed');
-    } catch (err) {
-      logger.warn({ err }, 'Startup session cleanup failed');
-    }
-  }
-
-  await scheduleSessionCleanup();
-
-  // Setup ops routes with actual health checks
-  const opsRoutes = createOpsRoutes({
-    healthChecks: [
-      { name: 'database', check: checkDatabaseHealth() },
-      { name: 'cache', check: checkCacheHealth() },
-      { name: 'queues', check: checkQueueHealth() },
-      { name: 'email', check: checkEmailHealth() },
-      { name: 'storage', check: checkStorageHealth() },
-    ],
-    metricsEnabled: config.METRICS_ENABLED,
-  });
-
-  app.use('/ops', opsRoutes);
 
   app.use('/api', apiRoutes);
 

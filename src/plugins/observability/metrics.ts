@@ -1,4 +1,10 @@
-import { Registry, Counter, Histogram, Gauge, collectDefaultMetrics } from 'prom-client';
+import {
+  Registry,
+  Counter,
+  Histogram,
+  Gauge,
+  collectDefaultMetrics,
+} from 'prom-client';
 
 export class MetricsCollector {
   public readonly register: Registry;
@@ -53,9 +59,14 @@ export class MetricsCollector {
     });
   }
 
-  recordRequest(method: string, route: string, statusCode: number, duration: number): void {
+  recordRequest(
+    method: string,
+    route: string,
+    statusCode: number,
+    duration: number,
+  ): void {
     const labels = { method, route, status_code: statusCode.toString() };
-    
+
     this.httpRequestDuration.observe(labels, duration / 1000);
     this.httpRequestTotal.inc(labels);
   }
