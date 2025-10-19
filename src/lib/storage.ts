@@ -2,8 +2,8 @@ import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { S3Client } from '@aws-sdk/client-s3';
 import { createReadStream, promises as fs } from 'node:fs';
 import { join, dirname } from 'node:path';
-import config from '../config/env';
-import logger from '../observability/logger';
+import config from '@/config/env';
+import logger from '@/plugins/observability/logger';
 import type { FormFile } from '../types';
 import { StorageError } from './errors';
 
@@ -75,20 +75,26 @@ export class S3StorageProvider implements StorageProvider {
 
       const url = this.getUrl(params.key);
 
-      logger.info({
-        provider: 's3',
-        key: params.key,
-        size: params.file.size,
-        mimetype: params.file.mimetype,
-      }, 'File uploaded successfully');
+      logger.info(
+        {
+          provider: 's3',
+          key: params.key,
+          size: params.file.size,
+          mimetype: params.file.mimetype,
+        },
+        'File uploaded successfully',
+      );
 
       return { url, key: params.key };
     } catch (err) {
-      logger.error({
-        provider: 's3',
-        key: params.key,
-        err,
-      }, 'Failed to upload file');
+      logger.error(
+        {
+          provider: 's3',
+          key: params.key,
+          err,
+        },
+        'Failed to upload file',
+      );
 
       throw new StorageError('Failed to upload file to S3', err);
     }
@@ -103,16 +109,22 @@ export class S3StorageProvider implements StorageProvider {
 
       await this.client.send(command);
 
-      logger.info({
-        provider: 's3',
-        key,
-      }, 'File deleted successfully');
+      logger.info(
+        {
+          provider: 's3',
+          key,
+        },
+        'File deleted successfully',
+      );
     } catch (err) {
-      logger.error({
-        provider: 's3',
-        key,
-        err,
-      }, 'Failed to delete file');
+      logger.error(
+        {
+          provider: 's3',
+          key,
+          err,
+        },
+        'Failed to delete file',
+      );
 
       throw new StorageError('Failed to delete file from S3', err);
     }
@@ -144,7 +156,12 @@ export class R2StorageProvider implements StorageProvider {
   private publicUrl?: string;
 
   constructor() {
-    if (!config.R2_ACCOUNT_ID || !config.R2_ACCESS_KEY_ID || !config.R2_SECRET_ACCESS_KEY || !config.R2_BUCKET) {
+    if (
+      !config.R2_ACCOUNT_ID ||
+      !config.R2_ACCESS_KEY_ID ||
+      !config.R2_SECRET_ACCESS_KEY ||
+      !config.R2_BUCKET
+    ) {
       throw new StorageError('Missing required R2 configuration');
     }
 
@@ -179,20 +196,26 @@ export class R2StorageProvider implements StorageProvider {
 
       const url = this.getUrl(params.key);
 
-      logger.info({
-        provider: 'r2',
-        key: params.key,
-        size: params.file.size,
-        mimetype: params.file.mimetype,
-      }, 'File uploaded successfully');
+      logger.info(
+        {
+          provider: 'r2',
+          key: params.key,
+          size: params.file.size,
+          mimetype: params.file.mimetype,
+        },
+        'File uploaded successfully',
+      );
 
       return { url, key: params.key };
     } catch (err) {
-      logger.error({
-        provider: 'r2',
-        key: params.key,
-        err,
-      }, 'Failed to upload file');
+      logger.error(
+        {
+          provider: 'r2',
+          key: params.key,
+          err,
+        },
+        'Failed to upload file',
+      );
 
       throw new StorageError('Failed to upload file to R2', err);
     }
@@ -207,16 +230,22 @@ export class R2StorageProvider implements StorageProvider {
 
       await this.client.send(command);
 
-      logger.info({
-        provider: 'r2',
-        key,
-      }, 'File deleted successfully');
+      logger.info(
+        {
+          provider: 'r2',
+          key,
+        },
+        'File deleted successfully',
+      );
     } catch (err) {
-      logger.error({
-        provider: 'r2',
-        key,
-        err,
-      }, 'Failed to delete file');
+      logger.error(
+        {
+          provider: 'r2',
+          key,
+          err,
+        },
+        'Failed to delete file',
+      );
 
       throw new StorageError('Failed to delete file from R2', err);
     }
@@ -233,7 +262,12 @@ export class R2StorageProvider implements StorageProvider {
 
   async healthCheck(): Promise<boolean> {
     try {
-      return !!(this.bucket && config.R2_ACCOUNT_ID && config.R2_ACCESS_KEY_ID && config.R2_SECRET_ACCESS_KEY);
+      return !!(
+        this.bucket &&
+        config.R2_ACCOUNT_ID &&
+        config.R2_ACCESS_KEY_ID &&
+        config.R2_SECRET_ACCESS_KEY
+      );
     } catch (err) {
       logger.error({ err }, 'R2 health check failed');
       return false;
@@ -265,21 +299,27 @@ export class LocalStorageProvider implements StorageProvider {
 
       const url = this.getUrl(params.key);
 
-      logger.info({
-        provider: 'local',
-        key: params.key,
-        path: targetPath,
-        size: params.file.size,
-        mimetype: params.file.mimetype,
-      }, 'File uploaded successfully');
+      logger.info(
+        {
+          provider: 'local',
+          key: params.key,
+          path: targetPath,
+          size: params.file.size,
+          mimetype: params.file.mimetype,
+        },
+        'File uploaded successfully',
+      );
 
       return { url, key: params.key };
     } catch (err) {
-      logger.error({
-        provider: 'local',
-        key: params.key,
-        err,
-      }, 'Failed to upload file');
+      logger.error(
+        {
+          provider: 'local',
+          key: params.key,
+          err,
+        },
+        'Failed to upload file',
+      );
 
       throw new StorageError('Failed to upload file to local storage', err);
     }
@@ -290,17 +330,23 @@ export class LocalStorageProvider implements StorageProvider {
       const targetPath = join(this.storagePath, key);
       await fs.unlink(targetPath);
 
-      logger.info({
-        provider: 'local',
-        key,
-        path: targetPath,
-      }, 'File deleted successfully');
+      logger.info(
+        {
+          provider: 'local',
+          key,
+          path: targetPath,
+        },
+        'File deleted successfully',
+      );
     } catch (err) {
-      logger.error({
-        provider: 'local',
-        key,
-        err,
-      }, 'Failed to delete file');
+      logger.error(
+        {
+          provider: 'local',
+          key,
+          err,
+        },
+        'Failed to delete file',
+      );
 
       throw new StorageError('Failed to delete file from local storage', err);
     }
@@ -339,7 +385,10 @@ export class LocalStorageProvider implements StorageProvider {
 const createStorageProvider = (): StorageProvider => {
   const provider = config.STORAGE_PROVIDER;
 
-  logger.info({ provider }, `Initializing ${provider.toUpperCase()} storage provider`);
+  logger.info(
+    { provider },
+    `Initializing ${provider.toUpperCase()} storage provider`,
+  );
 
   switch (provider) {
     case 's3':
@@ -364,7 +413,9 @@ export const storageProvider = createStorageProvider();
 /**
  * Convenience function to upload a file
  */
-export const uploadFile = async (params: UploadParams): Promise<UploadResult> => {
+export const uploadFile = async (
+  params: UploadParams,
+): Promise<UploadResult> => {
   return storageProvider.upload(params);
 };
 

@@ -262,7 +262,7 @@ export const createItemSchema = z.object({
 Define response schemas in your schema file using response builders:
 
 ```typescript
-import { R } from '../../openapi/response.builders';
+import { R } from '@/plugins/magic/response.builders';
 import { itemOutSchema } from './item.dto';
 
 // Response schemas
@@ -272,24 +272,31 @@ export const getItemByIdResponseSchema = R.success(itemOutSchema);
 export const updateItemResponseSchema = R.success(itemOutSchema);
 
 // Custom response schemas
-export const customActionResponseSchema = R.success(z.object({
-  success: z.boolean(),
-  message: z.string(),
-  data: z.object({
-    actionId: z.string(),
-    status: z.enum(['pending', 'completed']),
+export const customActionResponseSchema = R.success(
+  z.object({
+    success: z.boolean(),
+    message: z.string(),
+    data: z.object({
+      actionId: z.string(),
+      status: z.enum(['pending', 'completed']),
+    }),
   }),
-}));
+);
 
 // Response types
 export type CreateItemResponseSchema = z.infer<typeof createItemResponseSchema>;
 export type GetItemsResponseSchema = z.infer<typeof getItemsResponseSchema>;
-export type GetItemByIdResponseSchema = z.infer<typeof getItemByIdResponseSchema>;
+export type GetItemByIdResponseSchema = z.infer<
+  typeof getItemByIdResponseSchema
+>;
 export type UpdateItemResponseSchema = z.infer<typeof updateItemResponseSchema>;
-export type CustomActionResponseSchema = z.infer<typeof customActionResponseSchema>;
+export type CustomActionResponseSchema = z.infer<
+  typeof customActionResponseSchema
+>;
 ```
 
 **Benefits:**
+
 - ✅ Type-safe responses in controllers
 - ✅ Accurate OpenAPI documentation
 - ✅ Runtime validation (configurable)
@@ -297,6 +304,7 @@ export type CustomActionResponseSchema = z.infer<typeof customActionResponseSche
 - ✅ Better IDE autocomplete
 
 **Response Builders:**
+
 - `R.success(schema)` - Standard envelope: `{ success, message?, data? }`
 - `R.paginated(itemSchema)` - Paginated list: `{ success, message?, data: { items, paginator } }`
 - `R.noContent()` - Empty 204 response

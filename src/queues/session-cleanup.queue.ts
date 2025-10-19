@@ -1,6 +1,6 @@
 import { Queue } from '../lib/queue';
 import { getSessionManager } from '../modules/auth/session/session.manager';
-import { createChildLogger } from '../observability/logger';
+import { createChildLogger } from '@/plugins/observability/logger';
 import config from '../config/env';
 
 const logger = createChildLogger({ context: 'SessionCleanupQueue' });
@@ -20,22 +20,22 @@ export const SessionCleanupQueue = Queue<SessionCleanupPayload>(
     try {
       const { data } = job;
       const sessionManager = getSessionManager();
-      
+
       logger.info({ type: data.type }, 'Starting session cleanup');
-      
+
       const startTime = Date.now();
       const stats = await sessionManager.cleanupSessions(data.type);
       const duration = Date.now() - startTime;
-      
+
       logger.info(
-        { 
-          ...stats, 
+        {
+          ...stats,
           duration,
-          type: data.type 
+          type: data.type,
         },
-        'Session cleanup completed'
+        'Session cleanup completed',
       );
-      
+
       return stats;
     } catch (err) {
       logger.error({ err }, 'Session cleanup failed');
@@ -59,12 +59,12 @@ export async function scheduleSessionCleanup(): Promise<void> {
           pattern: config.SESSION_CLEANUP_CRON,
         },
         jobId: 'session-cleanup-recurring',
-      }
+      },
     );
 
     logger.info(
       { pattern: config.SESSION_CLEANUP_CRON },
-      'Session cleanup job scheduled'
+      'Session cleanup job scheduled',
     );
   } catch (err) {
     logger.error({ err }, 'Failed to schedule session cleanup job');

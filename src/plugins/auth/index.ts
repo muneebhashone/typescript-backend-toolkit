@@ -5,7 +5,7 @@ import {
 } from '@/modules/auth/session/session.manager';
 import type { SessionStoreConfig } from '@/modules/auth/session/session.types';
 import config from '@/config/env';
-import logger from '../observability/logger';
+import logger from '@/plugins/observability/logger';
 import { scheduleSessionCleanup } from '../../queues/session-cleanup.queue';
 
 export interface AuthOptions {

@@ -1,5 +1,5 @@
 import type { Server } from 'http';
-import logger from '../observability/logger';
+import logger from '@/plugins/observability/logger';
 
 export type CleanupFunction = () => Promise<void> | void;
 
@@ -25,7 +25,7 @@ export class LifecycleManager {
 
   setupSignalHandlers(): void {
     const signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT'];
-    
+
     for (const signal of signals) {
       process.on(signal, () => {
         logger.info(`Received ${signal}, starting graceful shutdown...`);

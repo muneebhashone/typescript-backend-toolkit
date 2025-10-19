@@ -3,7 +3,7 @@ import { OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
 import * as yaml from 'yaml';
 
 import type { OpenAPIObject } from 'openapi3-ts/oas30';
-import config from '../config/env';
+import config from '@/config/env';
 import { registry } from './swagger-instance';
 import path from 'node:path';
 

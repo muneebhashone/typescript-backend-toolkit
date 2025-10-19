@@ -1,9 +1,5 @@
 import { z } from 'zod';
-import {
-  errorResponseSchema,
-  paginatedResponseSchema,
-  paginatorSchema,
-} from '../common/common.schema';
+import { errorResponseSchema, paginatorSchema } from '@/common/common.schema';
 
 /**
  * Response builders (R) - helpers for creating consistent response schemas

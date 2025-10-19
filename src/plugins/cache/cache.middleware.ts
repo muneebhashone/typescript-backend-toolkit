@@ -1,7 +1,11 @@
 import type { NextFunction } from 'express';
 import crypto from 'node:crypto';
-import type { RequestAny, ResponseAny, MagicMiddleware } from '@/openapi/magic-router';
-import logger from '@/observability/logger';
+import type {
+  RequestAny,
+  ResponseAny,
+  MagicMiddleware,
+} from '@/plugins/magic/router';
+import logger from '@/plugins/observability/logger';
 import type {
   CacheMiddlewareOptions,
   InvalidateOptions,
@@ -11,6 +15,7 @@ import type {
   CacheKeyResolver,
 } from './types';
 import { CacheService } from './cache.service';
+import type { JwtPayload } from '@/utils/jwt.utils';
 
 /**
  * Global cache service instance
@@ -30,7 +35,7 @@ export function initializeCacheMiddleware(service: CacheService): void {
  */
 async function generateCacheKey(
   req: RequestAny,
-  options: CacheMiddlewareOptions
+  options: CacheMiddlewareOptions,
 ): Promise<string> {
   // Custom key generator (has full request access)
   if (typeof options.key === 'function') {
@@ -56,7 +61,7 @@ async function generateCacheKey(
   }
 
   if (varyBy.includes('userId')) {
-    const userId = (req.user as any)?.userId || (req.user as any)?.id || 'anonymous';
+    const userId = (req.user as JwtPayload)?.sub || 'anonymous';
     parts.push(`user:${userId}`);
   }
 
@@ -78,12 +83,14 @@ async function generateCacheKey(
     const headerValues = options.varyByHeaders
       .map((h) => `${h}:${req.headers[h.toLowerCase()] || ''}`)
       .join(',');
-    parts.push(`h:${crypto.createHash('md5').update(headerValues).digest('hex')}`);
+    parts.push(
+      `h:${crypto.createHash('md5').update(headerValues).digest('hex')}`,
+    );
   }
 
   // Handle private option (shorthand for varyBy userId)
   if (options.private && !varyBy.includes('userId')) {
-    const userId = (req.user as any)?.userId || (req.user as any)?.id || 'anonymous';
+    const userId = (req.user as JwtPayload)?.sub || 'anonymous';
     parts.push(`user:${userId}`);
   }
 
@@ -95,7 +102,7 @@ async function generateCacheKey(
  */
 async function resolveTags(
   req: RequestAny,
-  tags?: string[] | CacheTagResolver
+  tags?: string[] | CacheTagResolver,
 ): Promise<string[]> {
   if (!tags) return [];
 
@@ -111,7 +118,7 @@ async function resolveTags(
  */
 async function resolvePatterns(
   req: RequestAny,
-  patterns?: string[] | CachePatternResolver
+  patterns?: string[] | CachePatternResolver,
 ): Promise<string[]> {
   if (!patterns) return [];
 
@@ -127,7 +134,7 @@ async function resolvePatterns(
  */
 async function resolveKeys(
   req: RequestAny,
-  keys?: string[] | CacheKeyResolver
+  keys?: string[] | CacheKeyResolver,
 ): Promise<string[]> {
   if (!keys) return [];
 
@@ -154,9 +161,13 @@ async function resolveKeys(
  * );
  */
 export const cacheResponse = (
-  options: CacheMiddlewareOptions = {}
+  options: CacheMiddlewareOptions = {},
 ): MagicMiddleware => {
-  return async (req: RequestAny, res: ResponseAny, next: NextFunction): Promise<void> => {
+  return async (
+    req: RequestAny,
+    res: ResponseAny,
+    next: NextFunction,
+  ): Promise<void> => {
     // Check if cache service is initialized
     if (!cacheService) {
       logger.warn('Cache middleware used but cache service not initialized');
@@ -196,7 +207,10 @@ export const cacheResponse = (
       const cacheKey = await generateCacheKey(req, options);
       const ttl = options.ttl;
 
-      logger.debug({ cacheKey, method: req.method, path: req.path }, 'Checking cache');
+      logger.debug(
+        { cacheKey, method: req.method, path: req.path },
+        'Checking cache',
+      );
 
       // Try to get from cache
       const cached = await cacheService.get(cacheKey);
@@ -206,10 +220,14 @@ export const cacheResponse = (
         if (options.staleWhileRevalidate && options.staleTime) {
           const ttlRemaining = await cacheService.ttl(cacheKey);
           const effectiveTtl = ttl || 3600;
-          const isStale = ttlRemaining > 0 && ttlRemaining < (effectiveTtl - options.staleTime);
+          const isStale =
+            ttlRemaining > 0 && ttlRemaining < effectiveTtl - options.staleTime;
 
           if (isStale) {
-            logger.debug({ cacheKey }, 'Serving stale cache, revalidating in background');
+            logger.debug(
+              { cacheKey },
+              'Serving stale cache, revalidating in background',
+            );
             // Continue to serve from cache, but mark for revalidation
             res.setHeader('X-Cache-Status', 'STALE');
           } else {
@@ -231,7 +249,10 @@ export const cacheResponse = (
           res.setHeader('Age', age.toString());
         }
 
-        logger.debug({ cacheKey, method: req.method, path: req.path }, 'Cache hit');
+        logger.debug(
+          { cacheKey, method: req.method, path: req.path },
+          'Cache hit',
+        );
 
         res.json(cached);
         return;
@@ -283,11 +304,15 @@ export const cacheResponse = (
         responseSent = true;
 
         // Only cache if it's likely JSON
-        if (cacheService && (typeof data === 'object' || typeof data === 'string')) {
+        if (
+          cacheService &&
+          (typeof data === 'object' || typeof data === 'string')
+        ) {
           (async () => {
             try {
               const tags = await resolveTags(req, options.tags);
-              const cacheData = typeof data === 'string' ? JSON.parse(data) : data;
+              const cacheData =
+                typeof data === 'string' ? JSON.parse(data) : data;
 
               if (tags.length > 0) {
                 await cacheService!.setWithTags(cacheKey, cacheData, tags, ttl);
@@ -297,7 +322,10 @@ export const cacheResponse = (
 
               logger.debug({ cacheKey, tags, ttl }, 'Response cached');
             } catch (err) {
-              logger.debug({ cacheKey, err }, 'Skipped caching non-JSON response');
+              logger.debug(
+                { cacheKey, err },
+                'Skipped caching non-JSON response',
+              );
             }
           })();
         }
@@ -334,12 +362,18 @@ export const cacheResponse = (
  * );
  */
 export const invalidateCache = (
-  options: InvalidateOptions = {}
+  options: InvalidateOptions = {},
 ): MagicMiddleware => {
-  return async (req: RequestAny, res: ResponseAny, next: NextFunction): Promise<void> => {
+  return async (
+    req: RequestAny,
+    res: ResponseAny,
+    next: NextFunction,
+  ): Promise<void> => {
     // Check if cache service is initialized
     if (!cacheService) {
-      logger.warn('Cache invalidation middleware used but cache service not initialized');
+      logger.warn(
+        'Cache invalidation middleware used but cache service not initialized',
+      );
       next();
       return;
     }
@@ -368,7 +402,10 @@ export const invalidateCache = (
           const tags = await resolveTags(req, options.tags);
           if (tags.length > 0) {
             await cacheService.invalidateByTags(tags);
-            logger.debug({ tags, method: req.method, path: req.path }, 'Invalidated cache by tags');
+            logger.debug(
+              { tags, method: req.method, path: req.path },
+              'Invalidated cache by tags',
+            );
           }
         }
 
@@ -377,7 +414,10 @@ export const invalidateCache = (
           const patterns = await resolvePatterns(req, options.patterns);
           for (const pattern of patterns) {
             await cacheService.invalidateByPattern(pattern);
-            logger.debug({ pattern, method: req.method, path: req.path }, 'Invalidated cache by pattern');
+            logger.debug(
+              { pattern, method: req.method, path: req.path },
+              'Invalidated cache by pattern',
+            );
           }
         }
 
@@ -386,11 +426,17 @@ export const invalidateCache = (
           const keys = await resolveKeys(req, options.keys);
           if (keys.length > 0) {
             await cacheService.deleteMany(keys);
-            logger.debug({ keys, method: req.method, path: req.path }, 'Invalidated cache keys');
+            logger.debug(
+              { keys, method: req.method, path: req.path },
+              'Invalidated cache keys',
+            );
           }
         }
       } catch (err) {
-        logger.error({ err, method: req.method, path: req.path }, 'Cache invalidation failed');
+        logger.error(
+          { err, method: req.method, path: req.path },
+          'Cache invalidation failed',
+        );
         // Don't throw - invalidation failure shouldn't break the request
       }
     };
@@ -405,7 +451,7 @@ export const invalidateCache = (
     res.on('finish', () => {
       if (res.statusCode >= 200 && res.statusCode < 300) {
         performInvalidation().catch((err) =>
-          logger.error({ err }, 'Post-response cache invalidation failed')
+          logger.error({ err }, 'Post-response cache invalidation failed'),
         );
       }
     });
@@ -419,9 +465,13 @@ export const invalidateCache = (
  * Automatically generates ETags and handles conditional requests
  */
 export const cacheWithETag = (
-  options: Omit<CacheMiddlewareOptions, 'key'> = {}
+  options: Omit<CacheMiddlewareOptions, 'key'> = {},
 ): MagicMiddleware => {
-  return async (req: RequestAny, res: ResponseAny, next: NextFunction): Promise<void> => {
+  return async (
+    req: RequestAny,
+    res: ResponseAny,
+    next: NextFunction,
+  ): Promise<void> => {
     if (!cacheService) {
       next();
       return;
@@ -433,7 +483,10 @@ export const cacheWithETag = (
       return;
     }
 
-    const cacheKey = await generateCacheKey(req, { ...options, varyBy: ['url', 'query'] });
+    const cacheKey = await generateCacheKey(req, {
+      ...options,
+      varyBy: ['url', 'query'],
+    });
     const etagKey = `etag:${cacheKey}`;
 
     // Check if client sent If-None-Match header

@@ -1,7 +1,7 @@
 import * as z from 'zod';
-import { passwordValidationSchema } from '../../common/common.schema';
-import { ROLE_ENUM, type RoleType } from '../../enums';
-import { R } from '../../openapi/response.builders';
+import { passwordValidationSchema } from '@/common/common.schema';
+import { ROLE_ENUM, type RoleType } from '@/enums';
+import { R } from '@/plugins/magic/response.builders';
 import { userOutSchema } from './user.dto';
 
 const usernameRegex = /^[a-zA-Z0-9_]{3,16}$/;
@@ -53,12 +53,16 @@ export type GetUsersSchemaType = z.infer<typeof getUsersSchema>;
 // Response schemas
 export const createUserResponseSchema = R.success(userOutSchema);
 export const getUsersResponseSchema = R.paginated(userOutSchema);
-export const createSuperAdminResponseSchema = R.success(z.object({
-  email: z.string().email(),
-  password: z.string(),
-}));
+export const createSuperAdminResponseSchema = R.success(
+  z.object({
+    email: z.string().email(),
+    password: z.string(),
+  }),
+);
 
 // Response types
 export type CreateUserResponseSchema = z.infer<typeof createUserResponseSchema>;
 export type GetUsersResponseSchema = z.infer<typeof getUsersResponseSchema>;
-export type CreateSuperAdminResponseSchema = z.infer<typeof createSuperAdminResponseSchema>;
+export type CreateSuperAdminResponseSchema = z.infer<
+  typeof createSuperAdminResponseSchema
+>;

@@ -1,7 +1,7 @@
 import type { Response } from 'express';
-import { StatusCodes, StatusCodesValues } from '@/openapi/status-codes';
-import config from '../config/env';
-import type { ResponseExtended } from '../types';
+import { StatusCodes, StatusCodesValues } from '@/plugins/magic/status-codes';
+import config from '@/config/env';
+import type { ResponseExtended } from '@/types';
 
 /**
  * Send an error response

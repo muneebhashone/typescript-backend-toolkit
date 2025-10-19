@@ -1,7 +1,7 @@
 import { sign, verify } from 'jsonwebtoken';
 import config from '../config/env';
 import type { RoleType } from '../enums';
-import logger from '../observability/logger';
+import logger from '@/plugins/observability/logger';
 
 export type JwtPayload = {
   sub: string;
@@ -29,7 +29,7 @@ export type SetPasswordTokenPayload = {
  */
 export const signToken = async (payload: JwtPayload): Promise<string> => {
   return sign(payload, String(config.JWT_SECRET), {
-    expiresIn: Number(config.JWT_EXPIRES_IN)
+    expiresIn: Number(config.JWT_EXPIRES_IN),
   });
 };
 

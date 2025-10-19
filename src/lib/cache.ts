@@ -1,7 +1,7 @@
 import type { RedisOptions } from 'ioredis';
 import Redis from 'ioredis';
 import config from '../config/env';
-import logger from '../observability/logger';
+import logger from '@/plugins/observability/logger';
 import { CacheError } from './errors';
 
 /**
@@ -96,7 +96,10 @@ export class RedisProvider implements CacheProvider {
         await this.client.set(key, value);
       }
     } catch (err) {
-      logger.error({ provider: 'redis', key, ttl, err }, 'Failed to set cache key');
+      logger.error(
+        { provider: 'redis', key, ttl, err },
+        'Failed to set cache key',
+      );
       throw new CacheError('Failed to set cache key', err);
     }
   }
@@ -105,7 +108,10 @@ export class RedisProvider implements CacheProvider {
     try {
       await this.client.del(key);
     } catch (err) {
-      logger.error({ provider: 'redis', key, err }, 'Failed to delete cache key');
+      logger.error(
+        { provider: 'redis', key, err },
+        'Failed to delete cache key',
+      );
       throw new CacheError('Failed to delete cache key', err);
     }
   }
@@ -115,7 +121,10 @@ export class RedisProvider implements CacheProvider {
       const result = await this.client.exists(key);
       return result === 1;
     } catch (err) {
-      logger.error({ provider: 'redis', key, err }, 'Failed to check cache key existence');
+      logger.error(
+        { provider: 'redis', key, err },
+        'Failed to check cache key existence',
+      );
       throw new CacheError('Failed to check cache key existence', err);
     }
   }
@@ -125,7 +134,10 @@ export class RedisProvider implements CacheProvider {
       if (keys.length === 0) return [];
       return await this.client.mget(...keys);
     } catch (err) {
-      logger.error({ provider: 'redis', keys, err }, 'Failed to get multiple cache keys');
+      logger.error(
+        { provider: 'redis', keys, err },
+        'Failed to get multiple cache keys',
+      );
       throw new CacheError('Failed to get multiple cache keys', err);
     }
   }
@@ -147,7 +159,10 @@ export class RedisProvider implements CacheProvider {
 
       await pipeline.exec();
     } catch (err) {
-      logger.error({ provider: 'redis', entries: entries.length, err }, 'Failed to set multiple cache keys');
+      logger.error(
+        { provider: 'redis', entries: entries.length, err },
+        'Failed to set multiple cache keys',
+      );
       throw new CacheError('Failed to set multiple cache keys', err);
     }
   }
@@ -157,7 +172,10 @@ export class RedisProvider implements CacheProvider {
       if (keys.length === 0) return;
       await this.client.del(...keys);
     } catch (err) {
-      logger.error({ provider: 'redis', keys, err }, 'Failed to delete multiple cache keys');
+      logger.error(
+        { provider: 'redis', keys, err },
+        'Failed to delete multiple cache keys',
+      );
       throw new CacheError('Failed to delete multiple cache keys', err);
     }
   }
@@ -166,7 +184,10 @@ export class RedisProvider implements CacheProvider {
     try {
       return await this.client.incr(key);
     } catch (err) {
-      logger.error({ provider: 'redis', key, err }, 'Failed to increment cache key');
+      logger.error(
+        { provider: 'redis', key, err },
+        'Failed to increment cache key',
+      );
       throw new CacheError('Failed to increment cache key', err);
     }
   }
@@ -175,7 +196,10 @@ export class RedisProvider implements CacheProvider {
     try {
       return await this.client.decr(key);
     } catch (err) {
-      logger.error({ provider: 'redis', key, err }, 'Failed to decrement cache key');
+      logger.error(
+        { provider: 'redis', key, err },
+        'Failed to decrement cache key',
+      );
       throw new CacheError('Failed to decrement cache key', err);
     }
   }
@@ -184,7 +208,10 @@ export class RedisProvider implements CacheProvider {
     try {
       await this.client.expire(key, ttl);
     } catch (err) {
-      logger.error({ provider: 'redis', key, ttl, err }, 'Failed to set cache key expiration');
+      logger.error(
+        { provider: 'redis', key, ttl, err },
+        'Failed to set cache key expiration',
+      );
       throw new CacheError('Failed to set cache key expiration', err);
     }
   }
@@ -193,7 +220,10 @@ export class RedisProvider implements CacheProvider {
     try {
       return await this.client.ttl(key);
     } catch (err) {
-      logger.error({ provider: 'redis', key, err }, 'Failed to get cache key TTL');
+      logger.error(
+        { provider: 'redis', key, err },
+        'Failed to get cache key TTL',
+      );
       throw new CacheError('Failed to get cache key TTL', err);
     }
   }
@@ -202,7 +232,10 @@ export class RedisProvider implements CacheProvider {
     try {
       return await this.client.keys(pattern);
     } catch (err) {
-      logger.error({ provider: 'redis', pattern, err }, 'Failed to get cache keys by pattern');
+      logger.error(
+        { provider: 'redis', pattern, err },
+        'Failed to get cache keys by pattern',
+      );
       throw new CacheError('Failed to get cache keys by pattern', err);
     }
   }
@@ -218,7 +251,10 @@ export class RedisProvider implements CacheProvider {
         await this.client.flushdb();
       }
     } catch (err) {
-      logger.error({ provider: 'redis', pattern, err }, 'Failed to clear cache');
+      logger.error(
+        { provider: 'redis', pattern, err },
+        'Failed to clear cache',
+      );
       throw new CacheError('Failed to clear cache', err);
     }
   }
@@ -262,7 +298,10 @@ export class MemoryProvider implements CacheProvider {
     // Start periodic cleanup of expired entries
     this.startCleanup(cleanupIntervalMs);
 
-    logger.info({ provider: 'memory', maxSize, cleanupIntervalMs }, 'Memory cache provider initialized');
+    logger.info(
+      { provider: 'memory', maxSize, cleanupIntervalMs },
+      'Memory cache provider initialized',
+    );
   }
 
   private startCleanup(intervalMs: number): void {
@@ -284,7 +323,10 @@ export class MemoryProvider implements CacheProvider {
     }
 
     if (cleaned > 0) {
-      logger.debug({ provider: 'memory', cleaned }, 'Cleaned up expired cache entries');
+      logger.debug(
+        { provider: 'memory', cleaned },
+        'Cleaned up expired cache entries',
+      );
     }
   }
 
@@ -305,7 +347,10 @@ export class MemoryProvider implements CacheProvider {
     if (lruKey) {
       this.cache.delete(lruKey);
       this.accessOrder.delete(lruKey);
-      logger.debug({ provider: 'memory', key: lruKey }, 'Evicted LRU cache entry');
+      logger.debug(
+        { provider: 'memory', key: lruKey },
+        'Evicted LRU cache entry',
+      );
     }
   }
 
@@ -313,7 +358,10 @@ export class MemoryProvider implements CacheProvider {
     this.accessOrder.set(key, ++this.accessCounter);
   }
 
-  private isExpired(entry: { value: string; expiresAt: number | null }): boolean {
+  private isExpired(entry: {
+    value: string;
+    expiresAt: number | null;
+  }): boolean {
     return entry.expiresAt !== null && entry.expiresAt <= Date.now();
   }
 
@@ -481,7 +529,10 @@ export class MemoryProvider implements CacheProvider {
 const createCacheProvider = (): CacheProvider => {
   const provider = config.CACHE_PROVIDER || 'redis';
 
-  logger.info({ provider }, `Initializing ${provider.toUpperCase()} cache provider`);
+  logger.info(
+    { provider },
+    `Initializing ${provider.toUpperCase()} cache provider`,
+  );
 
   switch (provider) {
     case 'redis':
@@ -504,9 +555,8 @@ export const cacheProvider = createCacheProvider();
  * Legacy export for backward compatibility
  * @deprecated Use cacheProvider instead
  */
-export const cacheClient = cacheProvider instanceof RedisProvider
-  ? cacheProvider.getClient()
-  : null;
+export const cacheClient =
+  cacheProvider instanceof RedisProvider ? cacheProvider.getClient() : null;
 
 /**
  * Health check function for cache connection

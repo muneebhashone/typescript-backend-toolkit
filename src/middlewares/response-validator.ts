@@ -1,7 +1,7 @@
 import type { NextFunction, Request } from 'express';
-import { StatusCodes } from '@/openapi/status-codes';
+import { StatusCodes } from '@/plugins/magic/status-codes';
 import config from '@/config/env';
-import logger from '@/observability/logger';
+import logger from '@/plugins/observability/logger';
 import type { ResponseExtended } from '@/types';
 
 type ValidationMode = 'strict' | 'warn' | 'off';

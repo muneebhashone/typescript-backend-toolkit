@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import MagicRouter from '../../openapi/magic-router';
-import { R } from '../../openapi/response.builders';
+import MagicRouter from '@/plugins/magic/router';
+import { R } from '@/plugins/magic/response.builders';
 import { handleHealthCheck } from './healthcheck.controller';
 
 export const HEALTH_ROUTER_ROOT = '/healthcheck';

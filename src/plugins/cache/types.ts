@@ -1,5 +1,4 @@
-import type { NextFunction } from 'express';
-import type { RequestAny, ResponseAny, MagicMiddleware } from '@/openapi/magic-router';
+import type { RequestAny } from '@/plugins/magic/router';
 
 /**
  * Cache key generator function type
@@ -11,19 +10,25 @@ export type CacheKeyGenerator = (req: RequestAny) => string | Promise<string>;
  * Cache tag resolver function type
  * Receives full request object for dynamic tag generation
  */
-export type CacheTagResolver = (req: RequestAny) => string[] | Promise<string[]>;
+export type CacheTagResolver = (
+  req: RequestAny,
+) => string[] | Promise<string[]>;
 
 /**
  * Cache pattern resolver function type
  * Receives full request object for dynamic pattern generation
  */
-export type CachePatternResolver = (req: RequestAny) => string[] | Promise<string[]>;
+export type CachePatternResolver = (
+  req: RequestAny,
+) => string[] | Promise<string[]>;
 
 /**
  * Cache key resolver function type
  * Receives full request object for dynamic key generation
  */
-export type CacheKeyResolver = (req: RequestAny) => string[] | Promise<string[]>;
+export type CacheKeyResolver = (
+  req: RequestAny,
+) => string[] | Promise<string[]>;
 
 /**
  * Cache condition function type
@@ -34,7 +39,13 @@ export type CacheCondition = (req: RequestAny) => boolean | Promise<boolean>;
 /**
  * Fields that can be used to vary cache keys
  */
-export type VaryByField = 'userId' | 'url' | 'query' | 'params' | 'headers' | 'method';
+export type VaryByField =
+  | 'userId'
+  | 'url'
+  | 'query'
+  | 'params'
+  | 'headers'
+  | 'method';
 
 /**
  * Options for response caching middleware
@@ -188,7 +199,7 @@ export type CacheWrapOptions = {
   ttl?: number;
   tags?: string[];
   staleTime?: number;
-  compress?: boolean;
+  compress?: boolean; // not implemented
   forceRefresh?: boolean;
 };
 

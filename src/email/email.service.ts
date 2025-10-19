@@ -1,5 +1,5 @@
 import { render } from '@react-email/render';
-import logger from '../observability/logger';
+import logger from '@/plugins/observability/logger';
 import { emailProvider } from '../lib/email';
 import { EmailError } from '../lib/errors';
 import ResetPasswordEmail from './templates/ResetPassword';

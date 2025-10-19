@@ -13,7 +13,7 @@ Services contain business logic, database operations, external API calls, and co
 
 ```typescript
 import { Model } from './module.model';
-import { logger } from '@/observability/logger';
+import { logger } from '@/plugins/observability/logger';
 import type { CreateInput, UpdateInput } from './module.dto';
 
 /**
@@ -187,7 +187,9 @@ Use pagination utility from [pagination.utils.ts](mdc:src/utils/pagination.utils
 import { getPaginator } from '@/utils/pagination.utils';
 
 const paginatorInfo = getPaginator(limit, page, totalRecords);
-const items = await Model.find().skip(paginatorInfo.skip).limit(paginatorInfo.limit);
+const items = await Model.find()
+  .skip(paginatorInfo.skip)
+  .limit(paginatorInfo.limit);
 ```
 
 Or implement manually:
@@ -240,7 +242,7 @@ import { uploadFile, deleteFile, getFileUrl } from '@/lib/storage';
 // Upload file (usually in controller, after file is uploaded)
 const { url, key } = await uploadFile({
   file: uploadedFile,
-  key: `uploads/${userId}/${filename}`
+  key: `uploads/${userId}/${filename}`,
 });
 
 // Delete file
@@ -260,11 +262,11 @@ import { hashPassword, compareHash } from '@/utils/password.utils';
 import { generateOtp } from '@/utils/otp.utils';
 
 // Generate JWT
-const token = await signToken({ 
-  sub: user._id, 
+const token = await signToken({
+  sub: user._id,
   email: user.email,
   username: user.username,
-  role: user.role 
+  role: user.role,
 });
 
 // Verify JWT
@@ -309,7 +311,7 @@ throw new Error('Something went wrong'); // 500
 Use Pino logger:
 
 ```typescript
-import { logger } from '@/observability/logger';
+import { logger } from '@/plugins/observability/logger';
 
 logger.info('Operation performed', { userId, itemId });
 logger.error('Error occurred', { error: err.message, stack: err.stack });

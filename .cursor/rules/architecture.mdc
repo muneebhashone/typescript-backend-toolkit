@@ -11,7 +11,7 @@ This is a TypeScript Express.js backend toolkit with a modular, type-safe archit
 
 ### MagicRouter System
 
-- All routes MUST use MagicRouter from [magic-router.ts](mdc:src/openapi/magic-router.ts)
+- All routes MUST use MagicRouter from [router.ts](mdc:src/plugins/magic/router.ts)
 - MagicRouter automatically generates OpenAPI/Swagger documentation from Zod schemas
 - Never use plain Express `app.get()` or `router.get()` - always use MagicRouter
 
@@ -33,7 +33,7 @@ module-name/
 
 - ALWAYS use Zod schemas for request/response validation
 - Runtime validation via [validate-zod-schema.ts](mdc:src/middlewares/validate-zod-schema.ts)
-- Extend Zod with OpenAPI metadata using `.openapi()` method from [zod-extend.ts](mdc:src/openapi/zod-extend.ts)
+- Extend Zod with OpenAPI metadata using `.openapi()` method from [zod-extend.ts](mdc:src/plugins/magic/zod-extend.ts)
 - Use TypeScript strict mode - no `any` types
 
 ### Configuration

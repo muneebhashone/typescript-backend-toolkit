@@ -1,6 +1,6 @@
 import type { ToolkitPlugin, PluginFactory } from '../types';
 import { requestIdMiddleware } from './requestId.middleware';
-import { httpLogger } from '../observability/logger';
+import { httpLogger } from '@/plugins/observability/logger';
 import { metricsMiddleware } from './observability.middleware';
 import { checkEmailHealth } from '@/lib/email';
 import { checkStorageHealth } from '@/lib/storage';

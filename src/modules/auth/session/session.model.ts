@@ -21,6 +21,7 @@ const sessionMetadataSchema = new Schema<SessionMetadata>(
 const sessionSchema = new Schema<SessionDocument>(
   {
     userId: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       type: Schema.Types.ObjectId as any,
       ref: 'User',
       required: true,

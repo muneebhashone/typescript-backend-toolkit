@@ -1,6 +1,6 @@
 import type { ToolkitPlugin, PluginFactory } from '../types';
 import config from '@/config/env';
-import logger from '@/observability/logger';
+import logger from '@/plugins/observability/logger';
 import { CacheService } from './cache.service';
 import { initializeCacheMiddleware } from './cache.middleware';
 
@@ -62,7 +62,9 @@ let globalCacheService: CacheService | null = null;
  */
 export function getCacheService(): CacheService {
   if (!globalCacheService) {
-    throw new Error('Cache service not initialized. Ensure cache plugin is registered.');
+    throw new Error(
+      'Cache service not initialized. Ensure cache plugin is registered.',
+    );
   }
   return globalCacheService;
 }
@@ -91,7 +93,7 @@ export function getCacheService(): CacheService {
  * ```
  */
 export const cachePlugin: PluginFactory<CachePluginOptions> = (
-  options = {}
+  options = {},
 ): ToolkitPlugin<CachePluginOptions> => {
   const {
     enabled = config.CACHE_ENABLED !== false,
@@ -122,7 +124,7 @@ export const cachePlugin: PluginFactory<CachePluginOptions> = (
           compression,
           compressionThreshold,
         },
-        'Initializing cache plugin'
+        'Initializing cache plugin',
       );
 
       // Create cache service instance
@@ -148,7 +150,7 @@ export const cachePlugin: PluginFactory<CachePluginOptions> = (
           provider,
           prefix,
         },
-        'Cache plugin initialized successfully'
+        'Cache plugin initialized successfully',
       );
     },
   };
@@ -172,6 +174,10 @@ export type {
 } from './types';
 
 export { CacheService } from './cache.service';
-export { cacheResponse, invalidateCache, cacheWithETag } from './cache.middleware';
+export {
+  cacheResponse,
+  invalidateCache,
+  cacheWithETag,
+} from './cache.middleware';
 
 export default cachePlugin;
