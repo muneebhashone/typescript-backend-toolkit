@@ -49,7 +49,7 @@ export async function initializeApp(port: number) {
       lifecyclePlugin({
         gracefulShutdownTimeout: 30000,
       }),
-      adminDashboardPlugin({ adminPath: '/admin-panel', authGuard: false }),
+      adminDashboardPlugin({ adminPath: '/admin-panel', authGuard: true }),
       bullboardPlugin({
         path: '/queues',
       }),
