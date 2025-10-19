@@ -2,8 +2,8 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import 'src/openapi/zod-extend';
-import 'src/routes/routes';
+import '@/plugins/magic/zod-extend';
+import '@/routes/routes';
 import { convertDocumentationToYaml } from '@/plugins/magic/swagger-doc-generator';
 
 async function generateOpenApiSpec() {

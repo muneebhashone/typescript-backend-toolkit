@@ -88,7 +88,10 @@ export const handleRegisterUser = async (
 };
 
 // Using new res.ok() helper
-export const handleLogout = async (req: Request, res: ResponseExtended<LogoutResponseSchema>) => {
+export const handleLogout = async (
+  req: Request,
+  res: ResponseExtended<LogoutResponseSchema>,
+) => {
   if (config.SET_SESSION && req.session && req.app.locals.sessionManager) {
     const sessionManager = req.app.locals.sessionManager;
     await sessionManager.revokeSession(req.session.sessionId);
@@ -140,6 +143,7 @@ export const handleGetCurrentUser = async (
   return res.ok?.({
     success: true,
     data: {
+      id: user.sub,
       email: user.email || '',
       username: user.username || '',
       role: user.role || '',
@@ -148,7 +152,10 @@ export const handleGetCurrentUser = async (
   });
 };
 
-export const handleGoogleLogin = async (_: Request, res: ResponseExtended<GoogleLoginResponseSchema>) => {
+export const handleGoogleLogin = async (
+  _: Request,
+  res: ResponseExtended<GoogleLoginResponseSchema>,
+) => {
   if (!config.GOOGLE_CLIENT_ID || !config.GOOGLE_REDIRECT_URI) {
     throw new Error('Google credentials are not set');
   }
@@ -166,7 +173,6 @@ export const handleGoogleLogin = async (_: Request, res: ResponseExtended<Google
       url: googleAuthURL,
     },
   });
-
 };
 
 export const handleGoogleCallback = async (
