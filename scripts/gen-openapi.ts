@@ -10,7 +10,10 @@ async function generateOpenApiSpec() {
   try {
     console.log('Generating OpenAPI specification...');
 
-    const yamlContent = convertDocumentationToYaml();
+    const yamlContent = convertDocumentationToYaml(
+      "Robust backend boilerplate designed for scalability, flexibility, and ease of development. It's packed with modern technologies and best practices to kickstart your next backend project",
+      [{ url: '/api' }],
+    );
 
     const outputPath = path.join(process.cwd(), 'public', 'openapi.yml');
     await fs.writeFile(outputPath, yamlContent, 'utf-8');

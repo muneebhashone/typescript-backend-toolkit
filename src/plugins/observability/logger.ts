@@ -91,7 +91,7 @@ export const httpLogger = pinoHttp({
 });
 
 export function createChildLogger(context: Record<string, unknown>) {
-  return logger.child(context);
+  return logger.child(context, { msgPrefix: `[${context.context}] ` });
 }
 
 export default logger;

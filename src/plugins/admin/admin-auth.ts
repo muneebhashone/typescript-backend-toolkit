@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
-import config from '../config/env';
+import config from '@/config/env';
 import logger from '@/plugins/observability/logger';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -154,34 +154,32 @@ export function adminAuthGuardApi(
  * Guard for admin UI routes (/admin).
  * Redirects to /admin/login if unauthorized.
  */
-export function adminAuthGuardUI(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
-  if (!config.ADMIN_AUTH_ENABLED) {
-    return next();
-  }
+export const adminAuthGuardUI =
+  (adminPath: string = '/admin') =>
+  (req: Request, res: Response, next: NextFunction) => {
+    if (!config.ADMIN_AUTH_ENABLED) {
+      return next();
+    }
 
-  const token = req.cookies?.[config.ADMIN_COOKIE_NAME];
-  if (!token) {
-    const nextUrl = encodeURIComponent(req.originalUrl);
-    res.redirect(`/admin/login?next=${nextUrl}`);
-    return;
-  }
+    const token = req.cookies?.[config.ADMIN_COOKIE_NAME];
+    if (!token) {
+      const nextUrl = encodeURIComponent(req.originalUrl);
+      res.redirect(`${adminPath}/login?next=${nextUrl}`);
+      return;
+    }
 
-  const payload = verifyAdminSession(token);
-  if (!payload) {
-    clearAdminCookie(res);
-    const nextUrl = encodeURIComponent(req.originalUrl);
-    res.redirect(`/admin/login?next=${nextUrl}`);
-    return;
-  }
+    const payload = verifyAdminSession(token);
+    if (!payload) {
+      clearAdminCookie(res);
+      const nextUrl = encodeURIComponent(req.originalUrl);
+      res.redirect(`${adminPath}/login?next=${nextUrl}`);
+      return;
+    }
 
-  // Attach admin user to request
-  (req as any).adminUser = payload.sub;
-  next();
-}
+    // Attach admin user to request
+    (req as any).adminUser = payload.sub;
+    next();
+  };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Rate limiting (in-memory, simple)

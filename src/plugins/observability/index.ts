@@ -26,7 +26,7 @@ export const observabilityPlugin: PluginFactory<ObservabilityOptions> = (
     priority: 90,
     options,
 
-    register({ app }) {
+    register({ app, port }) {
       const opsRoutes = createOpsRoutes({
         healthChecks: [
           { name: 'database', check: checkDatabaseHealth() },
@@ -38,7 +38,11 @@ export const observabilityPlugin: PluginFactory<ObservabilityOptions> = (
         metricsEnabled: config.METRICS_ENABLED,
       });
 
+      const urls = [];
+
       app.use('/ops', opsRoutes);
+      urls.push(`http://localhost:${port}/ops/health`);
+      urls.push(`http://localhost:${port}/ops/readiness`);
 
       if (requestId) {
         app.use(requestIdMiddleware);
@@ -50,7 +54,10 @@ export const observabilityPlugin: PluginFactory<ObservabilityOptions> = (
 
       if (metrics) {
         app.use(metricsMiddleware);
+        urls.push(`http://localhost:${port}/ops/metrics`);
       }
+
+      return urls;
     },
   };
 };

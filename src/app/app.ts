@@ -1,24 +1,27 @@
 import express from 'express';
-import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import path from 'path';
 import { createApp } from './createApp';
 import config from '../config/env';
-import { extractJwt } from '../middlewares/extract-jwt';
-import { securityPlugin } from '../plugins/security';
-import { observabilityPlugin } from '../plugins/observability';
-import { magicRouterPlugin } from '../plugins/magic';
-import { authPlugin } from '../plugins/auth';
-import { realtimePlugin } from '../plugins/realtime';
+import { securityPlugin } from '@/plugins/security';
+import { observabilityPlugin } from '@/plugins/observability';
+import { magicRouterPlugin } from '@/plugins/magic';
+import { authPlugin } from '@/plugins/auth';
+import { realtimePlugin } from '@/plugins/realtime';
+import { lifecyclePlugin } from '@/plugins/lifecycle';
+import { adminDashboardPlugin } from '@/plugins/admin';
+import { bullboardPlugin } from '../plugins/bullboard';
+import { basicParserPlugin } from '../plugins/basicParser';
 
-export async function initializeApp() {
+export async function initializeApp(port: number) {
   const { app, server, plugins } = await createApp({
     plugins: [
+      basicParserPlugin(),
       authPlugin({
         session: {
           enabled: config.SET_SESSION,
           driver: 'mongo',
-          debug: true,
+          debug: false,
         },
       }),
       securityPlugin({
@@ -39,20 +42,25 @@ export async function initializeApp() {
       realtimePlugin(),
       magicRouterPlugin({
         path: '/docs',
-        enabled: true,
+        description:
+          "Robust backend boilerplate designed for scalability, flexibility, and ease of development. It's packed with modern technologies and best practices to kickstart your next backend project",
+        servers: [{ url: '/api' }],
+      }),
+      lifecyclePlugin({
+        gracefulShutdownTimeout: 30000,
+      }),
+      adminDashboardPlugin({ adminPath: '/admin-panel', authGuard: false }),
+      bullboardPlugin({
+        path: '/queues',
       }),
     ],
     config: config,
+    port,
   });
-
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: false }));
 
   app.use(express.static(path.join(process.cwd(), 'public')));
 
-  app.use(cookieParser());
   app.use(compression());
-  app.use(extractJwt);
 
   return { app, server, plugins };
 }

@@ -7,6 +7,7 @@ import type { SessionStoreConfig } from '@/modules/auth/session/session.types';
 import config from '@/config/env';
 import logger from '@/plugins/observability/logger';
 import { scheduleSessionCleanup } from '../../queues/session-cleanup.queue';
+import { extractJwt } from '../../middlewares/extract-jwt';
 
 export interface AuthOptions {
   jwtSecret?: string;
@@ -26,6 +27,7 @@ export const authPlugin: PluginFactory<AuthOptions> = (
     options,
 
     async register({ app }) {
+      app.use(extractJwt);
       app.set('auth:configured', true);
 
       if (options.jwtSecret) {
@@ -35,14 +37,16 @@ export const authPlugin: PluginFactory<AuthOptions> = (
         app.set('auth:jwt:expiration', options.jwtExpiration);
       }
 
-      if (config.SET_SESSION && options.session?.enabled !== false) {
+      if (config.SET_SESSION && options.session?.enabled) {
         sessionManager = await initializeSessionManager(options.session);
         app.locals.sessionManager = sessionManager;
         app.set('auth:session:enabled', true);
 
         try {
           const stats = await sessionManager.cleanupSessions('revoked');
-          logger.info({ stats }, 'Startup session cleanup completed');
+          if (options.session?.debug) {
+            logger.debug({ stats }, 'Startup session cleanup completed');
+          }
         } catch (err) {
           logger.warn({ err }, 'Startup session cleanup failed');
         }

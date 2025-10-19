@@ -40,7 +40,7 @@ export const realtimePlugin: PluginFactory<RealtimeOptions> = (opts = {}) => {
     priority: 85,
     options: opts,
 
-    register({ app, server }) {
+    register({ app, server, port }) {
       if (!server) {
         logger.warn('Realtime plugin: HTTP server not available');
         return;
@@ -60,6 +60,8 @@ export const realtimePlugin: PluginFactory<RealtimeOptions> = (opts = {}) => {
 
       registerRealtimeHandlers(io);
       logger.info('Realtime server initialized');
+
+      return [`http://localhost:${port}/socket.io`];
     },
   };
 };

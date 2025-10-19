@@ -1,6 +1,6 @@
-import User from '../modules/user/user.model';
-import { SessionModel } from '../modules/auth/session/session.model';
-import Blog from '../modules/blog/blog.model';
+import User from '@/modules/user/user.model';
+import { SessionModel } from '@/modules/auth/session/session.model';
+import Blog from '@/modules/blog/blog.model';
 import type { AdminResource } from './types';
 
 export const adminResources: AdminResource[] = [
@@ -43,6 +43,8 @@ for (const res of adminResources) {
   }
 }
 
-export function getResourceByModelName(modelName: string): AdminResource | undefined {
+export function getResourceByModelName(
+  modelName: string,
+): AdminResource | undefined {
   return modelNameToResource.get(modelName);
 }
