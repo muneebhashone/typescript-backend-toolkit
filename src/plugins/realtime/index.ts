@@ -1,8 +1,7 @@
-import type { PluginFactory } from './types';
-import config from '../config/env';
-import logger from '../observability/logger';
-import { registerRealtimeHandlers } from '../realtime/handlers';
-
+import type { PluginFactory } from '../types';
+import config from '@/config/env';
+import logger from '@/plugins/observability/logger';
+import { registerRealtimeHandlers } from './handlers';
 import type { Server as IServer } from 'node:http';
 import { Server as RealtimeServer } from 'socket.io';
 

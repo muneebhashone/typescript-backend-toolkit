@@ -1,10 +1,12 @@
-import type { ToolkitPlugin, PluginFactory } from './types';
+import type { ToolkitPlugin, PluginFactory } from '@/plugins/types';
 import {
   initializeSessionManager,
   type SessionManager,
-} from '../modules/auth/session/session.manager';
-import type { SessionStoreConfig } from '../modules/auth/session/session.types';
-import config from '../config/env';
+} from '@/modules/auth/session/session.manager';
+import type { SessionStoreConfig } from '@/modules/auth/session/session.types';
+import config from '@/config/env';
+import logger from '../observability/logger';
+import { scheduleSessionCleanup } from '../../queues/session-cleanup.queue';
 
 export interface AuthOptions {
   jwtSecret?: string;
@@ -37,6 +39,15 @@ export const authPlugin: PluginFactory<AuthOptions> = (
         sessionManager = await initializeSessionManager(options.session);
         app.locals.sessionManager = sessionManager;
         app.set('auth:session:enabled', true);
+
+        try {
+          const stats = await sessionManager.cleanupSessions('revoked');
+          logger.info({ stats }, 'Startup session cleanup completed');
+        } catch (err) {
+          logger.warn({ err }, 'Startup session cleanup failed');
+        }
+
+        await scheduleSessionCleanup();
       }
     },
 
