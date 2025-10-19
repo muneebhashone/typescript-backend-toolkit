@@ -1,12 +1,12 @@
 import '@/plugins/magic/zod-extend';
-import { initializeApp } from './app/app';
-import config from './config/env';
-import { connectDatabase } from './lib/database';
+import { initializeApp } from '@/app/app';
+import config from '@/config/env';
+import { connectDatabase } from '@/lib/database';
 import logger from '@/plugins/observability/logger';
-import apiRoutes from './routes/routes';
-import errorHandler from './middlewares/error-handler';
+import apiRoutes from '@/routes/routes';
+import errorHandler from '@/middlewares/error-handler';
 
-import { resolvePort } from './server/port-resolver';
+import { resolvePort } from '@/extras/port-resolver';
 
 const bootstrapServer = async () => {
   // Resolve port availability (dev-only interactive prompt)
