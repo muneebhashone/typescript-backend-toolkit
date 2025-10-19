@@ -1,5 +1,5 @@
-import { canAccess } from '../../middlewares/can-access';
-import MagicRouter from '../../openapi/magic-router';
+import { canAccess } from '@/middlewares/can-access';
+import MagicRouter from '@/plugins/magic/router';
 import { handleProfileUpload } from './upload.controller';
 import { uploadResponseSchema, uploadSchema } from './upload.schema';
 

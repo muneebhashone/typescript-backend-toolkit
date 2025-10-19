@@ -1,7 +1,7 @@
 import type { Processor, QueueOptions, WorkerOptions } from 'bullmq';
 import { Queue as BullQueue, Worker } from 'bullmq';
 
-import logger from '../observability/logger';
+import logger from '@/plugins/observability/logger';
 import { cacheProvider, RedisProvider } from './cache';
 import { QueueError } from './errors';
 
@@ -29,7 +29,9 @@ export function Queue<Payload>(
   try {
     // Get Redis client for queue connection
     if (!(cacheProvider instanceof RedisProvider)) {
-      throw new QueueError('Queue requires Redis cache provider. Set CACHE_PROVIDER=redis');
+      throw new QueueError(
+        'Queue requires Redis cache provider. Set CACHE_PROVIDER=redis',
+      );
     }
 
     const redisClient = cacheProvider.getClient();
@@ -50,10 +52,7 @@ export function Queue<Payload>(
     });
 
     worker.on('failed', (job, err) => {
-      logger.error(
-        { queueName: name, jobId: job?.id, err },
-        'Job failed',
-      );
+      logger.error({ queueName: name, jobId: job?.id, err }, 'Job failed');
     });
 
     registeredQueues[name] = { queue, worker };
@@ -109,15 +108,17 @@ export const closeAllQueues = async (): Promise<void> => {
     logger.info('Closing all queues...');
 
     await Promise.all(
-      Object.entries(registeredQueues).map(async ([name, { queue, worker }]) => {
-        try {
-          await worker.close();
-          await queue.close();
-          logger.debug({ queueName: name }, 'Queue closed');
-        } catch (err) {
-          logger.error({ queueName: name, err }, 'Error closing queue');
-        }
-      }),
+      Object.entries(registeredQueues).map(
+        async ([name, { queue, worker }]) => {
+          try {
+            await worker.close();
+            await queue.close();
+            logger.debug({ queueName: name }, 'Queue closed');
+          } catch (err) {
+            logger.error({ queueName: name, err }, 'Error closing queue');
+          }
+        },
+      ),
     );
 
     logger.info('All queues closed');

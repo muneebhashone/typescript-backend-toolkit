@@ -15,8 +15,8 @@ Controllers are async functions that handle validated requests and return respon
 import type { Request } from 'express';
 import type { ResponseExtended } from '@/types';
 import type { JwtPayload } from '@/utils/jwt.utils';
-import type { 
-  CreateItemSchemaType, 
+import type {
+  CreateItemSchemaType,
   GetItemsSchemaType,
   CreateItemResponseSchema,
   GetItemsResponseSchema,
@@ -255,7 +255,7 @@ return res.ok?.({
 
 ```typescript
 import { successResponse } from '@/utils/response.utils';
-import { StatusCodes } from '@/openapi/status-codes';
+import { StatusCodes } from '@/plugins/magic/status-codes';
 
 // Basic success (200 OK)
 return successResponse(res, 'Success message');
@@ -332,10 +332,10 @@ throw error;
 
 ### Status Codes
 
-Use `@/openapi/status-codes` for type-safe status codes:
+Use `@/plugins/magic/status-codes` for type-safe status codes:
 
 ```typescript
-import { StatusCodes } from '@/openapi/status-codes';
+import { StatusCodes } from '@/plugins/magic/status-codes';
 
 StatusCodes.OK; // 200
 StatusCodes.CREATED; // 201
@@ -348,10 +348,10 @@ StatusCodes.INTERNAL_SERVER_ERROR; // 500
 
 ### Logging
 
-Use Pino logger from [logger.ts](mdc:src/observability/logger.ts):
+Use Pino logger from [logger.ts](mdc:src/plugins/observability/logger.ts):
 
 ```typescript
-import logger from '@/observability/logger';
+import logger from '@/plugins/observability/logger';
 
 logger.info('Action performed', { userId, action: 'create' });
 logger.error('Error occurred', { error: error.message, userId });

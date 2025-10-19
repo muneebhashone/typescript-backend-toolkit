@@ -1,13 +1,12 @@
 import { promisify } from 'node:util';
 import { gzip, gunzip } from 'node:zlib';
 import { cacheProvider } from '@/lib/cache';
-import logger from '@/observability/logger';
-import { metricsCollector } from '@/observability/metrics';
+import logger from '@/plugins/observability/logger';
+import { metricsCollector } from '@/plugins/observability/metrics';
 import { CacheError } from '@/lib/errors';
 import type {
   CacheWrapOptions,
   CacheServiceOptions,
-  BatchSetEntry,
   CacheStats,
   CacheWarmEntry,
 } from './types';
@@ -54,7 +53,9 @@ export class CacheService {
   /**
    * Compress data if it exceeds the threshold
    */
-  private async maybeCompress(data: string): Promise<{ data: string; compressed: boolean }> {
+  private async maybeCompress(
+    data: string,
+  ): Promise<{ data: string; compressed: boolean }> {
     if (!this.compressionEnabled || data.length < this.compressionThreshold) {
       return { data, compressed: false };
     }
@@ -63,7 +64,10 @@ export class CacheService {
       const compressed = await gzipAsync(Buffer.from(data, 'utf-8'));
       return { data: compressed.toString('base64'), compressed: true };
     } catch (err) {
-      logger.warn({ err }, 'Failed to compress cache data, storing uncompressed');
+      logger.warn(
+        { err },
+        'Failed to compress cache data, storing uncompressed',
+      );
       return { data, compressed: false };
     }
   }
@@ -71,7 +75,10 @@ export class CacheService {
   /**
    * Decompress data if it was compressed
    */
-  private async maybeDecompress(data: string, compressed: boolean): Promise<string> {
+  private async maybeDecompress(
+    data: string,
+    compressed: boolean,
+  ): Promise<string> {
     if (!compressed) {
       return data;
     }
@@ -150,7 +157,10 @@ export class CacheService {
 
       await cacheProvider.set(prefixedKey, finalData, effectiveTtl);
     } catch (err) {
-      logger.error({ key, ttl: effectiveTtl, err }, 'Failed to set cache value');
+      logger.error(
+        { key, ttl: effectiveTtl, err },
+        'Failed to set cache value',
+      );
       throw new CacheError('Failed to set cache value', err);
     }
   }
@@ -223,7 +233,10 @@ export class CacheService {
   /**
    * Set multiple values in cache
    */
-  async setMany<T = unknown>(entries: Map<string, T>, ttl?: number): Promise<void> {
+  async setMany<T = unknown>(
+    entries: Map<string, T>,
+    ttl?: number,
+  ): Promise<void> {
     if (entries.size === 0) return;
 
     const effectiveTtl = ttl || this.defaultTtl;
@@ -244,7 +257,10 @@ export class CacheService {
 
       await cacheProvider.mset(batchEntries);
     } catch (err) {
-      logger.error({ entries: entries.size, ttl: effectiveTtl, err }, 'Failed to set multiple cache values');
+      logger.error(
+        { entries: entries.size, ttl: effectiveTtl, err },
+        'Failed to set multiple cache values',
+      );
       throw new CacheError('Failed to set multiple cache values', err);
     }
   }
@@ -271,9 +287,9 @@ export class CacheService {
   async wrap<T = unknown>(
     key: string,
     fn: () => Promise<T>,
-    options: CacheWrapOptions = {}
+    options: CacheWrapOptions = {},
   ): Promise<T> {
-    const { ttl, tags, staleTime, compress, forceRefresh } = options;
+    const { ttl, tags, staleTime, forceRefresh } = options;
 
     // Check if we should force refresh
     if (forceRefresh) {
@@ -290,13 +306,16 @@ export class CacheService {
       if (staleTime) {
         const ttlRemaining = await cacheProvider.ttl(this.getKey(key));
         const effectiveTtl = ttl || this.defaultTtl;
-        const isStale = ttlRemaining > 0 && ttlRemaining < (effectiveTtl - staleTime);
+        const isStale =
+          ttlRemaining > 0 && ttlRemaining < effectiveTtl - staleTime;
 
         if (isStale) {
           // Revalidate in background
           fn()
             .then((value) => this.setWithTags(key, value, tags || [], ttl))
-            .catch((err) => logger.error({ key, err }, 'Failed to revalidate stale cache'));
+            .catch((err) =>
+              logger.error({ key, err }, 'Failed to revalidate stale cache'),
+            );
         }
       }
 
@@ -316,7 +335,7 @@ export class CacheService {
     key: string,
     value: T,
     tags: string[],
-    ttl?: number
+    ttl?: number,
   ): Promise<void> {
     // Set the actual value
     await this.set(key, value, ttl);
@@ -331,7 +350,9 @@ export class CacheService {
         try {
           // Get current tag keys
           const currentKeys = await cacheProvider.get(tagKey);
-          const keySet = currentKeys ? new Set(JSON.parse(currentKeys)) : new Set<string>();
+          const keySet = currentKeys
+            ? new Set(JSON.parse(currentKeys))
+            : new Set<string>();
 
           // Add this key to the set
           keySet.add(key);
@@ -340,7 +361,7 @@ export class CacheService {
           await cacheProvider.set(
             tagKey,
             JSON.stringify([...keySet]),
-            effectiveTtl + 300 // Add 5 minutes buffer
+            effectiveTtl + 300, // Add 5 minutes buffer
           );
         } catch (err) {
           logger.warn({ tag, key, err }, 'Failed to update tag mapping');
@@ -378,7 +399,10 @@ export class CacheService {
 
     if (keysToDelete.size > 0) {
       await this.deleteMany([...keysToDelete]);
-      logger.info({ tags, keys: keysToDelete.size }, 'Invalidated cache by tags');
+      logger.info(
+        { tags, keys: keysToDelete.size },
+        'Invalidated cache by tags',
+      );
     }
   }
 
@@ -393,11 +417,16 @@ export class CacheService {
       if (keys.length > 0) {
         // Remove prefix from keys for deletion
         const unprefixedKeys = keys.map((k) =>
-          this.prefix && k.startsWith(this.prefix) ? k.substring(this.prefix.length) : k
+          this.prefix && k.startsWith(this.prefix)
+            ? k.substring(this.prefix.length)
+            : k,
         );
 
         await this.deleteMany(unprefixedKeys);
-        logger.info({ pattern, keys: keys.length }, 'Invalidated cache by pattern');
+        logger.info(
+          { pattern, keys: keys.length },
+          'Invalidated cache by pattern',
+        );
       }
     } catch (err) {
       logger.error({ pattern, err }, 'Failed to invalidate by pattern');
@@ -417,7 +446,7 @@ export class CacheService {
       }
 
       // For custom increment values
-      const current = await this.get<number>(key) || 0;
+      const current = (await this.get<number>(key)) || 0;
       const newValue = current + by;
       await this.set(key, newValue);
       return newValue;
@@ -439,7 +468,7 @@ export class CacheService {
       }
 
       // For custom decrement values
-      const current = await this.get<number>(key) || 0;
+      const current = (await this.get<number>(key)) || 0;
       const newValue = current - by;
       await this.set(key, newValue);
       return newValue;
@@ -487,7 +516,9 @@ export class CacheService {
 
       // Remove prefix from returned keys
       return keys.map((k) =>
-        this.prefix && k.startsWith(this.prefix) ? k.substring(this.prefix.length) : k
+        this.prefix && k.startsWith(this.prefix)
+          ? k.substring(this.prefix.length)
+          : k,
       );
     } catch (err) {
       logger.error({ pattern, err }, 'Failed to get keys');

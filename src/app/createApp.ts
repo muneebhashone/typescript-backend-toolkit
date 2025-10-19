@@ -1,7 +1,7 @@
 import express, { type Application } from 'express';
 import { createServer, type Server } from 'http';
 import type { AppContext, ToolkitPlugin } from '../plugins/types';
-import logger from '../observability/logger';
+import logger from '@/plugins/observability/logger';
 
 export interface CreateAppOptions {
   plugins?: ToolkitPlugin[];

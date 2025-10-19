@@ -164,7 +164,7 @@ export default ${className};
 
       // 3. Schema file (validation)
       const schemaContent = `import { z } from "zod";
-import { R } from "@/openapi/response.builders";
+import { R } from "@/plugins/magic/response.builders";
 import { ${moduleName}OutSchema } from "./${moduleName}.dto";
 
 export const create${className}Schema = z.object({
@@ -385,7 +385,7 @@ export const handleDelete${className} = async (
       // 6. Router file
       const routerContent = `import { mongoIdSchema } from "@/common/common.schema";
 import { canAccess } from "@/middlewares/can-access";
-import MagicRouter from "@/openapi/magic-router";
+import MagicRouter from "@/plugins/magic/router";
 import {
   handleCreate${className},
   handleDelete${className},

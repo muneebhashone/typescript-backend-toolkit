@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
 import config from '@/config/env';
-import logger from '@/observability/logger';
+import logger from '@/plugins/observability/logger';
 import type { RequestExtended, ResponseExtended } from '@/types';
 import { errorResponse } from '@/utils/response.utils';
-import { StatusCodesValues } from '@/openapi/status-codes';
+import { StatusCodesValues } from '@/plugins/magic/status-codes';
 
 interface CustomError extends Error {
   status?: number;

@@ -1,6 +1,6 @@
 import { mongoIdSchema } from '../../common/common.schema';
-import { canAccess } from '../../middlewares/can-access';
-import MagicRouter from '../../openapi/magic-router';
+import { canAccess } from '@/middlewares/can-access';
+import MagicRouter from '@/plugins/magic/router';
 import {
   handleCreateBlog,
   handleDeleteBlog,

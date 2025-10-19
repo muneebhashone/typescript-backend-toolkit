@@ -1,4 +1,4 @@
-import './openapi/zod-extend';
+import '@/plugins/magic/zod-extend';
 
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
@@ -80,8 +80,6 @@ const bootstrapServer = async () => {
 
   app.post('/admin/logout', (req, res) => {
     clearAdminCookie(res);
-    logger.info({ adminUser: (req as any).adminUser }, 'Admin logout');
-
     const acceptsJson = req.headers.accept?.includes('application/json');
     if (acceptsJson) {
       return res.json({ ok: true });

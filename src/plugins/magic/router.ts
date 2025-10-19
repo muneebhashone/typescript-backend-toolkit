@@ -25,9 +25,9 @@ import {
   camelCaseToTitleCase,
   parseRouteString,
   routeToClassName,
-} from '@/openapi/openapi.utils';
-import { bearerAuth, registry } from '@/openapi/swagger-instance';
-import { StatusCodes, StatusCodesValues } from '@/openapi/status-codes';
+} from './openapi.utils';
+import { bearerAuth, registry } from './swagger-instance';
+import { StatusCodes, StatusCodesValues } from './status-codes';
 
 type Method =
   | 'get'
@@ -39,7 +39,7 @@ type Method =
   | 'options'
   | 'trace';
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type IDontKnow = unknown | never | any;
 export type MaybePromise = void | Promise<void>;
 export type RequestAny = Request<IDontKnow, IDontKnow, IDontKnow, IDontKnow>;
@@ -231,69 +231,77 @@ export class MagicRouter<PathSet extends boolean = false> {
 
       const form = formidable(options);
 
-      form.parse(req, (err: Error | null, fields: formidable.Fields, files: formidable.Files) => {
-        if (err) {
-          return errorResponse(
-            res,
-            'Failed to parse multipart data',
-            StatusCodes.BAD_REQUEST,
-            err,
-          );
-        }
-
-        // Normalize fields: convert single-element arrays to values
-        const normalizedFields: Record<string, unknown> = {};
-        for (const [key, value] of Object.entries(fields)) {
-          if (Array.isArray(value)) {
-            normalizedFields[key] = value.length === 1 ? value[0] : value;
-          } else {
-            normalizedFields[key] = value;
+      form.parse(
+        req,
+        (
+          err: Error | null,
+          fields: formidable.Fields,
+          files: formidable.Files,
+        ) => {
+          if (err) {
+            return errorResponse(
+              res,
+              'Failed to parse multipart data',
+              StatusCodes.BAD_REQUEST,
+              err,
+            );
           }
-        }
 
-        // Normalize files: convert formidable.File to FormFile
-        const normalizedFiles: Record<string, FormFile | FormFile[]> = {};
-        for (const [key, value] of Object.entries(files)) {
-          if (Array.isArray(value)) {
-            const formFiles = value.map((f: any) => ({
-              filepath: f.filepath,
-              originalFilename: f.originalFilename,
-              mimetype: f.mimetype,
-              size: f.size,
-              hash: f.hash,
-              lastModifiedDate: f.lastModifiedDate,
-            }));
-            normalizedFiles[key] = formFiles.length === 1 ? formFiles[0] : formFiles;
-          } else if (value) {
-            const file = value as any;
-            normalizedFiles[key] = {
-              filepath: file.filepath,
-              originalFilename: file.originalFilename,
-              mimetype: file.mimetype,
-              size: file.size,
-              hash: file.hash,
-              lastModifiedDate: file.lastModifiedDate,
-            };
+          // Normalize fields: convert single-element arrays to values
+          const normalizedFields: Record<string, unknown> = {};
+          for (const [key, value] of Object.entries(fields)) {
+            if (Array.isArray(value)) {
+              normalizedFields[key] = value.length === 1 ? value[0] : value;
+            } else {
+              normalizedFields[key] = value;
+            }
           }
-        }
 
-        // Merge fields and files into req.body
-        req.body = { ...normalizedFields, ...normalizedFiles };
-
-        // Set req.files for compatibility
-        req.files = normalizedFiles;
-
-        // Set req.file if there's exactly one file field with a single file
-        const fileKeys = Object.keys(normalizedFiles);
-        if (fileKeys.length === 1) {
-          const singleFile = normalizedFiles[fileKeys[0]];
-          if (!Array.isArray(singleFile)) {
-            req.file = singleFile;
+          // Normalize files: convert formidable.File to FormFile
+          const normalizedFiles: Record<string, FormFile | FormFile[]> = {};
+          for (const [key, value] of Object.entries(files)) {
+            if (Array.isArray(value)) {
+              const formFiles = value.map((f: FormFile) => ({
+                filepath: f.filepath,
+                originalFilename: f.originalFilename,
+                mimetype: f.mimetype,
+                size: f.size,
+                hash: f.hash,
+                lastModifiedDate: f.lastModifiedDate,
+              }));
+              normalizedFiles[key] =
+                formFiles.length === 1 ? formFiles[0] : formFiles;
+            } else if (value) {
+              const file = value as FormFile;
+              normalizedFiles[key] = {
+                filepath: file.filepath,
+                originalFilename: file.originalFilename,
+                mimetype: file.mimetype,
+                size: file.size,
+                hash: file.hash,
+                lastModifiedDate: file.lastModifiedDate,
+              };
+            }
           }
-        }
 
-        next();
-      });
+          // Merge fields and files into req.body
+          req.body = { ...normalizedFields, ...normalizedFiles };
+
+          // Set req.files for compatibility
+          req.files = normalizedFiles;
+
+          // Set req.file if there's exactly one file field with a single file
+          const fileKeys = Object.keys(normalizedFiles);
+          if (fileKeys.length === 1) {
+            const singleFile = normalizedFiles[fileKeys[0]];
+            if (!Array.isArray(singleFile)) {
+              req.file = singleFile;
+            }
+          }
+
+          next();
+        },
+      );
     };
 
     // Build OpenAPI responses from normalized config
@@ -367,8 +375,7 @@ export class MagicRouter<PathSet extends boolean = false> {
 
     // Determine if multipart parsing is needed
     const needsMultipart =
-      contentType === 'multipart/form-data' &&
-      requestAndResponseType.multipart;
+      contentType === 'multipart/form-data' && requestAndResponseType.multipart;
 
     if (Object.keys(requestType).length) {
       this.router[method](

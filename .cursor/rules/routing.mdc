@@ -7,17 +7,22 @@ description: Routing patterns using MagicRouter for automatic OpenAPI generation
 
 ## Core Principle
 
-NEVER use plain Express routing. ALWAYS use MagicRouter from [magic-router.ts](mdc:src/openapi/magic-router.ts).
+NEVER use plain Express routing. ALWAYS use MagicRouter from [router.ts](mdc:src/plugins/magic/router.ts).
 
 ## Pattern Template
 
 ```typescript
-import MagicRouter from '@/openapi/magic-router';
+import MagicRouter from '@/plugins/magic/router';
 import { canAccess } from '@/middlewares/can-access';
-import { handleAction, handleGetById, handleCreate, handleSearch } from './module.controller';
-import { 
-  actionSchema, 
-  createSchema, 
+import {
+  handleAction,
+  handleGetById,
+  handleCreate,
+  handleSearch,
+} from './module.controller';
+import {
+  actionSchema,
+  createSchema,
   idParamsSchema,
   searchQuerySchema,
   actionResponseSchema,
@@ -147,7 +152,7 @@ router.method(path, requestType, ...handlers);
 
 ```typescript
 // In module.schema.ts
-import { R } from '../../openapi/response.builders';
+import { R } from '@/plugins/magic/response.builders';
 import { itemOutSchema } from './module.dto';
 
 export const createItemResponseSchema = R.success(itemOutSchema);
@@ -166,7 +171,7 @@ responses: { 200: getItemsResponseSchema }
 **Alternative (inline):** Use response builders directly in router:
 
 ```typescript
-import { R } from '@/openapi/response.builders';
+import { R } from '@/plugins/magic/response.builders';
 
 // Standard success response
 responses: { 200: R.success(itemSchema) }
@@ -202,6 +207,7 @@ responses: { 200: R.raw(customSchema) }
 - `R.raw(schema)` - Non-envelope response (e.g., healthcheck)
 
 **Why define in schema files?**
+
 - ✅ Type-safe controller responses with `ResponseExtended<T>`
 - ✅ Centralized response definitions
 - ✅ Easier to maintain and update

@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
 import config from '../config/env';
-import logger from '../observability/logger';
+import logger from '@/plugins/observability/logger';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -45,9 +45,7 @@ export function signAdminSession(username: string): string {
  * Verify an admin session token and return the payload if valid.
  * Returns null if invalid or expired.
  */
-export function verifyAdminSession(
-  token: string,
-): AdminSessionPayload | null {
+export function verifyAdminSession(token: string): AdminSessionPayload | null {
   try {
     const parts = token.split('.');
     if (parts.length !== 2) return null;

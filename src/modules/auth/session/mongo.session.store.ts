@@ -1,7 +1,7 @@
 import type { SessionStore, CreateSessionInput, SessionRecord } from './session.types';
 import { SessionModel } from './session.model';
 import { hashToken, calculateExpiresAt } from './session.utils';
-import { createChildLogger } from '../../../observability/logger';
+import { createChildLogger } from '@/plugins/observability/logger';
 
 const logger = createChildLogger({ context: 'MongoSessionStore' });
 

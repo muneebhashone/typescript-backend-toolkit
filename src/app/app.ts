@@ -7,7 +7,7 @@ import config from '../config/env';
 import { extractJwt } from '../middlewares/extract-jwt';
 import { securityPlugin } from '../plugins/security';
 import { observabilityPlugin } from '../plugins/observability';
-import { openApiPlugin } from '../plugins/openapi';
+import { magicRouterPlugin } from '../plugins/magic';
 import { authPlugin } from '../plugins/auth';
 import { realtimePlugin } from '../plugins/realtime';
 
@@ -37,9 +37,9 @@ export async function initializeApp() {
         metrics: config.METRICS_ENABLED,
       }),
       realtimePlugin(),
-      openApiPlugin({
+      magicRouterPlugin({
         path: '/docs',
-        enabled: config.NODE_ENV !== 'production',
+        enabled: true,
       }),
     ],
     config: config,

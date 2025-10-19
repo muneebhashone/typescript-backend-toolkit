@@ -2,8 +2,8 @@ import formData from 'form-data';
 import Mailgun from 'mailgun.js';
 import nodemailer from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
-import config from '../config/env';
-import logger from '../observability/logger';
+import config from '@/config/env';
+import logger from '@/plugins/observability/logger';
 import { EmailError } from './errors';
 
 /**

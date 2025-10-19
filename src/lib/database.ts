@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import config from '../config/env';
-import logger from '../observability/logger';
+import config from '@/config/env';
+import logger from '@/plugins/observability/logger';
 import { DatabaseError } from './errors';
 
 const MAX_RETRIES = 3;

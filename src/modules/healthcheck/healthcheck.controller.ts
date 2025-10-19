@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import { StatusCodes } from '@/openapi/status-codes';
+import { StatusCodes } from '@/plugins/magic/status-codes';
 import type { ResponseExtended } from '@/types';
 import { errorResponse } from '@/utils/response.utils';
 

@@ -7,7 +7,7 @@ import { buildSearchQuery, getFields } from './utils/schema-introspection';
 import type { AdminField } from './types';
 import { LocalStorageProvider } from '../lib/storage';
 import type { FormFile } from '../types';
-import logger from '../observability/logger';
+import logger from '@/plugins/observability/logger';
 
 export const adminApiRouter = Router();
 
@@ -30,85 +30,104 @@ async function uploadForResource(req: any, res: any, next: any) {
     keepExtensions: true,
     maxFileSize: 10 * 1024 * 1024, // 10MB
     filename: (_name, _ext, part) => {
-      const safe = (part.originalFilename || 'file').replace(/[^a-zA-Z0-9._-]+/g, '-');
+      const safe = (part.originalFilename || 'file').replace(
+        /[^a-zA-Z0-9._-]+/g,
+        '-',
+      );
       return `${Date.now()}-${safe}`;
     },
   });
 
-  form.parse(req, async (err: Error | null, fields: formidable.Fields, files: formidable.Files) => {
-    if (err) {
-      return res.status(400).json({ error: 'Failed to parse multipart data', details: err.message });
-    }
-
-    try {
-      // Normalize fields
-      const normalizedFields: Record<string, any> = {};
-      for (const [key, value] of Object.entries(fields)) {
-        normalizedFields[key] = Array.isArray(value) && value.length === 1 ? value[0] : value;
+  form.parse(
+    req,
+    async (
+      err: Error | null,
+      fields: formidable.Fields,
+      files: formidable.Files,
+    ) => {
+      if (err) {
+        return res
+          .status(400)
+          .json({
+            error: 'Failed to parse multipart data',
+            details: err.message,
+          });
       }
 
-      // Upload files to storage provider and get URLs
-      const uploadedFiles: Record<string, any> = {};
-      for (const [key, value] of Object.entries(files)) {
-        if (!resource.fileFields?.includes(key)) continue;
-
-        const fileArray = Array.isArray(value) ? value : [value];
-        const uploadResults = [];
-
-        for (const file of fileArray) {
-          if (!file) continue;
-
-          // Convert formidable.File to FormFile format
-          const formFile: FormFile = {
-            filepath: file.filepath,
-            originalFilename: file.originalFilename || 'file',
-            mimetype: file.mimetype || 'application/octet-stream',
-            size: file.size,
-          };
-
-          // Generate unique key for storage
-          const originalName = formFile.originalFilename || 'file';
-          const ext = path.extname(originalName);
-          const basename = path.basename(originalName, ext);
-          const safeBasename = basename.replace(/[^a-zA-Z0-9._-]+/g, '-');
-          const storageKey = `admin/${resource.name}/${Date.now()}-${safeBasename}${ext}`;
-
-          // Upload to storage provider
-          const result = await adminStorageProvider.upload({
-            file: formFile,
-            key: storageKey,
-          });
-
-          uploadResults.push({
-            url: result.url,
-            key: result.key,
-            filename: formFile.originalFilename,
-            size: formFile.size,
-            mimetype: formFile.mimetype,
-          });
+      try {
+        // Normalize fields
+        const normalizedFields: Record<string, any> = {};
+        for (const [key, value] of Object.entries(fields)) {
+          normalizedFields[key] =
+            Array.isArray(value) && value.length === 1 ? value[0] : value;
         }
 
-        // Store results
-        if (Array.isArray(value)) {
-          uploadedFiles[key] = uploadResults;
-        } else {
-          uploadedFiles[key] = uploadResults[0];
+        // Upload files to storage provider and get URLs
+        const uploadedFiles: Record<string, any> = {};
+        for (const [key, value] of Object.entries(files)) {
+          if (!resource.fileFields?.includes(key)) continue;
+
+          const fileArray = Array.isArray(value) ? value : [value];
+          const uploadResults = [];
+
+          for (const file of fileArray) {
+            if (!file) continue;
+
+            // Convert formidable.File to FormFile format
+            const formFile: FormFile = {
+              filepath: file.filepath,
+              originalFilename: file.originalFilename || 'file',
+              mimetype: file.mimetype || 'application/octet-stream',
+              size: file.size,
+            };
+
+            // Generate unique key for storage
+            const originalName = formFile.originalFilename || 'file';
+            const ext = path.extname(originalName);
+            const basename = path.basename(originalName, ext);
+            const safeBasename = basename.replace(/[^a-zA-Z0-9._-]+/g, '-');
+            const storageKey = `admin/${resource.name}/${Date.now()}-${safeBasename}${ext}`;
+
+            // Upload to storage provider
+            const result = await adminStorageProvider.upload({
+              file: formFile,
+              key: storageKey,
+            });
+
+            uploadResults.push({
+              url: result.url,
+              key: result.key,
+              filename: formFile.originalFilename,
+              size: formFile.size,
+              mimetype: formFile.mimetype,
+            });
+          }
+
+          // Store results
+          if (Array.isArray(value)) {
+            uploadedFiles[key] = uploadResults;
+          } else {
+            uploadedFiles[key] = uploadResults[0];
+          }
         }
+
+        // Merge into req.body
+        req.body = { ...normalizedFields };
+        req.uploadedFiles = uploadedFiles;
+
+        next();
+      } catch (uploadErr: any) {
+        logger.error(
+          { err: uploadErr, resource: resource.name },
+          'Failed to upload files',
+        );
+        return res.status(500).json({
+          error: 'Failed to upload files',
+          details: uploadErr.message,
+        });
       }
-
-      // Merge into req.body
-      req.body = { ...normalizedFields };
-      req.uploadedFiles = uploadedFiles;
-
-      next();
-    } catch (uploadErr: any) {
-      logger.error({ err: uploadErr, resource: resource.name }, 'Failed to upload files');
-      return res.status(500).json({
-        error: 'Failed to upload files',
-        details: uploadErr.message
-      });
-    }
-  });
+    },
+  );
 }
 
 adminApiRouter.get('/meta', (_req, res) => {
@@ -323,7 +342,9 @@ adminApiRouter.put(
     // Handle uploaded files
     if (resource.fileFields && req.uploadedFiles) {
       // First, get the existing document to delete old files
-      const existing = await resource.model.findById(req.params.id).lean() as any;
+      const existing = (await resource.model
+        .findById(req.params.id)
+        .lean()) as any;
 
       for (const field of resource.fileFields) {
         if (readOnly.has(field)) continue;
@@ -335,9 +356,15 @@ adminApiRouter.put(
           if (oldKey) {
             try {
               await adminStorageProvider.delete(oldKey);
-              logger.info({ key: oldKey, field, resource: resource.name }, 'Deleted old file during update');
+              logger.info(
+                { key: oldKey, field, resource: resource.name },
+                'Deleted old file during update',
+              );
             } catch (deleteErr: any) {
-              logger.error({ err: deleteErr, key: oldKey }, 'Failed to delete old file');
+              logger.error(
+                { err: deleteErr, key: oldKey },
+                'Failed to delete old file',
+              );
             }
           }
 
@@ -377,7 +404,7 @@ adminApiRouter.delete('/:resource/:id', async (req, res) => {
   if (!resource) return res.status(404).json({ error: 'resource_not_found' });
 
   // Get document before deletion to access file keys
-  const doc = await resource.model.findById(req.params.id).lean() as any;
+  const doc = (await resource.model.findById(req.params.id).lean()) as any;
   if (!doc) return res.status(404).json({ error: 'not_found' });
 
   // Delete the document
@@ -391,9 +418,15 @@ adminApiRouter.delete('/:resource/:id', async (req, res) => {
       if (fileKey) {
         try {
           await adminStorageProvider.delete(fileKey);
-          logger.info({ key: fileKey, field, resource: resource.name, id: req.params.id }, 'Deleted file after resource deletion');
+          logger.info(
+            { key: fileKey, field, resource: resource.name, id: req.params.id },
+            'Deleted file after resource deletion',
+          );
         } catch (deleteErr: any) {
-          logger.error({ err: deleteErr, key: fileKey, field }, 'Failed to delete file from storage');
+          logger.error(
+            { err: deleteErr, key: fileKey, field },
+            'Failed to delete file from storage',
+          );
         }
       }
     }
@@ -417,9 +450,10 @@ adminApiRouter.post('/:resource/bulk-delete', async (req, res) => {
 
   try {
     // Get documents before deletion to access file keys
-    const docs = resource.fileFields && resource.fileFields.length > 0
-      ? await resource.model.find({ _id: { $in: ids } }).lean() as any[]
-      : [];
+    const docs =
+      resource.fileFields && resource.fileFields.length > 0
+        ? ((await resource.model.find({ _id: { $in: ids } }).lean()) as any[])
+        : [];
 
     // Delete documents from database
     const result = await resource.model.deleteMany({ _id: { $in: ids } });
@@ -432,9 +466,15 @@ adminApiRouter.post('/:resource/bulk-delete', async (req, res) => {
           if (fileKey) {
             try {
               await adminStorageProvider.delete(fileKey);
-              logger.info({ key: fileKey, field, resource: resource.name, id: doc._id }, 'Deleted file during bulk delete');
+              logger.info(
+                { key: fileKey, field, resource: resource.name, id: doc._id },
+                'Deleted file during bulk delete',
+              );
             } catch (deleteErr: any) {
-              logger.error({ err: deleteErr, key: fileKey, field }, 'Failed to delete file from storage');
+              logger.error(
+                { err: deleteErr, key: fileKey, field },
+                'Failed to delete file from storage',
+              );
             }
           }
         }
@@ -455,9 +495,10 @@ adminApiRouter.post('/:resource/clear', async (req, res) => {
   if (!resource) return res.status(404).json({ error: 'resource_not_found' });
   try {
     // Get all documents before deletion to access file keys
-    const docs = resource.fileFields && resource.fileFields.length > 0
-      ? await resource.model.find({}).lean() as any[]
-      : [];
+    const docs =
+      resource.fileFields && resource.fileFields.length > 0
+        ? ((await resource.model.find({}).lean()) as any[])
+        : [];
 
     // Delete all documents from database
     const result = await resource.model.deleteMany({});
@@ -470,9 +511,15 @@ adminApiRouter.post('/:resource/clear', async (req, res) => {
           if (fileKey) {
             try {
               await adminStorageProvider.delete(fileKey);
-              logger.info({ key: fileKey, field, resource: resource.name, id: doc._id }, 'Deleted file during clear');
+              logger.info(
+                { key: fileKey, field, resource: resource.name, id: doc._id },
+                'Deleted file during clear',
+              );
             } catch (deleteErr: any) {
-              logger.error({ err: deleteErr, key: fileKey, field }, 'Failed to delete file from storage');
+              logger.error(
+                { err: deleteErr, key: fileKey, field },
+                'Failed to delete file from storage',
+              );
             }
           }
         }
@@ -487,10 +534,7 @@ adminApiRouter.post('/:resource/clear', async (req, res) => {
   }
 });
 
-export function registerAdminUI(
-  app: Application,
-  guard?: RequestHandler,
-) {
+export function registerAdminUI(app: Application, guard?: RequestHandler) {
   const handlers: RequestHandler[] = [];
   if (guard) handlers.push(guard);
   handlers.push((_req, res) => {
