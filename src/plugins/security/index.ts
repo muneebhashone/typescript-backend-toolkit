@@ -1,5 +1,5 @@
-import type { ToolkitPlugin, PluginFactory } from './types';
-import { applySecurity, type SecurityOptions } from '../server/security';
+import type { ToolkitPlugin, PluginFactory } from '@/plugins/types';
+import { applySecurity, type SecurityOptions } from './security';
 
 export const securityPlugin: PluginFactory<SecurityOptions> = (
   options = {},
@@ -8,7 +8,7 @@ export const securityPlugin: PluginFactory<SecurityOptions> = (
     name: 'security',
     priority: 100,
     options,
-    
+
     register({ app }) {
       applySecurity(app, options);
     },

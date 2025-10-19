@@ -2,12 +2,15 @@ import fs from 'node:fs/promises';
 import { OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
 import * as yaml from 'yaml';
 
-import type { OpenAPIObject } from 'openapi3-ts/oas30';
+import type { OpenAPIObject, ServerObject } from 'openapi3-ts/oas30';
 import config from '@/config/env';
 import { registry } from './swagger-instance';
 import path from 'node:path';
 
-export const getOpenApiDocumentation = (): OpenAPIObject => {
+export const getOpenApiDocumentation = (
+  description: string,
+  servers: ServerObject[],
+): OpenAPIObject => {
   const generator = new OpenApiGeneratorV3(registry.definitions);
 
   return generator.generateDocument({
@@ -19,23 +22,28 @@ export const getOpenApiDocumentation = (): OpenAPIObject => {
     info: {
       version: config.APP_VERSION,
       title: config.APP_NAME,
-      description:
-        "Robust backend boilerplate designed for scalability, flexibility, and ease of development. It's packed with modern technologies and best practices to kickstart your next backend project",
+      description: description,
     },
-    servers: [{ url: '/api' }],
+    servers: servers,
   });
 };
 
-export const convertDocumentationToYaml = (): string => {
-  const docs = getOpenApiDocumentation();
+export const convertDocumentationToYaml = (
+  description: string,
+  servers: ServerObject[],
+): string => {
+  const docs = getOpenApiDocumentation(description, servers);
 
   const fileContent = yaml.stringify(docs);
 
   return fileContent;
 };
 
-export const writeDocumentationToDisk = async (): Promise<void> => {
-  const fileContent = convertDocumentationToYaml();
+export const writeDocumentationToDisk = async (
+  description: string,
+  servers: ServerObject[],
+): Promise<void> => {
+  const fileContent = convertDocumentationToYaml(description, servers);
 
   await fs.writeFile(
     path.join(process.cwd(), 'public', 'openapi.yml'),

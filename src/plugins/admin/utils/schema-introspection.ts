@@ -44,17 +44,26 @@ function extractFieldsFromSchema(
     const enumValues: string[] | undefined = options.enum;
     let required = false;
     try {
-      required = typeof (schemaType as any).isRequired === 'function' ? !!(schemaType as any).isRequired() : !!options.required;
+      required =
+        typeof (schemaType as any).isRequired === 'function'
+          ? !!(schemaType as any).isRequired()
+          : !!options.required;
     } catch {
       required = !!options.required;
     }
     const isArray = instance === 'Array';
 
     // Array of subdocuments (DocumentArrayPath) — detect before single to avoid misclassification
-    const caster: any = (schemaType as any).caster || (schemaType as any).$embeddedSchemaType;
-    const maybeSubArraySchema: MongooseSchema<any> | undefined = caster?.schema || (isArray ? (schemaType as any).schema : undefined);
+    const caster: any =
+      (schemaType as any).caster || (schemaType as any).$embeddedSchemaType;
+    const maybeSubArraySchema: MongooseSchema<any> | undefined =
+      caster?.schema || (isArray ? (schemaType as any).schema : undefined);
     if (isArray && maybeSubArraySchema) {
-      const children = extractFieldsFromSchema(maybeSubArraySchema, undefined, depth + 1);
+      const children = extractFieldsFromSchema(
+        maybeSubArraySchema,
+        undefined,
+        depth + 1,
+      );
       fields.push({
         path,
         type: 'subdocument',
@@ -67,7 +76,8 @@ function extractFieldsFromSchema(
     }
 
     // Subdocument (single)
-    const subSchema: MongooseSchema<any> | undefined = (schemaType as any).schema;
+    const subSchema: MongooseSchema<any> | undefined = (schemaType as any)
+      .schema;
     if (subSchema) {
       const children = extractFieldsFromSchema(subSchema, undefined, depth + 1);
       fields.push({
@@ -83,13 +93,19 @@ function extractFieldsFromSchema(
 
     // Detect relations
     let refModelName: string | undefined;
-    if (options && options.ref && (instance === 'ObjectId' || instance === 'ObjectID')) {
+    if (
+      options &&
+      options.ref &&
+      (instance === 'ObjectId' || instance === 'ObjectID')
+    ) {
       refModelName = String(options.ref);
     } else if (isArray) {
-      const casterForRef: any = (schemaType as any).caster || (schemaType as any).$embeddedSchemaType;
+      const casterForRef: any =
+        (schemaType as any).caster || (schemaType as any).$embeddedSchemaType;
       if (
         casterForRef &&
-        (casterForRef.instance === 'ObjectId' || casterForRef.instance === 'ObjectID') &&
+        (casterForRef.instance === 'ObjectId' ||
+          casterForRef.instance === 'ObjectID') &&
         casterForRef.options &&
         casterForRef.options.ref
       ) {
@@ -135,7 +151,11 @@ export function buildSearchQuery(q: string | undefined, fields: AdminField[]) {
     for (const f of fs) {
       const full = prefix ? `${prefix}.${f.path}` : f.path;
       if (f.type === 'string') searchables.push(full);
-      if (f.type === 'subdocument' && Array.isArray(f.children) && f.children.length) {
+      if (
+        f.type === 'subdocument' &&
+        Array.isArray(f.children) &&
+        f.children.length
+      ) {
         walk(f.children, full);
       }
     }

@@ -5,9 +5,10 @@ import type { FilterQuery } from 'mongoose';
 import { adminResources, getResource } from './registry';
 import { buildSearchQuery, getFields } from './utils/schema-introspection';
 import type { AdminField } from './types';
-import { LocalStorageProvider } from '../lib/storage';
-import type { FormFile } from '../types';
+import { LocalStorageProvider } from '@/lib/storage';
+import type { FormFile } from '@/types';
 import logger from '@/plugins/observability/logger';
+import fs from 'fs';
 
 export const adminApiRouter = Router();
 
@@ -46,12 +47,10 @@ async function uploadForResource(req: any, res: any, next: any) {
       files: formidable.Files,
     ) => {
       if (err) {
-        return res
-          .status(400)
-          .json({
-            error: 'Failed to parse multipart data',
-            details: err.message,
-          });
+        return res.status(400).json({
+          error: 'Failed to parse multipart data',
+          details: err.message,
+        });
       }
 
       try {
@@ -534,14 +533,28 @@ adminApiRouter.post('/:resource/clear', async (req, res) => {
   }
 });
 
-export function registerAdminUI(app: Application, guard?: RequestHandler) {
+export function registerAdminUI(
+  app: Application,
+  adminPath: string = '/admin',
+  guard?: RequestHandler,
+) {
   const handlers: RequestHandler[] = [];
   if (guard) handlers.push(guard);
   handlers.push((_req, res) => {
     const indexPath = path.join(process.cwd(), 'public', 'admin', 'index.html');
-    res.sendFile(indexPath);
+    let fileContent = fs.readFileSync(indexPath, 'utf8');
+    fileContent = fileContent.replaceAll('{{ adminPath }}', adminPath);
+    res.send(fileContent);
   });
-  app.get('/admin', ...handlers);
+
+  app.get(adminPath, ...handlers);
+  app.get(`${adminPath}/*`, (req, res) => {
+    const requestPath = req.path.replace(adminPath, '');
+    const filePath = path.join(process.cwd(), 'public', 'admin', requestPath);
+    let fileContent = fs.readFileSync(filePath, 'utf8');
+    fileContent = fileContent.replaceAll('{{ adminPath }}', adminPath);
+    res.send(fileContent);
+  });
 }
 
 function findFieldByPath(

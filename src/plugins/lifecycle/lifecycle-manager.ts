@@ -3,13 +3,17 @@ import logger from '@/plugins/observability/logger';
 
 export type CleanupFunction = () => Promise<void> | void;
 
+export interface LifecycleOptions {
+  gracefulShutdownTimeout?: number;
+}
+
 export class LifecycleManager {
   private cleanupHandlers: CleanupFunction[] = [];
   private server?: Server;
   private shuttingDown = false;
   private gracefulShutdownTimeout = 30000;
 
-  constructor(options?: { gracefulShutdownTimeout?: number }) {
+  constructor(options?: LifecycleOptions) {
     if (options?.gracefulShutdownTimeout) {
       this.gracefulShutdownTimeout = options.gracefulShutdownTimeout;
     }

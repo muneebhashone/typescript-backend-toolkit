@@ -2,18 +2,22 @@ import express, { type Application } from 'express';
 import { createServer, type Server } from 'http';
 import type { AppContext, ToolkitPlugin } from '../plugins/types';
 import logger from '@/plugins/observability/logger';
+import config from '@/config/env';
 
 export interface CreateAppOptions {
   plugins?: ToolkitPlugin[];
   config?: Record<string, unknown>;
+  port: number;
 }
 
-export async function createApp(options: CreateAppOptions = {}): Promise<{
+export async function createApp(
+  options: CreateAppOptions = { port: config.PORT },
+): Promise<{
   app: Application;
   server: Server;
   plugins: ToolkitPlugin[];
 }> {
-  const { plugins = [], config = {} } = options;
+  const { plugins = [], config = {}, port } = options;
 
   const app = express();
   const server = createServer(app);
@@ -22,6 +26,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<{
     app,
     server,
     config,
+    port,
   };
 
   const sortedPlugins = [...plugins].sort(
@@ -30,9 +35,15 @@ export async function createApp(options: CreateAppOptions = {}): Promise<{
 
   for (const plugin of sortedPlugins) {
     try {
-      logger.info(`Registering plugin: ${plugin.name}`);
-      await plugin.register(context);
-      logger.debug(`Plugin registered: ${plugin.name}`);
+      const urls = await plugin.register(context);
+      logger.info(`Plugin registered: ${plugin.name}`);
+
+      if (urls) {
+        for (const url of urls) {
+          logger.info(`${plugin.name}: ${url}`);
+        }
+      }
+      
     } catch (error) {
       logger.error(
         { err: error, plugin: plugin.name },

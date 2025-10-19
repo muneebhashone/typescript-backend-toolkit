@@ -19,7 +19,7 @@ program
     const pluginName = name.toLowerCase();
     const className = name.charAt(0).toUpperCase() + name.slice(1);
 
-    const pluginContent = `import type { ToolkitPlugin, PluginFactory } from './types';
+    const pluginContent = `import type { ToolkitPlugin, PluginFactory } from '@/plugins/types';
 
 export interface ${className}Options {
   enabled?: boolean;
@@ -54,11 +54,16 @@ export const ${pluginName}Plugin: PluginFactory<${className}Options> = (
 export default ${pluginName}Plugin;
 `;
 
+    await fs.mkdir(path.join(process.cwd(), 'src', 'plugins', pluginName), {
+      recursive: true,
+    });
+
     const outputPath = path.join(
       process.cwd(),
       'src',
       'plugins',
-      `${pluginName}.ts`,
+      pluginName,
+      'index.ts',
     );
 
     try {

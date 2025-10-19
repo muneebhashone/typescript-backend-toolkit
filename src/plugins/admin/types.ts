@@ -3,6 +3,7 @@ import type { Model } from 'mongoose';
 export type AdminResource = {
   name: string;
   label?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   model: Model<any>;
   fields?: string[];
   readOnlyFields?: string[];
