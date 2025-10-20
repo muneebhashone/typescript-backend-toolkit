@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { Command } from 'commander';
-import { seeders } from '../src/seeders/DatabaseSeeder';
+import { seeders } from '../src/seeders/registry';
 import { runSeeders } from '../src/seeders/runner';
 
 const program = new Command();

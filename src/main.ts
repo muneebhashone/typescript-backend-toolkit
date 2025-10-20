@@ -7,6 +7,7 @@ import apiRoutes from '@/routes/routes';
 import errorHandler from '@/middlewares/error-handler';
 
 import { resolvePort } from '@/extras/port-resolver';
+import { ErrorRequestHandler } from 'express';
 
 const bootstrapServer = async () => {
   // Resolve port availability (dev-only interactive prompt)
@@ -21,7 +22,7 @@ const bootstrapServer = async () => {
 
   app.use('/api', apiRoutes);
 
-  app.use(errorHandler);
+  app.use(errorHandler as unknown as ErrorRequestHandler);
 
   server.listen(selectedPort, () => {
     logger.info(`Server is running on http://localhost:${selectedPort}`);

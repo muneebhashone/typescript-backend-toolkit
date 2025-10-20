@@ -38,13 +38,16 @@ export const handleGetBlogs = async (
   res: ResponseExtended<GetBlogsResponseSchema>,
 ) => {
   const { results, paginatorInfo } = await getBlogs(req.query);
-  return res.json({
+  res.ok?.({
     success: true,
     data: {
       items: results,
       paginator: paginatorInfo,
     },
-  }) as unknown as void;
+  })
+
+  return;
+
 };
 
 // Using new res.ok() helper

@@ -143,7 +143,7 @@ export const handleGetCurrentUser = async (
   return res.ok?.({
     success: true,
     data: {
-      id: user.sub,
+      sub: user?.sub,
       email: user.email || '',
       username: user.username || '',
       role: user.role || '',

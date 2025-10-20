@@ -22,7 +22,7 @@ export const socialAccountInfoSchema = z.object({
 });
 
 export const userOutSchema = z.object({
-  id: z.string().optional(),
+  sub: z.string().optional(),
   email: z.string().email(),
   avatar: z.string().url().optional(),
   name: z.string().optional(),

@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import config from '@/config/env';
 import logger from '@/plugins/observability/logger';
-import type { RequestExtended, ResponseExtended } from '@/types';
+import type { ResponseExtended } from '@/types';
 import { errorResponse } from '@/utils/response.utils';
 import { StatusCodesValues } from '@/plugins/magic/status-codes';
 
@@ -16,7 +16,7 @@ interface CustomError extends Error {
  */
 export const errorHandler = (
   err: CustomError,
-  _: RequestExtended | Request,
+  _: Request,
   res: ResponseExtended | Response,
   __: NextFunction,
 ): void => {

@@ -31,7 +31,7 @@ blogRouter.get(
       200: getBlogsResponseSchema,
     },
   },
-  // canAccess(),
+  canAccess(),
   handleGetBlogs,
 );
 

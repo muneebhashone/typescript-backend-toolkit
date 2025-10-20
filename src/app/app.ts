@@ -49,7 +49,7 @@ export async function initializeApp(port: number) {
       lifecyclePlugin({
         gracefulShutdownTimeout: 30000,
       }),
-      adminDashboardPlugin({ adminPath: '/admin-panel', authGuard: true }),
+      adminDashboardPlugin({ adminPath: '/admin', authGuard: true }),
       bullboardPlugin({
         path: '/queues',
       }),
@@ -60,7 +60,7 @@ export async function initializeApp(port: number) {
 
   app.use(express.static(path.join(process.cwd(), 'public')));
 
-  app.use(compression());
+  app.use(compression({ threshold: 1024 * 10 }));
 
   return { app, server, plugins };
 }
