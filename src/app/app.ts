@@ -58,7 +58,7 @@ export async function initializeApp(port: number) {
     port,
   });
 
-  app.use(express.static(path.join(process.cwd(), 'public')));
+  app.use("/assets", express.static(path.join(process.cwd(), 'public', 'assets')));
 
   app.use(compression({ threshold: 1024 * 10 }));
 

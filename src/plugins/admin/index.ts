@@ -31,8 +31,8 @@ export const adminDashboardPlugin: PluginFactory<AdminDashboardOptions> = (
     options,
 
     register({ app, port }) {
-      // Admin authentication routes
-      app.get(`${adminPath}/login`, (_req, res) => {
+
+      app.get(`/admin/login`, (req, res) => {
         const loginPath = path.join(
           process.cwd(),
           'public',
@@ -42,7 +42,8 @@ export const adminDashboardPlugin: PluginFactory<AdminDashboardOptions> = (
         res.sendFile(loginPath);
       });
 
-      app.post(`${adminPath}/login`, (req, res) => {
+      // Admin authentication routes
+      app.post(`/admin/login`, (req, res) => {
         const { username, password } = req.body;
         const identifier = req.ip || 'unknown';
 
@@ -78,17 +79,16 @@ export const adminDashboardPlugin: PluginFactory<AdminDashboardOptions> = (
         res.redirect(next);
       });
 
-      app.post(`${adminPath}/logout`, (req, res) => {
+      app.post(`/admin/logout`, (req, res) => {
         clearAdminCookie(res);
         const acceptsJson = req.headers.accept?.includes('application/json');
         if (acceptsJson) {
           return res.json({ ok: true });
         }
 
-        res.redirect('/admin/login');
       });
 
-      app.use(`${adminPath}/api`, adminAuthGuardApi, adminApiRouter);
+      app.use(`/admin/api`, adminAuthGuardApi, adminApiRouter);
 
       // Admin dashboard (CRUD) — UI and JSON API (protected)
       registerAdminUI(

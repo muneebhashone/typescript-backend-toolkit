@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = formData.get('password');
 
     try {
-      const response = await fetch('{{ adminPath }}/login', {
+      const response = await fetch('/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,12 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
+      await response.json();
 
       if (response.ok) {
-        // Get redirect URL from query params or default to {{ adminPath }}
         const urlParams = new URLSearchParams(window.location.search);
-        const next = urlParams.get('next') || '{{ adminPath }}';
+        const next = urlParams.get('next') || './';
         window.location.href = next;
       } else {
         // Handle errors

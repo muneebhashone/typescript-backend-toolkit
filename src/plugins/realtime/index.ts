@@ -4,6 +4,7 @@ import logger from '@/plugins/observability/logger';
 import { registerRealtimeHandlers } from './handlers';
 import type { Server as IServer } from 'node:http';
 import { Server as RealtimeServer } from 'socket.io';
+import path from 'node:path';
 
 export type RealtimeOptions = {
   path?: string;
@@ -41,6 +42,17 @@ export const realtimePlugin: PluginFactory<RealtimeOptions> = (opts = {}) => {
     options: opts,
 
     register({ app, server, port }) {
+
+      app.get(`/realtime`, (req, res) => {
+        const realtimePath = path.join(
+          process.cwd(),
+          'public',
+          'realtime',
+          'index.html',
+        );
+        res.sendFile(realtimePath);
+      });
+
       if (!server) {
         logger.warn('Realtime plugin: HTTP server not available');
         return;
@@ -61,7 +73,7 @@ export const realtimePlugin: PluginFactory<RealtimeOptions> = (opts = {}) => {
       registerRealtimeHandlers(io);
       logger.info('Realtime server initialized');
 
-      return [`http://localhost:${port}/socket.io`];
+      return [`http://localhost:${port}/socket.io`, `http://localhost:${port}/realtime`];
     },
   };
 };
