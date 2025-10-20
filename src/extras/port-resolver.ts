@@ -9,24 +9,40 @@ export async function isPortFree(
   port: number,
   host: string = '0.0.0.0',
 ): Promise<boolean> {
-  return new Promise((resolve) => {
-    const server = net.createServer();
+  // Map ambiguous hosts to concrete probe targets
+  const probeHosts =
+    host === '0.0.0.0' || host === '::' || host === 'localhost'
+      ? ['127.0.0.1', '::1']
+      : [host];
 
-    server.once('error', (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
-        resolve(false);
-      } else {
-        resolve(false);
-      }
+  // If any probe connects, the port is in use
+  for (const h of probeHosts) {
+    const inUse = await new Promise<boolean>((resolve) => {
+      const socket = net.createConnection({ port, host: h });
+
+      const done = (result: boolean) => {
+        socket.removeAllListeners();
+        socket.destroy();
+        resolve(result);
+      };
+
+      socket.once('connect', () => done(true)); // someone is listening
+      socket.once('error', (err: NodeJS.ErrnoException) => {
+        // ECONNREFUSED ⇒ nothing listening there; treat as free for this host
+        if (err.code === 'ECONNREFUSED' || err.code === 'EHOSTUNREACH' || err.code === 'ENOTFOUND') {
+          done(false);
+        } else {
+          // Conservative: any other error ⇒ consider "in use"
+          done(true);
+        }
+      });
+      socket.setTimeout(1000, () => done(false)); // avoid hangs
     });
 
-    server.once('listening', () => {
-      server.close();
-      resolve(true);
-    });
+    if (inUse) return false;
+  }
 
-    server.listen(port, host);
-  });
+  return true;
 }
 
 /**
