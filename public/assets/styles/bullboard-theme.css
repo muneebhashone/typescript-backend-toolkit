@@ -1,0 +1,348 @@
+/* BullBoard Dark Theme - Matches shared-styles.css design system */
+
+:root {
+  /* Import color palette from shared-styles.css */
+  --bg: #0d1117;
+  --panel: #161b22;
+  --border: #30363d;
+  --text: #c9d1d9;
+  --muted: #8b949e;
+  --primary: #1f6feb;
+  --primary-hover: #2f81f7;
+  --success: #2ea043;
+  --success-hover: #3fb950;
+  --danger: #f85149;
+  --danger-hover: #ff6b6b;
+  --warning: #d29922;
+  --radius: 6px;
+  --transition: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Global overrides */
+body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial !important;
+}
+
+/* Chakra UI overrides */
+.chakra-ui-light,
+.chakra-ui-dark {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Main container */
+main,
+[role="main"] {
+  background: var(--bg) !important;
+}
+
+/* Headers */
+header,
+[role="banner"] {
+  background: var(--panel) !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text) !important;
+}
+
+/* Panels and Cards */
+[class*="Card"],
+[class*="card"],
+[class*="panel"],
+[class*="Panel"] {
+  background: var(--panel) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+/* Tables */
+table {
+  background: var(--panel) !important;
+  border-color: var(--border) !important;
+}
+
+thead {
+  background: var(--panel) !important;
+  border-color: var(--border) !important;
+}
+
+th {
+  background: var(--panel) !important;
+  color: var(--muted) !important;
+  border-color: var(--border) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  letter-spacing: 0.06em !important;
+}
+
+td {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  border-color: rgba(48, 54, 61, 0.5) !important;
+}
+
+tr:hover td {
+  background: rgba(22, 27, 34, 0.6) !important;
+}
+
+/* Buttons */
+button,
+[role="button"] {
+  background: var(--primary) !important;
+  color: #f0f6fc !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--radius) !important;
+  transition: all var(--transition) !important;
+  font-weight: 600 !important;
+}
+
+button:hover,
+[role="button"]:hover {
+  background: var(--primary-hover) !important;
+  transform: translateY(-1px);
+}
+
+/* Secondary/outline buttons */
+button[data-variant="outline"],
+button[data-variant="ghost"],
+[class*="secondary"] {
+  background: transparent !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+button[data-variant="outline"]:hover,
+button[data-variant="ghost"]:hover {
+  background: var(--panel) !important;
+  border-color: var(--primary) !important;
+}
+
+/* Danger buttons */
+button[data-variant="danger"],
+button[colorscheme="red"] {
+  background: var(--danger) !important;
+  color: #fff !important;
+}
+
+button[data-variant="danger"]:hover,
+button[colorscheme="red"]:hover {
+  background: var(--danger-hover) !important;
+}
+
+/* Success buttons */
+button[colorscheme="green"] {
+  background: var(--success) !important;
+  color: #fff !important;
+}
+
+button[colorscheme="green"]:hover {
+  background: var(--success-hover) !important;
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #6e7681 !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.12) !important;
+}
+
+/* Badges and Tags */
+[class*="Badge"],
+[class*="badge"],
+[class*="Tag"],
+[class*="tag"] {
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+}
+
+[class*="badge"][data-status="completed"],
+[class*="badge"][data-status="success"],
+[colorscheme="green"] {
+  background: var(--success) !important;
+  color: #fff !important;
+}
+
+[class*="badge"][data-status="failed"],
+[class*="badge"][data-status="error"],
+[colorscheme="red"] {
+  background: var(--danger) !important;
+  color: #fff !important;
+}
+
+[class*="badge"][data-status="waiting"],
+[class*="badge"][data-status="pending"],
+[colorscheme="yellow"] {
+  background: var(--warning) !important;
+  color: #fff !important;
+}
+
+[class*="badge"][data-status="active"],
+[colorscheme="blue"] {
+  background: var(--primary) !important;
+  color: #fff !important;
+}
+
+/* Links */
+a {
+  color: var(--primary) !important;
+  transition: color var(--transition) !important;
+}
+
+a:hover {
+  color: var(--primary-hover) !important;
+}
+
+/* Modals and Dialogs */
+[role="dialog"],
+[class*="Modal"],
+[class*="modal"] {
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Modal overlay */
+[class*="Overlay"],
+[class*="overlay"] {
+  background: rgba(0, 0, 0, 0.65) !important;
+}
+
+/* Code blocks */
+code,
+pre {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace !important;
+}
+
+/* Tabs */
+[role="tab"],
+[class*="Tab"] {
+  color: var(--muted) !important;
+  border-color: transparent !important;
+}
+
+[role="tab"][aria-selected="true"],
+[class*="Tab"][data-selected] {
+  color: var(--text) !important;
+  border-color: var(--primary) !important;
+  font-weight: 600 !important;
+}
+
+/* Dividers */
+hr,
+[class*="Divider"],
+[class*="divider"] {
+  border-color: var(--border) !important;
+}
+
+/* Tooltips */
+[role="tooltip"],
+[class*="Tooltip"],
+[class*="tooltip"] {
+  background: var(--panel) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Menus */
+[role="menu"],
+[class*="Menu"],
+[class*="menu"] {
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+[role="menuitem"]:hover,
+[class*="MenuItem"]:hover {
+  background: rgba(31, 111, 235, 0.1) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 10px;
+  border: 2px solid var(--bg);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Specific BullBoard elements */
+[class*="Layout"] {
+  background: var(--bg) !important;
+}
+
+[class*="Sidebar"] {
+  background: var(--bg) !important;
+  border-color: var(--border) !important;
+}
+
+[class*="Content"] {
+  background: var(--bg) !important;
+}
+
+/* Stats cards */
+[class*="Stats"],
+[class*="stats"] {
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+}
+
+/* Progress bars */
+[class*="Progress"],
+progress {
+  background: var(--border) !important;
+}
+
+[class*="Progress"] > div,
+progress::-webkit-progress-value {
+  background: var(--primary) !important;
+}
+
+/* Text colors */
+[class*="text-gray"],
+[class*="text-muted"] {
+  color: var(--muted) !important;
+}
+
+/* Empty states */
+[class*="Empty"],
+[class*="empty"] {
+  color: var(--muted) !important;
+}
+
