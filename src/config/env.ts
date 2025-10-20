@@ -67,6 +67,17 @@ const configSchema = z.object({
   ADMIN_SESSION_TTL: z.string().transform(Number).default('86400'),
   ADMIN_COOKIE_NAME: z.string().default('admin_session'),
 
+  // Queue (BullBoard) authentication (separate from admin)
+  QUEUE_AUTH_ENABLED: booleanString.default('true'),
+  QUEUE_USERNAME: z.string().min(1).default('admin'),
+  QUEUE_PANEL_PASSWORD: z.string().min(1).default('admin'),
+  QUEUE_SESSION_SECRET: z
+    .string()
+    .min(32)
+    .default('H0vd1IYc8b1U1cX7QKk1q9cN8zZp3aB4tYw2rS9mV6xP0eL3jD'),
+  QUEUE_SESSION_TTL: z.string().transform(Number).default('86400'),
+  QUEUE_COOKIE_NAME: z.string().default('queue_session'),
+
   OTP_VERIFICATION_ENABLED: booleanString,
   STATIC_OTP: z.enum(['1', '0']).transform(Number).optional(),
 
