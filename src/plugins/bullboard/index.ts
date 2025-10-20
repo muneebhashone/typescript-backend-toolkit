@@ -1,4 +1,5 @@
 import type { ToolkitPlugin, PluginFactory } from '@/plugins/types';
+import type { Request, Response, NextFunction } from 'express';
 import { createBullBoard } from '@bull-board/api';
 import { ExpressAdapter } from '@bull-board/express';
 import { registeredQueues } from '@/lib/queue';
@@ -16,6 +17,35 @@ import {
 export interface BullboardOptions {
   path: string;
   authGuard?: boolean;
+}
+
+/**
+ * Middleware to inject custom CSS and JS into BullBoard HTML responses
+ */
+function injectAssetsMiddleware(req: Request, res: Response, next: NextFunction): void {
+  const originalSend = res.send;
+
+  res.send = function (data: any): Response {
+    // Only modify HTML responses
+    if (typeof data === 'string' && data.includes('</head>') && data.includes('</body>')) {
+      // Inject custom CSS before </head>
+      data = data.replace(
+        '</head>',
+        '<link rel="stylesheet" href="/assets/styles/bullboard-theme.css"></head>',
+      );
+
+      // Inject custom JS before </body>
+      data = data.replace(
+        '</body>',
+        '<script src="/assets/scripts/bullboard.js"></script></body>',
+      );
+    }
+
+    // Call original send with modified data
+    return originalSend.call(this, data);
+  };
+
+  next();
 }
 
 export const bullboardPlugin: PluginFactory<BullboardOptions> = (
@@ -80,11 +110,12 @@ export const bullboardPlugin: PluginFactory<BullboardOptions> = (
         return res.redirect(`${path}/login`);
       });
 
+      // Mount BullBoard with asset injection and optional auth
+      const middlewares = [injectAssetsMiddleware];
       if (authGuard) {
-        app.use(path, queueAuthGuardAdaptive(path), serverAdapter.getRouter());
-      } else {
-        app.use(path, serverAdapter.getRouter());
+        middlewares.push(queueAuthGuardAdaptive(path));
       }
+      app.use(path, ...middlewares, serverAdapter.getRouter());
 
       return [`http://localhost:${port}${path}`];
     },
