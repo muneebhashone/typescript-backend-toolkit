@@ -43,7 +43,7 @@ export const realtimePlugin: PluginFactory<RealtimeOptions> = (opts = {}) => {
 
     register({ app, server, port }) {
 
-      app.get(`/realtime`, (req, res) => {
+      app.get(`/realtime`, (_req, res) => {
         const realtimePath = path.join(
           process.cwd(),
           'public',
