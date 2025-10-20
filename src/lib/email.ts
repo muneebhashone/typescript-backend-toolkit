@@ -2,6 +2,7 @@ import formData from 'form-data';
 import Mailgun from 'mailgun.js';
 import nodemailer from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { Resend } from 'resend';
 import config from '@/config/env';
 import logger from '@/plugins/observability/logger';
 import { EmailError } from './errors';
@@ -44,16 +45,16 @@ export class MailgunProvider implements EmailProvider {
     const mailgun = new Mailgun(formData);
     this.client = mailgun.client({
       username: 'api',
-      key: config.MAILGUN_API_KEY,
+      key: config.MAILGUN_API_KEY as string,
     });
-    this.domain = config.MAILGUN_DOMAIN;
-    this.fromEmail = config.MAILGUN_FROM_EMAIL;
+    this.domain = config.MAILGUN_DOMAIN as string;
+    this.fromEmail = config.MAILGUN_FROM_EMAIL as string;
   }
 
   async send(params: EmailParams): Promise<EmailResult> {
     try {
       const messageData = {
-        from: params.from || this.fromEmail,
+        from: params.from as string || this.fromEmail,
         to: params.to,
         subject: params.subject,
         html: params.html,
@@ -159,10 +160,83 @@ export class NodemailerProvider implements EmailProvider {
 }
 
 /**
+ * Resend email provider implementation
+ */
+export class ResendProvider implements EmailProvider {
+  private client: Resend;
+  private fromEmail: string;
+
+  constructor() {
+    this.client = new Resend(config.RESEND_API_KEY);
+    this.fromEmail =
+      config.RESEND_FROM_EMAIL || config.EMAIL_FROM || 'noreply@example.com';
+  }
+
+  async send(params: EmailParams): Promise<EmailResult> {
+    try {
+      const { data, error } = await this.client.emails.send({
+        from: params.from || this.fromEmail,
+        to: params.to,
+        subject: params.subject,
+        html: params.html,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const id = (data as { id?: string } | null)?.id || 'unknown';
+
+      logger.info(
+        {
+          provider: 'resend',
+          id,
+          to: params.to,
+          subject: params.subject,
+        },
+        'Email sent successfully',
+      );
+
+      return {
+        id,
+        message: 'Email sent',
+      };
+    } catch (err) {
+      logger.error(
+        {
+          provider: 'resend',
+          to: params.to,
+          subject: params.subject,
+          err,
+        },
+        'Failed to send email',
+      );
+
+      throw new EmailError('Failed to send email via Resend', err);
+    }
+  }
+
+  async healthCheck(): Promise<boolean> {
+    try {
+      return !!config.RESEND_API_KEY;
+    } catch (err) {
+      logger.error({ err }, 'Resend health check failed');
+      return false;
+    }
+  }
+}
+
+/**
  * Factory function to create the appropriate email provider
- * Priority: Mailgun > SMTP
+ * Priority: Resend > Mailgun > SMTP
  */
 const createEmailProvider = (): EmailProvider => {
+  // Prefer Resend if configured
+  if (config.RESEND_API_KEY) {
+    logger.info('Using Resend email provider');
+    return new ResendProvider();
+  }
+
   // Prefer Mailgun if configured
   if (config.MAILGUN_API_KEY && config.MAILGUN_DOMAIN) {
     logger.info('Using Mailgun email provider');

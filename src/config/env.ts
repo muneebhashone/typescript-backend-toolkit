@@ -47,9 +47,14 @@ const configSchema = z.object({
   SMTP_FROM: z.string().min(1).optional(),
   EMAIL_FROM: z.string().email().optional(),
 
-  MAILGUN_API_KEY: z.string().min(1),
-  MAILGUN_DOMAIN: z.string().min(1),
-  MAILGUN_FROM_EMAIL: z.string().email(),
+  // Resend Configuration
+  RESEND_API_KEY: z.string().min(1).optional(),
+  RESEND_FROM_EMAIL: z.string().email().optional(),
+
+  // Mailgun Configuration
+  MAILGUN_API_KEY: z.string().min(1).optional(),
+  MAILGUN_DOMAIN: z.string().min(1).optional(),
+  MAILGUN_FROM_EMAIL: z.string().email().optional(),
 
   ADMIN_EMAIL: z.string().email(),
   ADMIN_PASSWORD: z.string().min(1),
