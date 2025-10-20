@@ -17,8 +17,8 @@
     // Apply styles matching admin dashboard logout button
     Object.assign(logoutBtn.style, {
       position: 'fixed',
-      top: '20px',
-      right: '20px',
+      bottom: '20px',
+      left: '20px',
       zIndex: '9999',
       padding: '8px 16px',
       fontSize: '13px',

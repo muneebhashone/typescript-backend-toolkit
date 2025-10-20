@@ -2,45 +2,72 @@
 
 :root {
   /* Import color palette from shared-styles.css */
-  --bg: #0d1117;
-  --panel: #161b22;
-  --border: #30363d;
-  --text: #c9d1d9;
-  --muted: #8b949e;
-  --primary: #1f6feb;
-  --primary-hover: #2f81f7;
-  --success: #2ea043;
-  --success-hover: #3fb950;
-  --danger: #f85149;
-  --danger-hover: #ff6b6b;
-  --warning: #d29922;
-  --radius: 6px;
-  --transition: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --bg: #0d1117 !important;
+  --panel: #161b22 !important;
+  --border: #30363d !important;
+  --text: #c9d1d9 !important;
+  --muted: #8b949e !important;
+  --primary: #1f6feb !important;
+  --primary-hover: #2f81f7 !important;
+  --success: #2ea043 !important;
+  --success-hover: #3fb950 !important;
+  --danger: #f85149 !important;
+  --danger-hover: #ff6b6b !important;
+  --warning: #d29922 !important;
+  --radius: 6px !important;
+  --transition: 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Force dark mode globally */
+*,
+*::before,
+*::after {
+  border-color: var(--border) !important;
 }
 
 /* Global overrides */
+html,
 body {
   background: var(--bg) !important;
   color: var(--text) !important;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial !important;
 }
 
-/* Chakra UI overrides */
-.chakra-ui-light,
-.chakra-ui-dark {
+/* Root and wrapper elements */
+#root,
+[id*="root"],
+[class*="App"],
+[class*="app"] {
   background: var(--bg) !important;
   color: var(--text) !important;
 }
 
 /* Main container */
 main,
-[role="main"] {
+[role="main"],
+[class*="Main"],
+[class*="main"],
+[class*="Container"],
+[class*="container"] {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Sections and divs - aggressive override */
+section,
+div {
+  background-color: transparent !important;
+}
+
+div[style*="background"] {
   background: var(--bg) !important;
 }
 
 /* Headers */
 header,
-[role="banner"] {
+[role="banner"],
+[class*="Header"],
+[class*="header"] {
   background: var(--panel) !important;
   border-bottom: 1px solid var(--border) !important;
   color: var(--text) !important;
@@ -50,12 +77,31 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text) !important;
 }
 
-/* Panels and Cards */
+/* Panels, Cards, and Wrappers */
 [class*="Card"],
 [class*="card"],
+[class*="Panel"],
 [class*="panel"],
-[class*="Panel"] {
+[class*="Box"],
+[class*="box"],
+[class*="Wrapper"],
+[class*="wrapper"],
+[class*="Content"],
+[class*="content"] {
   background: var(--panel) !important;
+  background-color: var(--panel) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+/* Job items and list items - very specific for BullBoard */
+[class*="Job"],
+[class*="job"],
+article,
+[role="article"],
+li[class*="css-"] {
+  background: var(--panel) !important;
+  background-color: var(--panel) !important;
   border-color: var(--border) !important;
   color: var(--text) !important;
 }
@@ -63,16 +109,19 @@ h1, h2, h3, h4, h5, h6 {
 /* Tables */
 table {
   background: var(--panel) !important;
+  background-color: var(--panel) !important;
   border-color: var(--border) !important;
 }
 
 thead {
   background: var(--panel) !important;
+  background-color: var(--panel) !important;
   border-color: var(--border) !important;
 }
 
 th {
   background: var(--panel) !important;
+  background-color: var(--panel) !important;
   color: var(--muted) !important;
   border-color: var(--border) !important;
   font-weight: 600 !important;
@@ -83,18 +132,29 @@ th {
 
 td {
   background: var(--bg) !important;
+  background-color: var(--bg) !important;
   color: var(--text) !important;
   border-color: rgba(48, 54, 61, 0.5) !important;
 }
 
-tr:hover td {
-  background: rgba(22, 27, 34, 0.6) !important;
+tbody tr {
+  background: var(--bg) !important;
+  background-color: var(--bg) !important;
 }
 
-/* Buttons */
+tr:hover,
+tr:hover td {
+  background: rgba(22, 27, 34, 0.6) !important;
+  background-color: rgba(22, 27, 34, 0.6) !important;
+}
+
+/* Buttons - all variants */
 button,
-[role="button"] {
+[role="button"],
+[type="button"],
+[type="submit"] {
   background: var(--primary) !important;
+  background-color: var(--primary) !important;
   color: #f0f6fc !important;
   border: 1px solid transparent !important;
   border-radius: var(--radius) !important;
@@ -102,17 +162,20 @@ button,
   font-weight: 600 !important;
 }
 
-button:hover,
-[role="button"]:hover {
+button:hover:not(:disabled),
+[role="button"]:hover:not(:disabled) {
   background: var(--primary-hover) !important;
+  background-color: var(--primary-hover) !important;
   transform: translateY(-1px);
 }
 
 /* Secondary/outline buttons */
 button[data-variant="outline"],
 button[data-variant="ghost"],
-[class*="secondary"] {
+button[class*="secondary"],
+button[class*="Secondary"] {
   background: transparent !important;
+  background-color: transparent !important;
   color: var(--text) !important;
   border: 1px solid var(--border) !important;
 }
@@ -120,29 +183,37 @@ button[data-variant="ghost"],
 button[data-variant="outline"]:hover,
 button[data-variant="ghost"]:hover {
   background: var(--panel) !important;
+  background-color: var(--panel) !important;
   border-color: var(--primary) !important;
 }
 
-/* Danger buttons */
-button[data-variant="danger"],
-button[colorscheme="red"] {
-  background: var(--danger) !important;
-  color: #fff !important;
+/* Tabs */
+[role="tab"],
+[class*="Tab"],
+[class*="tab"],
+button[role="tab"] {
+  color: var(--muted) !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
 }
 
-button[data-variant="danger"]:hover,
-button[colorscheme="red"]:hover {
-  background: var(--danger-hover) !important;
+[role="tab"][aria-selected="true"],
+[role="tab"][data-selected="true"],
+[class*="Tab"][data-selected],
+button[role="tab"][aria-selected="true"] {
+  color: var(--text) !important;
+  background: var(--panel) !important;
+  background-color: var(--panel) !important;
+  border-bottom-color: var(--primary) !important;
+  font-weight: 600 !important;
 }
 
-/* Success buttons */
-button[colorscheme="green"] {
-  background: var(--success) !important;
-  color: #fff !important;
-}
-
-button[colorscheme="green"]:hover {
-  background: var(--success-hover) !important;
+[role="tablist"],
+[class*="TabList"] {
+  background: var(--bg) !important;
+  background-color: var(--bg) !important;
+  border-bottom: 1px solid var(--border) !important;
 }
 
 /* Inputs */
@@ -150,6 +221,7 @@ input,
 select,
 textarea {
   background: var(--bg) !important;
+  background-color: var(--bg) !important;
   color: var(--text) !important;
   border: 1px solid var(--border) !important;
   border-radius: var(--radius) !important;
@@ -165,42 +237,70 @@ select:focus,
 textarea:focus {
   border-color: var(--primary) !important;
   box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.12) !important;
+  outline: none !important;
 }
 
 /* Badges and Tags */
 [class*="Badge"],
 [class*="badge"],
 [class*="Tag"],
-[class*="tag"] {
+[class*="tag"],
+span[class*="css-"][class*="badge"] {
   border-radius: 999px !important;
   font-weight: 600 !important;
   font-size: 12px !important;
+  padding: 4px 10px !important;
 }
 
+/* Status badges - completed/success */
 [class*="badge"][data-status="completed"],
 [class*="badge"][data-status="success"],
-[colorscheme="green"] {
+[data-status="completed"],
+[colorscheme="green"],
+span[class*="success"],
+span[class*="Success"] {
   background: var(--success) !important;
+  background-color: var(--success) !important;
   color: #fff !important;
 }
 
+/* Status badges - failed/error */
 [class*="badge"][data-status="failed"],
 [class*="badge"][data-status="error"],
-[colorscheme="red"] {
+[data-status="failed"],
+[colorscheme="red"],
+span[class*="error"],
+span[class*="Error"],
+span[class*="failed"],
+span[class*="Failed"] {
   background: var(--danger) !important;
+  background-color: var(--danger) !important;
   color: #fff !important;
 }
 
+/* Status badges - waiting/pending */
 [class*="badge"][data-status="waiting"],
 [class*="badge"][data-status="pending"],
-[colorscheme="yellow"] {
+[data-status="waiting"],
+[data-status="pending"],
+[colorscheme="yellow"],
+span[class*="waiting"],
+span[class*="Waiting"],
+span[class*="pending"],
+span[class*="Pending"] {
   background: var(--warning) !important;
+  background-color: var(--warning) !important;
   color: #fff !important;
 }
 
+/* Status badges - active/processing */
 [class*="badge"][data-status="active"],
-[colorscheme="blue"] {
+[data-status="active"],
+[colorscheme="blue"],
+span[class*="active"],
+span[class*="Active"] {
   background: var(--primary) !important;
+  background-color: var(--primary) !important;
   color: #fff !important;
 }
 
@@ -217,41 +317,34 @@ a:hover {
 /* Modals and Dialogs */
 [role="dialog"],
 [class*="Modal"],
-[class*="modal"] {
+[class*="modal"],
+[class*="Dialog"],
+[class*="dialog"] {
   background: var(--panel) !important;
+  background-color: var(--panel) !important;
   border: 1px solid var(--border) !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  color: var(--text) !important;
 }
 
 /* Modal overlay */
 [class*="Overlay"],
-[class*="overlay"] {
+[class*="overlay"],
+[role="dialog"]::backdrop {
   background: rgba(0, 0, 0, 0.65) !important;
+  background-color: rgba(0, 0, 0, 0.65) !important;
 }
 
 /* Code blocks */
 code,
 pre {
   background: var(--bg) !important;
+  background-color: var(--bg) !important;
   color: var(--text) !important;
   border: 1px solid var(--border) !important;
   border-radius: var(--radius) !important;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace !important;
-}
-
-/* Tabs */
-[role="tab"],
-[class*="Tab"] {
-  color: var(--muted) !important;
-  border-color: transparent !important;
-}
-
-[role="tab"][aria-selected="true"],
-[class*="Tab"][data-selected] {
-  color: var(--text) !important;
-  border-color: var(--primary) !important;
-  font-weight: 600 !important;
 }
 
 /* Dividers */
@@ -259,6 +352,7 @@ hr,
 [class*="Divider"],
 [class*="divider"] {
   border-color: var(--border) !important;
+  background: var(--border) !important;
 }
 
 /* Tooltips */
@@ -266,6 +360,7 @@ hr,
 [class*="Tooltip"],
 [class*="tooltip"] {
   background: var(--panel) !important;
+  background-color: var(--panel) !important;
   color: var(--text) !important;
   border: 1px solid var(--border) !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
@@ -276,6 +371,7 @@ hr,
 [class*="Menu"],
 [class*="menu"] {
   background: var(--panel) !important;
+  background-color: var(--panel) !important;
   border: 1px solid var(--border) !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
@@ -283,6 +379,7 @@ hr,
 [role="menuitem"]:hover,
 [class*="MenuItem"]:hover {
   background: rgba(31, 111, 235, 0.1) !important;
+  background-color: rgba(31, 111, 235, 0.1) !important;
 }
 
 /* Scrollbar */
@@ -292,51 +389,59 @@ hr,
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #30363d;
+  background: #30363d !important;
   border-radius: 10px;
   border: 2px solid var(--bg);
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: transparent !important;
 }
 
-/* Specific BullBoard elements */
-[class*="Layout"] {
+/* Specific BullBoard Layout elements */
+[class*="Layout"],
+nav,
+aside,
+[class*="Sidebar"],
+[class*="sidebar"] {
   background: var(--bg) !important;
-}
-
-[class*="Sidebar"] {
-  background: var(--bg) !important;
+  background-color: var(--bg) !important;
   border-color: var(--border) !important;
 }
 
-[class*="Content"] {
-  background: var(--bg) !important;
-}
-
-/* Stats cards */
+/* Stats and metrics */
 [class*="Stats"],
-[class*="stats"] {
+[class*="stats"],
+[class*="Metric"],
+[class*="metric"] {
   background: var(--panel) !important;
+  background-color: var(--panel) !important;
   border: 1px solid var(--border) !important;
   border-radius: 8px !important;
+  color: var(--text) !important;
 }
 
 /* Progress bars */
 [class*="Progress"],
 progress {
   background: var(--border) !important;
+  background-color: var(--border) !important;
 }
 
 [class*="Progress"] > div,
 progress::-webkit-progress-value {
   background: var(--primary) !important;
+  background-color: var(--primary) !important;
 }
 
-/* Text colors */
+/* Text colors - force override */
+p, span, label, small {
+  color: var(--text) !important;
+}
+
 [class*="text-gray"],
-[class*="text-muted"] {
+[class*="text-muted"],
+[class*="muted"] {
   color: var(--muted) !important;
 }
 
@@ -344,5 +449,65 @@ progress::-webkit-progress-value {
 [class*="Empty"],
 [class*="empty"] {
   color: var(--muted) !important;
+  background: var(--panel) !important;
+  background-color: var(--panel) !important;
 }
 
+/* Lists */
+ul, ol {
+  background: transparent !important;
+}
+
+li {
+  background: var(--panel) !important;
+  background-color: var(--panel) !important;
+  color: var(--text) !important;
+}
+
+/* Specific Chakra UI overrides */
+.chakra-ui-light,
+.chakra-ui-dark,
+[data-theme="light"],
+[data-theme="dark"] {
+  background: var(--bg) !important;
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Override any inline white backgrounds */
+[style*="background: white"],
+[style*="background: #fff"],
+[style*="background-color: white"],
+[style*="background-color: #fff"],
+[style*="background: rgb(255, 255, 255)"],
+[style*="background-color: rgb(255, 255, 255)"] {
+  background: var(--panel) !important;
+  background-color: var(--panel) !important;
+}
+
+/* Override any inline light colors */
+[style*="color: #000"],
+[style*="color: black"],
+[style*="color: rgb(0, 0, 0)"] {
+  color: var(--text) !important;
+}
+
+/* Form labels */
+label {
+  color: var(--muted) !important;
+  font-weight: 500 !important;
+}
+
+/* Disabled states */
+:disabled,
+[disabled],
+[aria-disabled="true"] {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Focus states */
+:focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px !important;
+}
