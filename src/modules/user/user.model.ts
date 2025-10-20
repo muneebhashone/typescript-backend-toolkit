@@ -20,6 +20,7 @@ const SocialAccountSchema = new Schema<SocialAccountInfoType>({
 
 const UserSchema: Schema<UserType> = new Schema(
 	{
+		_id: { type: String, required: true },
 		email: { type: String, unique: true, required: true },
 		avatar: { type: String },
 		username: { type: String, required: true, unique: true },
@@ -41,6 +42,8 @@ const UserSchema: Schema<UserType> = new Schema(
 export interface ISocialAccountDocument
 	extends SocialAccountInfoType,
 		Document {}
+
 export interface IUserDocument extends Document<string>, UserModelType {}
+
 const User = mongoose.model<UserType>("User", UserSchema);
 export default User;

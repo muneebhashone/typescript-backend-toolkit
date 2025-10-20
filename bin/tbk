@@ -555,7 +555,7 @@ program
   .option('--no-transaction', 'Disable transactions')
   .action(async (opts) => {
     const { runSeeders } = await import('../src/seeders/runner');
-    const { seeders } = await import('../src/seeders/DatabaseSeeder');
+    const { seeders } = await import('../src/seeders/registry');
     const only = opts.only
       ? String(opts.only)
           .split(',')

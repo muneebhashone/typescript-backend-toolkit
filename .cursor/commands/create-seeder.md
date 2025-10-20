@@ -67,7 +67,7 @@ Scaffold a seeder and its factory for a module, register it in the database seed
    - Replace `<collection_name>` with the underlying collection name
 
 3. **Register seeder**
-   Add your seeder to `src/seeders/DatabaseSeeder.ts`:
+   Add your seeder to `src/seeders/registry.ts`:
 
    ```ts
    import { <Name>Seeder } from '../modules/<module>/seeders/<Name>Seeder';
@@ -113,7 +113,7 @@ Scaffold a seeder and its factory for a module, register it in the database seed
 - [ ] Factory file generated in `src/modules/<module>/factories/`
 - [ ] Seeder file generated in `src/modules/<module>/seeders/`
 - [ ] Factory implements `build(i, overrides)` method
-- [ ] Seeder registered in `src/seeders/DatabaseSeeder.ts`
+- [ ] Seeder registered in `src/seeders/registry.ts`
 - [ ] Collections specified in seeder config
 - [ ] MongoDB service running (`docker compose up -d`)
 - [ ] Seeder tested with `--dry-run` flag
