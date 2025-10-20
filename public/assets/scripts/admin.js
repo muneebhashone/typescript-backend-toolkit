@@ -47,12 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
       ? {}
       : { 'Content-Type': 'application/json' };
     const headers = { ...baseHeaders, ...(opts.headers || {}) };
-    const res = await fetch(`{{ adminPath }}/api${path}`, { ...opts, headers });
+    const res = await fetch(`/admin/api${path}`, { ...opts, headers });
 
     // Handle unauthorized - redirect to login
     if (res.status === 401) {
       window.location.href =
-        '{{ adminPath }}/login?next=' +
+        '/login?next=' +
         encodeURIComponent(window.location.pathname);
       throw new Error('Unauthorized');
     }
@@ -497,11 +497,11 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#logoutBtn').onclick = async () => {
     if (confirm('Are you sure you want to logout?')) {
       try {
-        await fetch('{{ adminPath }}/logout', {
+        await fetch('/admin/logout', {
           method: 'POST',
           headers: { accept: 'application/json' },
         });
-        window.location.href = '{{ adminPath }}/login';
+        window.location.href = './login';
       } catch (e) {
         alert('Logout failed. Please try again.');
       }

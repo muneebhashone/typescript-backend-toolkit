@@ -542,19 +542,10 @@ export function registerAdminUI(
   if (guard) handlers.push(guard);
   handlers.push((_req, res) => {
     const indexPath = path.join(process.cwd(), 'public', 'admin', 'index.html');
-    let fileContent = fs.readFileSync(indexPath, 'utf8');
-    fileContent = fileContent.replaceAll('{{ adminPath }}', adminPath);
-    res.send(fileContent);
+    res.sendFile(indexPath);
   });
 
   app.get(adminPath, ...handlers);
-  app.get(`${adminPath}/*`, (req, res) => {
-    const requestPath = req.path.replace(adminPath, '');
-    const filePath = path.join(process.cwd(), 'public', 'admin', requestPath);
-    let fileContent = fs.readFileSync(filePath, 'utf8');
-    fileContent = fileContent.replaceAll('{{ adminPath }}', adminPath);
-    res.send(fileContent);
-  });
 }
 
 function findFieldByPath(
