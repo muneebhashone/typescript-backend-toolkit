@@ -55,11 +55,18 @@ program
 program
   .command('make:seeder <module>/<name>')
   .description('Scaffold a new module seeder')
+  .option('-c, --count <number>', 'Default count for dev/test', '5')
+  .option('-u, --unique <field>', 'Unique field to upsert by')
+  .option('-d, --depends-on <names>', 'Comma-separated additional dependencies')
+  .option('--model <export>', 'Model export name when not default')
   .action(createMakeSeederAction);
 
 program
   .command('make:factory <module>/<name>')
   .description('Scaffold a new module factory')
+  .option('--model <export>', 'Model export name when not default')
+  .option('--use <service|model>', 'Prefer using service create function when present', 'service')
+  .option('--id-type <string|objectId>', 'Hint for _id type when ambiguous')
   .action(createMakeFactoryAction);
 
 program.parse();
