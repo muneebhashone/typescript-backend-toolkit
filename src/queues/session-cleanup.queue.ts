@@ -1,5 +1,8 @@
 import { Queue } from '../lib/queue';
-import { getSessionManager } from '../modules/auth/session/session.manager';
+import {
+  getSessionManager,
+  SessionManager,
+} from '../modules/auth/session/session.manager';
 import { createChildLogger } from '@/plugins/observability/logger';
 import config from '../config/env';
 
@@ -17,9 +20,15 @@ export const SessionCleanupQueue = Queue<SessionCleanupPayload>(
       return { skipped: true };
     }
 
+    let sessionManager: SessionManager | null = null;
+
     try {
       const { data } = job;
-      const sessionManager = getSessionManager();
+      try {
+        sessionManager = getSessionManager();
+      } catch {
+        return { skipped: true, reason: 'Session manager not initialized' };
+      }
 
       logger.info({ type: data.type }, 'Starting session cleanup');
 

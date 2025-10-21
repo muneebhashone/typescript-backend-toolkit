@@ -22,12 +22,20 @@ export interface BullboardOptions {
 /**
  * Middleware to inject custom CSS and JS into BullBoard HTML responses
  */
-function injectAssetsMiddleware(req: Request, res: Response, next: NextFunction): void {
+function injectAssetsMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const originalSend = res.send;
 
   res.send = function (data: any): Response {
     // Only modify HTML responses
-    if (typeof data === 'string' && data.includes('</head>') && data.includes('</body>')) {
+    if (
+      typeof data === 'string' &&
+      data.includes('</head>') &&
+      data.includes('</body>')
+    ) {
       // Inject custom CSS before </head>
       data = data.replace(
         '</head>',
@@ -66,12 +74,27 @@ export const bullboardPlugin: PluginFactory<BullboardOptions> = (
         queues: Object.entries(registeredQueues || {}).map(
           ([, values]) => new BullMQAdapter(values.queue),
         ),
+        options: {
+          uiConfig: {
+            boardTitle: 'Queues Manager',
+            boardLogo: {
+              path: '/assets/images/logo.webp',
+              width: '30px',
+              height: '30px',
+            },
+          },
+        },
         serverAdapter,
       });
 
       // Queues login page
       app.get(`${path}/login`, (_req, res) => {
-        const loginPath = pathLib.join(process.cwd(), 'public', 'queues', 'login.html');
+        const loginPath = pathLib.join(
+          process.cwd(),
+          'public',
+          'queues',
+          'login.html',
+        );
         res.sendFile(loginPath);
       });
 
@@ -84,7 +107,11 @@ export const bullboardPlugin: PluginFactory<BullboardOptions> = (
           return res.status(429).json({ error: 'too_many_attempts' });
         }
 
-        if (!username || !password || !compareQueueCredentials(username, password)) {
+        if (
+          !username ||
+          !password ||
+          !compareQueueCredentials(username, password)
+        ) {
           return res.status(401).json({ error: 'invalid_credentials' });
         }
 
@@ -96,7 +123,8 @@ export const bullboardPlugin: PluginFactory<BullboardOptions> = (
           return res.json({ ok: true });
         }
 
-        const nextUrl = typeof req.query.next === 'string' ? req.query.next : path;
+        const nextUrl =
+          typeof req.query.next === 'string' ? req.query.next : path;
         return res.redirect(nextUrl);
       });
 
