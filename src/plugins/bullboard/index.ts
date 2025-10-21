@@ -23,7 +23,7 @@ export interface BullboardOptions {
  * Middleware to inject custom CSS and JS into BullBoard HTML responses
  */
 function injectAssetsMiddleware(
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ): void {

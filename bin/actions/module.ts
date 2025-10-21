@@ -1,135 +1,20 @@
-#!/usr/bin/env tsx
-
-import { Command } from 'commander';
-import fs from 'fs/promises';
 import path from 'path';
+import fs from 'fs/promises';
 
-const program = new Command();
+export const createModuleAction = async (
+  name: string,
+  options: { path: string },
+) => {
+  const moduleName = name.toLowerCase();
+  const className = name.charAt(0).toUpperCase() + name.slice(1);
+  const moduleDir = path.join(process.cwd(), 'src', 'modules', moduleName);
 
-program
-  .name('tbk')
-  .description('TypeScript Backend Toolkit CLI')
-  .version('1.0.0');
+  try {
+    // Create module directory
+    await fs.mkdir(moduleDir, { recursive: true });
 
-program
-  .command('generate:plugin <name>')
-  .alias('g:plugin')
-  .description('Generate a new plugin')
-  .action(async (name) => {
-    const pluginName = name.toLowerCase();
-    const className = name.charAt(0).toUpperCase() + name.slice(1);
-
-    const pluginContent = `import type { ToolkitPlugin, PluginFactory } from '@/plugins/types';
-
-export interface ${className}Options {
-  enabled?: boolean;
-}
-
-export const ${pluginName}Plugin: PluginFactory<${className}Options> = (
-  options = {},
-): ToolkitPlugin<${className}Options> => {
-  const { enabled = true } = options;
-
-  return {
-    name: '${pluginName}',
-    priority: 50,
-    options,
-    
-    register({ app }) {
-      if (!enabled) {
-        return;
-      }
-
-      // Plugin implementation here
-      console.log('${className} plugin registered');
-    },
-
-    onShutdown: async () => {
-      // Cleanup logic here
-      console.log('${className} plugin shutdown');
-    },
-  };
-};
-
-export default ${pluginName}Plugin;
-`;
-
-    await fs.mkdir(path.join(process.cwd(), 'src', 'plugins', pluginName), {
-      recursive: true,
-    });
-
-    const outputPath = path.join(
-      process.cwd(),
-      'src',
-      'plugins',
-      pluginName,
-      'index.ts',
-    );
-
-    try {
-      await fs.writeFile(outputPath, pluginContent, 'utf-8');
-      console.log(`✓ Plugin created: ${outputPath}`);
-    } catch (error) {
-      console.error('Failed to create plugin:', error);
-      process.exit(1);
-    }
-  });
-
-program
-  .command('generate:middleware <name>')
-  .alias('g:middleware')
-  .description('Generate a new middleware')
-  .action(async (name) => {
-    const middlewareName = name.toLowerCase();
-
-    const middlewareContent = `import type { Request, Response, NextFunction } from 'express';
-
-export function ${middlewareName}Middleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
-  // Middleware implementation here
-  next();
-}
-
-export default ${middlewareName}Middleware;
-`;
-
-    const outputPath = path.join(
-      process.cwd(),
-      'src',
-      'middlewares',
-      `${middlewareName}.ts`,
-    );
-
-    try {
-      await fs.writeFile(outputPath, middlewareContent, 'utf-8');
-      console.log(`✓ Middleware created: ${outputPath}`);
-    } catch (error) {
-      console.error('Failed to create middleware:', error);
-      process.exit(1);
-    }
-  });
-
-program
-  .command('generate:module <name>')
-  .alias('g:module')
-  .description(
-    'Generate a complete module with all files (dto, model, schema, services, controller, router)',
-  )
-  .option('-p, --path <path>', 'API path prefix', '/api')
-  .action(async (name, options) => {
-    const moduleName = name.toLowerCase();
-    const className = name.charAt(0).toUpperCase() + name.slice(1);
-    const moduleDir = path.join(process.cwd(), 'src', 'modules', moduleName);
-
-    try {
-      // Create module directory
-      await fs.mkdir(moduleDir, { recursive: true });
-
-      // 1. DTO file
-      const dtoContent = `import { z } from "zod";
+    // 1. DTO file
+    const dtoContent = `import { z } from "zod";
 import { definePaginatedResponse } from "@/common/common.utils";
 
 export const ${moduleName}OutSchema = z.object({
@@ -150,8 +35,8 @@ export type ${className}Type = z.infer<typeof ${moduleName}Schema> & { id: strin
 export type ${className}PaginatedType = z.infer<typeof ${moduleName}sPaginatedSchema>;
 `;
 
-      // 2. Model file
-      const modelContent = `import mongoose, { type Document, Schema } from "mongoose";
+    // 2. Model file
+    const modelContent = `import mongoose, { type Document, Schema } from "mongoose";
 import type { ${className}ModelType, ${className}Type } from "./${moduleName}.dto";
 
 const ${className}Schema: Schema<${className}Type> = new Schema(
@@ -167,8 +52,8 @@ const ${className} = mongoose.model<${className}Type>("${className}", ${classNam
 export default ${className};
 `;
 
-      // 3. Schema file (validation)
-      const schemaContent = `import { z } from "zod";
+    // 3. Schema file (validation)
+    const schemaContent = `import { z } from "zod";
 import { R } from "@/plugins/magic/response.builders";
 import { ${moduleName}OutSchema } from "./${moduleName}.dto";
 
@@ -224,8 +109,8 @@ export type Update${className}ResponseSchema = z.infer<typeof update${className}
 export type Delete${className}ResponseSchema = z.infer<typeof delete${className}ResponseSchema>;
 `;
 
-      // 4. Services file
-      const servicesContent = `import type { FilterQuery } from "mongoose";
+    // 4. Services file
+    const servicesContent = `import type { FilterQuery } from "mongoose";
 import type { MongoIdSchemaType } from "@/common/common.schema";
 import { getPaginator } from "@/utils/pagination.utils";
 import type { ${className}Type } from "./${moduleName}.dto";
@@ -305,8 +190,8 @@ export const get${className}s = async (
 };
 `;
 
-      // 5. Controller file
-      const controllerContent = `import type { Request } from "express";
+    // 5. Controller file
+    const controllerContent = `import type { Request } from "express";
 import type { MongoIdSchemaType } from "@/common/common.schema";
 import type { ResponseExtended } from "@/types";
 import type { 
@@ -387,8 +272,8 @@ export const handleDelete${className} = async (
 };
 `;
 
-      // 6. Router file
-      const routerContent = `import { mongoIdSchema } from "@/common/common.schema";
+    // 6. Router file
+    const routerContent = `import { mongoIdSchema } from "@/common/common.schema";
 import { canAccess } from "@/middlewares/can-access";
 import MagicRouter from "@/plugins/magic/router";
 import {
@@ -484,182 +369,55 @@ ${moduleName}Router.delete(
 export default ${moduleName}Router.getRouter();
 `;
 
-      // Write all files
-      await Promise.all([
-        fs.writeFile(
-          path.join(moduleDir, `${moduleName}.dto.ts`),
-          dtoContent,
-          'utf-8',
-        ),
-        fs.writeFile(
-          path.join(moduleDir, `${moduleName}.model.ts`),
-          modelContent,
-          'utf-8',
-        ),
-        fs.writeFile(
-          path.join(moduleDir, `${moduleName}.schema.ts`),
-          schemaContent,
-          'utf-8',
-        ),
-        fs.writeFile(
-          path.join(moduleDir, `${moduleName}.services.ts`),
-          servicesContent,
-          'utf-8',
-        ),
-        fs.writeFile(
-          path.join(moduleDir, `${moduleName}.controller.ts`),
-          controllerContent,
-          'utf-8',
-        ),
-        fs.writeFile(
-          path.join(moduleDir, `${moduleName}.router.ts`),
-          routerContent,
-          'utf-8',
-        ),
-      ]);
+    // Write all files
+    await Promise.all([
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.dto.ts`),
+        dtoContent,
+        'utf-8',
+      ),
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.model.ts`),
+        modelContent,
+        'utf-8',
+      ),
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.schema.ts`),
+        schemaContent,
+        'utf-8',
+      ),
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.services.ts`),
+        servicesContent,
+        'utf-8',
+      ),
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.controller.ts`),
+        controllerContent,
+        'utf-8',
+      ),
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.router.ts`),
+        routerContent,
+        'utf-8',
+      ),
+    ]);
 
-      console.log(`✓ Module created: ${moduleDir}`);
-      console.log(`  ├── ${moduleName}.dto.ts`);
-      console.log(`  ├── ${moduleName}.model.ts`);
-      console.log(`  ├── ${moduleName}.schema.ts`);
-      console.log(`  ├── ${moduleName}.services.ts`);
-      console.log(`  ├── ${moduleName}.controller.ts`);
-      console.log(`  └── ${moduleName}.router.ts`);
-      console.log();
-      console.log(`Next steps:`);
-      console.log(`  1. Register the router in your main app file`);
-      console.log(`  2. Customize the model fields in ${moduleName}.model.ts`);
-      console.log(`  3. Update validation schemas in ${moduleName}.schema.ts`);
-      console.log(`  4. Add business logic to ${moduleName}.services.ts`);
-    } catch (error) {
-      console.error('Failed to create module:', error);
-      process.exit(1);
-    }
-  });
-
-// Seeder commands
-program
-  .command('seed')
-  .description('Run database seeders')
-  .option('-g, --group <group>', 'Group to run (base|dev|test|demo)', 'dev')
-  .option('--only <names>', 'Comma separated seeder names')
-  .option('--fresh', 'Drop involved collections before seeding')
-  .option('--force', 'Force run in production')
-  .option('--dry-run', 'Do not write, only log actions')
-  .option(
-    '--seed <number>',
-    'Random seed for data generation',
-    (v) => Number(v),
-    1,
-  )
-  .option('--no-transaction', 'Disable transactions')
-  .action(async (opts) => {
-    const { runSeeders } = await import('../src/seeders/runner');
-    const { seeders } = await import('../src/seeders/registry');
-    const only = opts.only
-      ? String(opts.only)
-          .split(',')
-          .map((s) => s.trim())
-      : undefined;
-
-    try {
-      await runSeeders(seeders, {
-        group: opts.group,
-        only,
-        fresh: Boolean(opts.fresh),
-        force: Boolean(opts.force),
-        dryRun: Boolean(opts.dryRun),
-        seed: Number(opts.seed) || 1,
-        transaction: opts.transaction ?? true,
-      });
-      process.exit(0);
-    } catch (error) {
-      console.error('Seeding failed:', error);
-      process.exit(1);
-    }
-  });
-
-program
-  .command('make:seeder <module>/<name>')
-  .description('Scaffold a new module seeder')
-  .action(async (fullName) => {
-    const [module, rawName] = String(fullName).split('/');
-    const seederName = rawName.endsWith('Seeder')
-      ? rawName
-      : `${rawName}Seeder`;
-    const className = seederName;
-    const fs = await import('fs/promises');
-    const path = await import('path');
-
-    const content = `import type { Seeder } from '@/seeders/types';
-
-export const ${className}: Seeder = {
-  name: '${className}',
-  groups: ['dev'],
-  dependsOn: [],
-  collections: [],
-  async run(ctx) {
-    // TODO: implement seeding logic
-    ctx.logger.info('Running ${className}');
-  },
+    console.log(`✓ Module created: ${moduleDir}`);
+    console.log(`  ├── ${moduleName}.dto.ts`);
+    console.log(`  ├── ${moduleName}.model.ts`);
+    console.log(`  ├── ${moduleName}.schema.ts`);
+    console.log(`  ├── ${moduleName}.services.ts`);
+    console.log(`  ├── ${moduleName}.controller.ts`);
+    console.log(`  └── ${moduleName}.router.ts`);
+    console.log();
+    console.log(`Next steps:`);
+    console.log(`  1. Register the router in your main app file`);
+    console.log(`  2. Customize the model fields in ${moduleName}.model.ts`);
+    console.log(`  3. Update validation schemas in ${moduleName}.schema.ts`);
+    console.log(`  4. Add business logic to ${moduleName}.services.ts`);
+  } catch (error) {
+    console.error('Failed to create module:', error);
+    process.exit(1);
+  }
 };
-`;
-
-    const outputPath = path.join(
-      process.cwd(),
-      'src',
-      'modules',
-      module,
-      'seeders',
-    );
-    const filePath = path.join(outputPath, `${className}.ts`);
-    try {
-      await fs.mkdir(outputPath, { recursive: true });
-      await fs.writeFile(filePath, content, 'utf-8');
-      console.log(`✓ Seeder created: ${filePath}`);
-    } catch (error) {
-      console.error('Failed to create seeder:', error);
-      process.exit(1);
-    }
-  });
-
-program
-  .command('make:factory <module>/<name>')
-  .description('Scaffold a new module factory')
-  .action(async (fullName) => {
-    const [module, rawName] = String(fullName).split('/');
-    const baseName = rawName.replace(/\.factory$/i, '');
-    const factoryVar = `${baseName.charAt(0).toLowerCase()}${baseName.slice(1)}Factory`;
-    const fs = await import('fs/promises');
-    const path = await import('path');
-
-    const content = `// Example factory template. Adjust DTO and service imports.
-export const ${factoryVar} = {
-  build(i = 1, overrides: Record<string, unknown> = {}) {
-    return { name: '${baseName} ' + i, ...overrides } as Record<string, unknown>;
-  },
-};
-`;
-
-    const outputPath = path.join(
-      process.cwd(),
-      'src',
-      'modules',
-      module,
-      'factories',
-    );
-    const filePath = path.join(
-      outputPath,
-      `${baseName.toLowerCase()}.factory.ts`,
-    );
-    try {
-      await fs.mkdir(outputPath, { recursive: true });
-      await fs.writeFile(filePath, content, 'utf-8');
-      console.log(`✓ Factory created: ${filePath}`);
-    } catch (error) {
-      console.error('Failed to create factory:', error);
-      process.exit(1);
-    }
-  });
-
-program.parse();
