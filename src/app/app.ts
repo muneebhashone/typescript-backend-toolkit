@@ -11,12 +11,10 @@ import { realtimePlugin } from '@/plugins/realtime';
 import { lifecyclePlugin } from '@/plugins/lifecycle';
 import { adminDashboardPlugin } from '@/plugins/admin';
 import { bullboardPlugin } from '../plugins/bullboard';
-import { basicParserPlugin } from '../plugins/basicParser';
 
 export async function initializeApp(port: number) {
   const { app, server, plugins } = await createApp({
     plugins: [
-      basicParserPlugin(),
       authPlugin({
         session: {
           enabled: config.SET_SESSION,
@@ -58,7 +56,10 @@ export async function initializeApp(port: number) {
     port,
   });
 
-  app.use("/assets", express.static(path.join(process.cwd(), 'public', 'assets')));
+  app.use(
+    '/assets',
+    express.static(path.join(process.cwd(), 'public', 'assets')),
+  );
 
   app.use(compression({ threshold: 1024 * 10 }));
 

@@ -1,4 +1,4 @@
-import {
+import express, {
   type NextFunction,
   type Request,
   type Response,
@@ -16,6 +16,7 @@ import {
 import { canAccess } from '@/middlewares/can-access';
 import { responseValidator } from '@/middlewares/response-validator';
 import { validateZodSchema } from '@/middlewares/validate-zod-schema';
+import cookieParser from 'cookie-parser';
 import type {
   RequestZodSchemaType,
   ResponseExtended,
@@ -98,6 +99,8 @@ export type RequestAndResponseType = {
     | 'application/x-www-form-urlencoded';
   // Per-route multipart configuration
   multipart?: true | MultipartOptions;
+  // Enable cookie parsing for this route even without canAccess middleware
+  useCookieParser?: boolean;
 };
 
 export class MagicRouter<PathSet extends boolean = false> {
@@ -186,9 +189,16 @@ export class MagicRouter<PathSet extends boolean = false> {
       : null;
 
     const hasSecurity = middlewares.some((m) => m.name === canAccess().name);
+    const shouldUseCookieParser = hasSecurity || requestAndResponseType.useCookieParser === true;
 
     const contentType =
       requestAndResponseType.contentType ?? 'application/json';
+    const needsJsonParser =
+      contentType === 'application/json' &&
+      (method === 'post' || method === 'put' || method === 'patch');
+    const needsUrlencodedParser =
+      contentType === 'application/x-www-form-urlencoded' &&
+      (method === 'post' || method === 'put' || method === 'patch');
 
     // Middleware to attach response schemas to res.locals
     const attachResponseSchemasMiddleware: MagicMiddleware = (
@@ -382,7 +392,12 @@ export class MagicRouter<PathSet extends boolean = false> {
         path,
         attachResponseSchemasMiddleware,
         responseValidator,
+        ...(shouldUseCookieParser ? [cookieParser()] : []),
         ...(needsMultipart ? [multipartParser] : []),
+        ...(needsJsonParser ? [express.json()] : []),
+        ...(needsUrlencodedParser
+          ? [express.urlencoded({ extended: false })]
+          : []),
         validateZodSchema(requestType),
         ...middlewares,
         controller,
@@ -392,7 +407,12 @@ export class MagicRouter<PathSet extends boolean = false> {
         path,
         attachResponseSchemasMiddleware,
         responseValidator,
+        ...(shouldUseCookieParser ? [cookieParser()] : []),
         ...(needsMultipart ? [multipartParser] : []),
+        ...(needsJsonParser ? [express.json()] : []),
+        ...(needsUrlencodedParser
+          ? [express.urlencoded({ extended: false })]
+          : []),
         ...middlewares,
         controller,
       );
