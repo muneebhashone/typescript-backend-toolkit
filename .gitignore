@@ -132,3 +132,18 @@ dist
 # database
 .database
 .aider*
+
+.claude
+
+.dump
+
+openapi.yml 
+
+src/generated
+
+Api.ts
+
+.windsurf
+
+#Ignore cursor AI rules
+.cursor/rules/codacy.mdc
