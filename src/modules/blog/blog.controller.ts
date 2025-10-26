@@ -25,11 +25,11 @@ export const handleCreateBlog = async (
   res: ResponseExtended<CreateBlogResponseSchema>,
 ) => {
   const blog = await createBlog(req.body);
-  return res.json({
+  return res.created?.({
     success: true,
     message: 'Blog created successfully',
     data: blog,
-  }) as unknown as void;
+  });
 };
 
 // Using new res.ok() helper with paginated response
@@ -38,16 +38,13 @@ export const handleGetBlogs = async (
   res: ResponseExtended<GetBlogsResponseSchema>,
 ) => {
   const { results, paginatorInfo } = await getBlogs(req.query);
-  res.ok?.({
+  return res.ok?.({
     success: true,
     data: {
       items: results,
       paginator: paginatorInfo,
     },
-  })
-
-  return;
-
+  });
 };
 
 // Using new res.ok() helper
