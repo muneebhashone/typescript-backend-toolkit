@@ -72,7 +72,7 @@ Scaffold a fully-typed module with controller, service, router, schema, and mode
 
 5. **Register with admin dashboard** (if needed)
 
-   Add your module to `src/admin/registry.ts`:
+   Add your module to `src/plugins/admin/registry.ts`:
 
    ```ts
    import <ModuleName>Model from '../modules/<moduleName>/<moduleName>.model';
