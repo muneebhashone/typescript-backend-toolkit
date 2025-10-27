@@ -1,5 +1,5 @@
 import type { ToolkitPlugin, PluginFactory } from '@/plugins/types';
-
+import express from 'express';
 import {
   adminAuthGuardApi,
   adminAuthGuardUI,
@@ -14,6 +14,7 @@ import path from 'path';
 import logger from '@/plugins/observability/logger';
 
 import { adminApiRouter, registerAdminUI } from './router';
+import cookieParser from 'cookie-parser';
 
 export interface AdminDashboardOptions {
   adminPath: string;
@@ -31,6 +32,10 @@ export const adminDashboardPlugin: PluginFactory<AdminDashboardOptions> = (
     options,
 
     register({ app, port }) {
+
+      app.use(express.json());
+      app.use(express.urlencoded({ extended: true }));
+      app.use(cookieParser())
 
       app.get(`/admin/login`, (req, res) => {
         const loginPath = path.join(

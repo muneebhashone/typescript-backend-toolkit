@@ -10,11 +10,15 @@ import { authPlugin } from '@/plugins/auth';
 import { realtimePlugin } from '@/plugins/realtime';
 import { lifecyclePlugin } from '@/plugins/lifecycle';
 import { adminDashboardPlugin } from '@/plugins/admin';
-import { bullboardPlugin } from '../plugins/bullboard';
+import { bullboardPlugin } from '@/plugins/bullboard';
+import { basicparserPlugin } from '@/plugins/basicparser';
 
 export async function initializeApp(port: number) {
   const { app, server, plugins } = await createApp({
     plugins: [
+      basicparserPlugin({
+        enabled: true,
+      }),
       authPlugin({
         session: {
           enabled: config.SET_SESSION,
