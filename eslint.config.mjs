@@ -16,13 +16,17 @@ export default [
       'dist',
       '.database',
       '.database/*',
+      'public/*',
+      'public/**/*',
+      'src/plugins/admin/*',
+      'src/plugins/magic/*',
     ],
   },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   {
     rules: {
-       "@typescript-eslint/no-explicit-any": "warn",
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {

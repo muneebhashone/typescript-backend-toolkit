@@ -1,0 +1,464 @@
+---
+globs: *.controller.ts
+description: Controller patterns for handling business logic
+---
+
+# Controller Patterns
+
+## Core Principle
+
+Controllers are async functions that handle validated requests and return responses. They should be thin - delegate complex logic to services.
+
+## Controller Template
+
+```typescript
+import type { Request } from 'express';
+import type { ResponseExtended } from '@/types';
+import type { JwtPayload } from '@/utils/jwt.utils';
+import type {
+  CreateItemSchemaType,
+  GetItemsSchemaType,
+  CreateItemResponseSchema,
+  GetItemsResponseSchema,
+} from './module.schema';
+import {
+  createItem,
+  deleteItem,
+  findById,
+  getItems,
+  updateItem,
+} from './module.service';
+
+/**
+ * Description of what this controller does
+ */
+export const handleAction = async (
+  req: Request<unknown, unknown, CreateItemSchemaType>,
+  res: ResponseExtended<CreateItemResponseSchema>,
+) => {
+  // 1. Extract validated data (already validated by Zod middleware)
+  const { email, name } = req.body; // From body schema
+  const { id } = req.params; // From params schema
+  const { page = 1, limit = 10 } = req.query; // From query schema
+
+  // 2. Access JWT payload (if route uses canAccess middleware)
+  const userId = req.user?.sub;
+
+  // 3. Call service layer for business logic
+  const result = await createItem({ email, name, userId });
+
+  // 4. Return response using typed helper (NEW PATTERN - RECOMMENDED)
+  return res.created?.({
+    success: true,
+    message: 'Item created successfully',
+    data: result,
+  });
+};
+
+/**
+ * Example: Get single item (NEW PATTERN)
+ */
+export const handleGetById = async (
+  req: Request<{ id: string }, unknown, unknown>,
+  res: ResponseExtended<GetItemByIdResponseSchema>,
+) => {
+  const { id } = req.params;
+
+  const item = await findById(id);
+
+  return res.ok?.({
+    success: true,
+    data: item,
+  });
+};
+
+/**
+ * Example: List with pagination (NEW PATTERN)
+ */
+export const handleGetItems = async (
+  req: Request<unknown, unknown, unknown, GetItemsSchemaType>,
+  res: ResponseExtended<GetItemsResponseSchema>,
+) => {
+  const { results, paginatorInfo } = await getItems(req.query);
+
+  return res.ok?.({
+    success: true,
+    data: {
+      items: results,
+      paginator: paginatorInfo,
+    },
+  });
+};
+
+/**
+ * Example: Create new item
+ */
+export const handleCreate = async (
+  req: Request<unknown, unknown, CreateItemSchemaType>,
+  res: Response,
+) => {
+  const data = req.body;
+  const userId = req.user?.sub;
+
+  const item = await createItem({ ...data, createdBy: userId });
+
+  return successResponse(res, 'Item created', item, StatusCodes.CREATED);
+};
+
+/**
+ * Example: Update item
+ */
+export const handleUpdate = async (
+  req: Request<{ id: string }, unknown, UpdateItemSchemaType>,
+  res: Response,
+) => {
+  const { id } = req.params;
+  const data = req.body;
+  const userId = req.user?.sub;
+
+  const item = await updateItem(id, data, userId);
+
+  if (!item) {
+    return successResponse(
+      res,
+      'Item not found',
+      undefined,
+      StatusCodes.NOT_FOUND,
+    );
+  }
+
+  return successResponse(res, 'Item updated', item);
+};
+
+/**
+ * Example: Delete item
+ */
+export const handleDelete = async (
+  req: Request<{ id: string }, unknown, unknown>,
+  res: Response,
+) => {
+  const { id } = req.params;
+
+  await deleteItem(id);
+
+  return successResponse(res, 'Item deleted successfully');
+};
+
+/**
+ * Example: Controller with no request params (unused)
+ */
+export const handlePublicAction = async (_: Request, res: Response) => {
+  const result = await performAction();
+
+  return successResponse(res, 'Action completed', result);
+};
+```
+
+## Key Points
+
+### TypeScript Request Typing
+
+Always use TypeScript generics for type-safe requests:
+
+```typescript
+Request<ParamsType, unknown, BodyType, QueryType>;
+
+// Examples:
+Request<{ id: string }, unknown, unknown>; // params only
+Request<unknown, unknown, CreateUserSchemaType>; // body only
+Request<unknown, unknown, unknown, GetUsersSchemaType>; // query only
+Request<{ id: string }, unknown, UpdateUserSchemaType>; // params + body
+```
+
+### Request Data Access
+
+- `req.body` - Request body (validated by Zod)
+- `req.params` - URL parameters (validated by Zod)
+- `req.query` - Query parameters (validated by Zod)
+- `req.user` - JWT token payload (if using extractJwt middleware)
+- `req.file` / `req.files` - Uploaded files (if using multer middleware)
+
+### JWT Payload Access
+
+When route uses `extractJwt` middleware from [extract-jwt-schema.ts](mdc:src/middlewares/extract-jwt-schema.ts):
+
+```typescript
+import type { JwtPayload } from '@/utils/jwt.utils';
+
+// Access JWT payload via req.user
+const userId = req.user?.sub; // User ID
+const email = req.user?.email; // User email
+const username = req.user?.username; // Username
+const role = req.user?.role; // User role
+
+// Type assertion if needed
+const payload = req.user as JwtPayload;
+```
+
+**JwtPayload Type:**
+
+```typescript
+type JwtPayload = {
+  sub: string; // User ID
+  email?: string | null;
+  phoneNo?: string | null;
+  username: string;
+  role: RoleType;
+};
+```
+
+### File Upload Access
+
+When route uses multer middleware from [multer-s3.ts](mdc:src/middlewares/multer-s3.ts):
+
+```typescript
+const file = req.file; // For single file
+const files = req.files; // For multiple files
+const url = (req.file as any).location; // S3 URL
+```
+
+### Response Pattern
+
+**NEW (RECOMMENDED): Use typed response helpers** from ResponseExtended:
+
+```typescript
+import type { ResponseExtended } from '@/types';
+
+// 200 OK response
+return res.ok?.({
+  success: true,
+  message: 'Success message',
+  data: item,
+});
+
+// 201 Created response
+return res.created?.({
+  success: true,
+  message: 'Item created',
+  data: newItem,
+});
+
+// 204 No Content response
+return res.noContent?.();
+
+// Paginated list response
+return res.ok?.({
+  success: true,
+  data: {
+    items: results,
+    paginator: paginatorInfo,
+  },
+});
+```
+
+**LEGACY (STILL SUPPORTED): `successResponse()` helper** from [response.utils.ts](mdc:src/utils/response.utils.ts):
+
+```typescript
+import { successResponse } from '@/utils/response.utils';
+import { StatusCodes } from '@/plugins/magic/status-codes';
+
+// Basic success (200 OK)
+return successResponse(res, 'Success message');
+
+// Success with data
+return successResponse(res, 'User created', user);
+
+// Success with custom status code
+return successResponse(res, 'Created', item, StatusCodes.CREATED);
+
+// Success with data but no message
+return successResponse(res, undefined, { results, paginatorInfo });
+```
+
+**Response Helpers Benefits:**
+
+- ✅ Type-safe response structure
+- ✅ Runtime validation (configurable via `RESPONSE_VALIDATION` env var)
+- ✅ Accurate OpenAPI documentation
+- ✅ Consistent response format across your API
+- ✅ Better IDE autocomplete and error detection
+
+**Response Format:**
+
+```json
+{
+  "success": true,
+  "message": "Optional message",
+  "data": {
+    /* Optional payload */
+  }
+}
+```
+
+### Cookie Management
+
+For authentication tokens:
+
+```typescript
+import { AUTH_COOKIE_KEY, COOKIE_CONFIG } from './auth.constants';
+
+// Set auth cookie
+res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
+
+// Clear cookie on logout
+res.cookie(AUTH_COOKIE_KEY, undefined, COOKIE_CONFIG);
+```
+
+### Error Handling
+
+- Controllers don't need try-catch blocks
+- Global error handler in [error-handler.ts](mdc:src/middlewares/error-handler.ts) catches all errors
+- Just throw errors - they'll be handled automatically:
+
+```typescript
+// Simple error (500)
+throw new Error('Something went wrong');
+
+// Not found - use successResponse with 404
+if (!item) {
+  return successResponse(
+    res,
+    'Item not found',
+    undefined,
+    StatusCodes.NOT_FOUND,
+  );
+}
+
+// Or throw with custom status
+const error = new Error('Not found') as any;
+error.statusCode = 404;
+throw error;
+```
+
+### Status Codes
+
+Use `@/plugins/magic/status-codes` for type-safe status codes:
+
+```typescript
+import { StatusCodes } from '@/plugins/magic/status-codes';
+
+StatusCodes.OK; // 200
+StatusCodes.CREATED; // 201
+StatusCodes.BAD_REQUEST; // 400
+StatusCodes.UNAUTHORIZED; // 401
+StatusCodes.FORBIDDEN; // 403
+StatusCodes.NOT_FOUND; // 404
+StatusCodes.INTERNAL_SERVER_ERROR; // 500
+```
+
+### Logging
+
+Use Pino logger from [logger.ts](mdc:src/plugins/observability/logger.ts):
+
+```typescript
+import logger from '@/plugins/observability/logger';
+
+logger.info('Action performed', { userId, action: 'create' });
+logger.error('Error occurred', { error: error.message, userId });
+logger.warn('Warning message', { data });
+```
+
+## Service Layer Pattern
+
+Controllers should delegate to services in `module.service.ts`:
+
+- **Controllers**: Handle HTTP concerns (req/res, cookies, response formatting)
+- **Services**: Handle business logic, database operations, external APIs
+
+Import individual service functions:
+
+```typescript
+// ✅ DO: Import specific functions
+import { createUser, deleteUser, getUsers } from './user.service';
+
+// ❌ DON'T: Use namespace imports
+import * as userService from './user.service';
+```
+
+## Naming Conventions
+
+- Controller functions: `handle` + `PascalCase` action
+  - `handleGetUsers`
+  - `handleCreateUser`
+  - `handleDeleteUser`
+  - `handleLoginByEmail`
+  - `handleGetCurrentUser`
+
+## Real-World Examples
+
+### Authentication Controller
+
+```typescript
+export const handleLoginByEmail = async (
+  req: Request<unknown, unknown, LoginUserByEmailSchemaType>,
+  res: Response,
+) => {
+  const token = await loginUserByEmail(req.body);
+
+  if (config.SET_SESSION) {
+    res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
+  }
+
+  return successResponse(res, 'Login successful', { token });
+};
+
+export const handleLogout = async (_: Request, res: Response) => {
+  res.cookie(AUTH_COOKIE_KEY, undefined, COOKIE_CONFIG);
+
+  return successResponse(res, 'Logout successful');
+};
+```
+
+### Protected Route with JWT
+
+```typescript
+export const handleChangePassword = async (
+  req: Request<unknown, unknown, ChangePasswordSchemaType>,
+  res: Response,
+) => {
+  const userId = (req.user as JwtPayload).sub;
+
+  await changePassword(userId, req.body);
+
+  return successResponse(res, 'Password successfully changed');
+};
+```
+
+### Paginated List
+
+```typescript
+export const handleGetUsers = async (
+  req: Request<unknown, unknown, unknown, GetUsersSchemaType>,
+  res: Response,
+) => {
+  const { results, paginatorInfo } = await getUsers(
+    { id: req.user.sub },
+    req.query,
+  );
+
+  return successResponse(res, undefined, { results, paginatorInfo });
+};
+```
+
+## Common Mistakes to Avoid
+
+❌ DON'T use direct `res.status().json()`
+✅ DO use `successResponse()` helper
+
+❌ DON'T use `req.jwtPayload`
+✅ DO use `req.user` for JWT payload
+
+❌ DON'T put business logic in controllers
+✅ DO move complex logic to services
+
+❌ DON'T validate data in controllers (Zod does this)
+✅ DO trust validated data from req.body/params/query
+
+❌ DON'T use try-catch everywhere
+✅ DO let global error handler catch errors
+
+❌ DON'T send multiple responses
+✅ DO return single response per request
+
+❌ DON'T use namespace imports for services
+✅ DO import individual service functions

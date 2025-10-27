@@ -1,7 +1,7 @@
 import type { FilterQuery } from "mongoose";
 import type { MongoIdSchemaType } from "../../common/common.schema";
-import { hashPassword } from "../../utils/auth.utils";
-import { getPaginator } from "../../utils/getPaginator";
+import { hashPassword } from "../../utils/password.utils";
+import { getPaginator } from "../../utils/pagination.utils";
 import type { UserModelType, UserType } from "./user.dto";
 import User, { type IUserDocument } from "./user.model";
 import type { GetUsersSchemaType } from "./user.schema";

@@ -1,0 +1,423 @@
+import path from 'path';
+import fs from 'fs/promises';
+
+export const createModuleAction = async (
+  name: string,
+  options: { path: string },
+) => {
+  const moduleName = name.toLowerCase();
+  const className = name.charAt(0).toUpperCase() + name.slice(1);
+  const moduleDir = path.join(process.cwd(), 'src', 'modules', moduleName);
+
+  try {
+    // Create module directory
+    await fs.mkdir(moduleDir, { recursive: true });
+
+    // 1. DTO file
+    const dtoContent = `import { z } from "zod";
+import { definePaginatedResponse } from "@/common/common.utils";
+
+export const ${moduleName}OutSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+
+export const ${moduleName}Schema = ${moduleName}OutSchema.extend({
+  // Add internal fields here
+});
+
+export const ${moduleName}sPaginatedSchema = definePaginatedResponse(${moduleName}OutSchema);
+
+export type ${className}ModelType = z.infer<typeof ${moduleName}Schema>;
+export type ${className}Type = z.infer<typeof ${moduleName}Schema> & { id: string; _id: string };
+export type ${className}PaginatedType = z.infer<typeof ${moduleName}sPaginatedSchema>;
+`;
+
+    // 2. Model file
+    const modelContent = `import mongoose, { type Document, Schema } from "mongoose";
+import type { ${className}ModelType, ${className}Type } from "./${moduleName}.dto";
+
+const ${className}Schema: Schema<${className}Type> = new Schema(
+  {
+    name: { type: String, required: true },
+    description: { type: String },
+  },
+  { timestamps: true },
+);
+
+export interface I${className}Document extends Document<string>, ${className}ModelType {}
+const ${className} = mongoose.model<${className}Type>("${className}", ${className}Schema);
+export default ${className};
+`;
+
+    // 3. Schema file (validation)
+    const schemaContent = `import { z } from "zod";
+import { R } from "@/plugins/magic/response.builders";
+import { ${moduleName}OutSchema } from "./${moduleName}.dto";
+
+export const create${className}Schema = z.object({
+  name: z.string({ required_error: "Name is required" }).min(1),
+  description: z.string().optional(),
+});
+
+export const update${className}Schema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+});
+
+export const get${className}sSchema = z.object({
+  searchString: z.string().optional(),
+  limitParam: z
+    .string()
+    .default("10")
+    .refine(
+      (value) => !Number.isNaN(Number(value)) && Number(value) >= 0,
+      "Input must be positive integer",
+    )
+    .transform(Number),
+  pageParam: z
+    .string()
+    .default("1")
+    .refine(
+      (value) => !Number.isNaN(Number(value)) && Number(value) >= 0,
+      "Input must be positive integer",
+    )
+    .transform(Number),
+});
+
+export type Create${className}SchemaType = z.infer<typeof create${className}Schema>;
+export type Update${className}SchemaType = z.infer<typeof update${className}Schema>;
+export type Get${className}sSchemaType = z.infer<typeof get${className}sSchema>;
+
+// Response schemas
+export const create${className}ResponseSchema = R.success(${moduleName}OutSchema);
+export const get${className}sResponseSchema = R.paginated(${moduleName}OutSchema);
+export const get${className}ByIdResponseSchema = R.success(${moduleName}OutSchema);
+export const update${className}ResponseSchema = R.success(${moduleName}OutSchema);
+export const delete${className}ResponseSchema = R.success(z.object({
+  success: z.boolean(),
+  message: z.string(),
+}));
+
+// Response types
+export type Create${className}ResponseSchema = z.infer<typeof create${className}ResponseSchema>;
+export type Get${className}sResponseSchema = z.infer<typeof get${className}sResponseSchema>;
+export type Get${className}ByIdResponseSchema = z.infer<typeof get${className}ByIdResponseSchema>;
+export type Update${className}ResponseSchema = z.infer<typeof update${className}ResponseSchema>;
+export type Delete${className}ResponseSchema = z.infer<typeof delete${className}ResponseSchema>;
+`;
+
+    // 4. Services file
+    const servicesContent = `import type { FilterQuery } from "mongoose";
+import type { MongoIdSchemaType } from "@/common/common.schema";
+import { getPaginator } from "@/utils/pagination.utils";
+import type { ${className}Type } from "./${moduleName}.dto";
+import ${className}, { type I${className}Document } from "./${moduleName}.model";
+import type { Create${className}SchemaType, Get${className}sSchemaType, Update${className}SchemaType } from "./${moduleName}.schema";
+
+export const create${className} = async (
+  payload: Create${className}SchemaType,
+): Promise<${className}Type> => {
+  const created${className} = await ${className}.create(payload);
+  return created${className}.toObject();
+};
+
+export const get${className}ById = async (${moduleName}Id: string): Promise<${className}Type> => {
+  const ${moduleName} = await ${className}.findById(${moduleName}Id);
+  
+  if (!${moduleName}) {
+    throw new Error("${className} not found");
+  }
+  
+  return ${moduleName}.toObject();
+};
+
+export const update${className} = async (
+  ${moduleName}Id: string,
+  payload: Update${className}SchemaType,
+): Promise<${className}Type> => {
+  const ${moduleName} = await ${className}.findByIdAndUpdate(
+    ${moduleName}Id,
+    { $set: payload },
+    { new: true },
+  );
+  
+  if (!${moduleName}) {
+    throw new Error("${className} not found");
+  }
+  
+  return ${moduleName}.toObject();
+};
+
+export const delete${className} = async (${moduleName}Id: MongoIdSchemaType): Promise<void> => {
+  const ${moduleName} = await ${className}.findByIdAndDelete(${moduleName}Id.id);
+  
+  if (!${moduleName}) {
+    throw new Error("${className} not found");
+  }
+};
+
+export const get${className}s = async (
+  payload: Get${className}sSchemaType,
+) => {
+  const conditions: FilterQuery<I${className}Document> = {};
+  
+  if (payload.searchString) {
+    conditions.$or = [
+      { name: { $regex: payload.searchString, $options: "i" } },
+      { description: { $regex: payload.searchString, $options: "i" } },
+    ];
+  }
+  
+  const totalRecords = await ${className}.countDocuments(conditions);
+  const paginatorInfo = getPaginator(
+    payload.limitParam,
+    payload.pageParam,
+    totalRecords,
+  );
+  
+  const results = await ${className}.find(conditions)
+    .limit(paginatorInfo.limit)
+    .skip(paginatorInfo.skip)
+    .exec();
+  
+  return {
+    results,
+    paginatorInfo,
+  };
+};
+`;
+
+    // 5. Controller file
+    const controllerContent = `import type { Request } from "express";
+import type { MongoIdSchemaType } from "@/common/common.schema";
+import type { ResponseExtended } from "@/types";
+import type { 
+  Create${className}SchemaType, 
+  Get${className}sSchemaType, 
+  Update${className}SchemaType,
+  Create${className}ResponseSchema,
+  Get${className}sResponseSchema,
+  Get${className}ByIdResponseSchema,
+  Update${className}ResponseSchema,
+  Delete${className}ResponseSchema,
+} from "./${moduleName}.schema";
+import { create${className}, delete${className}, get${className}ById, get${className}s, update${className} } from "./${moduleName}.services";
+
+// Using new res.created() helper
+export const handleCreate${className} = async (
+  req: Request<unknown, unknown, Create${className}SchemaType>,
+  res: ResponseExtended<Create${className}ResponseSchema>,
+) => {
+  const ${moduleName} = await create${className}(req.body);
+  return res.created?.({
+    success: true,
+    message: "${className} created successfully",
+    data: ${moduleName},
+  });
+};
+
+// Using new res.ok() helper with paginated response
+export const handleGet${className}s = async (
+  req: Request<unknown, unknown, unknown, Get${className}sSchemaType>,
+  res: ResponseExtended<Get${className}sResponseSchema>,
+) => {
+  const { results, paginatorInfo } = await get${className}s(req.query);
+  return res.ok?.({
+    success: true,
+    data: {
+      items: results,
+      paginator: paginatorInfo,
+    },
+  });
+};
+
+// Using new res.ok() helper
+export const handleGet${className}ById = async (
+  req: Request<MongoIdSchemaType>,
+  res: ResponseExtended<Get${className}ByIdResponseSchema>,
+) => {
+  const ${moduleName} = await get${className}ById(req.params.id);
+  return res.ok?.({
+    success: true,
+    data: ${moduleName},
+  });
+};
+
+// Using new res.ok() helper
+export const handleUpdate${className} = async (
+  req: Request<MongoIdSchemaType, unknown, Update${className}SchemaType>,
+  res: ResponseExtended<Update${className}ResponseSchema>,
+) => {
+  const ${moduleName} = await update${className}(req.params.id, req.body);
+  return res.ok?.({
+    success: true,
+    message: "${className} updated successfully",
+    data: ${moduleName},
+  });
+};
+
+// Using new res.ok() helper
+export const handleDelete${className} = async (
+  req: Request<MongoIdSchemaType>,
+  res: ResponseExtended<Delete${className}ResponseSchema>,
+) => {
+  await delete${className}({ id: req.params.id });
+  return res.ok?.({
+    success: true,
+    message: "${className} deleted successfully",
+  });
+};
+`;
+
+    // 6. Router file
+    const routerContent = `import { mongoIdSchema } from "@/common/common.schema";
+import { canAccess } from "@/middlewares/can-access";
+import MagicRouter from "@/plugins/magic/router";
+import {
+  handleCreate${className},
+  handleDelete${className},
+  handleGet${className}ById,
+  handleGet${className}s,
+  handleUpdate${className},
+} from "./${moduleName}.controller";
+import { 
+  create${className}Schema, 
+  get${className}sSchema, 
+  update${className}Schema,
+  create${className}ResponseSchema,
+  get${className}sResponseSchema,
+  get${className}ByIdResponseSchema,
+  update${className}ResponseSchema,
+  delete${className}ResponseSchema,
+} from "./${moduleName}.schema";
+
+export const ${moduleName.toUpperCase()}_ROUTER_ROOT = "${options.path}/${moduleName}s";
+
+const ${moduleName}Router = new MagicRouter(${moduleName.toUpperCase()}_ROUTER_ROOT);
+
+// List ${moduleName}s with pagination
+${moduleName}Router.get(
+  "/",
+  {
+    requestType: { query: get${className}sSchema },
+    responses: {
+      200: get${className}sResponseSchema,
+    },
+  },
+  canAccess(),
+  handleGet${className}s,
+);
+
+// Create ${moduleName}
+${moduleName}Router.post(
+  "/",
+  {
+    requestType: { body: create${className}Schema },
+    responses: {
+      201: create${className}ResponseSchema,
+    },
+  },
+  canAccess(),
+  handleCreate${className},
+);
+
+// Get ${moduleName} by ID
+${moduleName}Router.get(
+  "/:id",
+  {
+    requestType: { params: mongoIdSchema },
+    responses: {
+      200: get${className}ByIdResponseSchema,
+    },
+  },
+  canAccess(),
+  handleGet${className}ById,
+);
+
+// Update ${moduleName}
+${moduleName}Router.patch(
+  "/:id",
+  {
+    requestType: {
+      params: mongoIdSchema,
+      body: update${className}Schema,
+    },
+    responses: {
+      200: update${className}ResponseSchema,
+    },
+  },
+  canAccess(),
+  handleUpdate${className},
+);
+
+// Delete ${moduleName}
+${moduleName}Router.delete(
+  "/:id",
+  {
+    requestType: { params: mongoIdSchema },
+    responses: {
+      200: delete${className}ResponseSchema,
+    },
+  },
+  canAccess(),
+  handleDelete${className},
+);
+
+export default ${moduleName}Router.getRouter();
+`;
+
+    // Write all files
+    await Promise.all([
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.dto.ts`),
+        dtoContent,
+        'utf-8',
+      ),
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.model.ts`),
+        modelContent,
+        'utf-8',
+      ),
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.schema.ts`),
+        schemaContent,
+        'utf-8',
+      ),
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.services.ts`),
+        servicesContent,
+        'utf-8',
+      ),
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.controller.ts`),
+        controllerContent,
+        'utf-8',
+      ),
+      fs.writeFile(
+        path.join(moduleDir, `${moduleName}.router.ts`),
+        routerContent,
+        'utf-8',
+      ),
+    ]);
+
+    console.log(`✓ Module created: ${moduleDir}`);
+    console.log(`  ├── ${moduleName}.dto.ts`);
+    console.log(`  ├── ${moduleName}.model.ts`);
+    console.log(`  ├── ${moduleName}.schema.ts`);
+    console.log(`  ├── ${moduleName}.services.ts`);
+    console.log(`  ├── ${moduleName}.controller.ts`);
+    console.log(`  └── ${moduleName}.router.ts`);
+    console.log();
+    console.log(`Next steps:`);
+    console.log(`  1. Register the router in your main app file`);
+    console.log(`  2. Customize the model fields in ${moduleName}.model.ts`);
+    console.log(`  3. Update validation schemas in ${moduleName}.schema.ts`);
+    console.log(`  4. Add business logic to ${moduleName}.services.ts`);
+  } catch (error) {
+    console.error('Failed to create module:', error);
+    process.exit(1);
+  }
+};
