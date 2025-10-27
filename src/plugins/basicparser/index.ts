@@ -6,16 +6,16 @@ export interface BasicParserOptions {
   enabled?: boolean;
 }
 
-export const basicparserPlugin: PluginFactory<BasicParserOptions> = (
+export const basicParserPlugin: PluginFactory<BasicParserOptions> = (
   options = {},
 ): ToolkitPlugin<BasicParserOptions> => {
   const { enabled = true } = options;
 
   return {
-    name: 'basicparser',
+    name: 'basicParser',
     priority: 100,
     options,
-    
+
     register({ app }) {
       if (!enabled) {
         return;
@@ -23,7 +23,7 @@ export const basicparserPlugin: PluginFactory<BasicParserOptions> = (
 
       app.use(express.json());
       app.use(express.urlencoded({ extended: true }));
-      app.use(cookieParser()) 
+      app.use(cookieParser())
 
       // Plugin implementation here
       console.log('BasicParser plugin registered');
@@ -36,4 +36,4 @@ export const basicparserPlugin: PluginFactory<BasicParserOptions> = (
   };
 };
 
-export default basicparserPlugin;
+export default basicParserPlugin;

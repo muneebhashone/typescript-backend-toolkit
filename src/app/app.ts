@@ -11,12 +11,12 @@ import { realtimePlugin } from '@/plugins/realtime';
 import { lifecyclePlugin } from '@/plugins/lifecycle';
 import { adminDashboardPlugin } from '@/plugins/admin';
 import { bullboardPlugin } from '@/plugins/bullboard';
-import { basicparserPlugin } from '@/plugins/basicparser';
+import { basicParserPlugin } from '@/plugins/basicParser';
 
 export async function initializeApp(port: number) {
   const { app, server, plugins } = await createApp({
     plugins: [
-      basicparserPlugin({
+      basicParserPlugin({
         enabled: true,
       }),
       authPlugin({
