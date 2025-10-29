@@ -284,27 +284,81 @@ const otp = generateOtp({ length: 6, charset: 'numeric' });
 
 ### Error Handling
 
-Throw errors with status codes:
+**Services ALWAYS throw errors** - Controllers decide how to handle them.
+
+**Decision Tree:**
+
+1. **Not Found** - Return `null` or throw error (controller handles)
+2. **Validation Errors** - Throw with descriptive message
+3. **Permission Errors** - Throw with status code 403
+4. **Business Logic Errors** - Throw with appropriate status code
+5. **Unexpected Errors** - Let them bubble up (500)
+
+**Pattern Examples:**
 
 ```typescript
-// Not found
-const error = new Error('Item not found') as any;
-error.statusCode = 404;
-throw error;
+// Option 1: Return null for "not found" (RECOMMENDED for simple cases)
+export const findById = async (id: string) => {
+  const item = await Model.findById(id);
+  return item; // Returns null if not found - controller handles
+};
 
-// Forbidden
-const error = new Error('Insufficient permissions') as any;
-error.statusCode = 403;
-throw error;
+// Option 2: Throw error for "not found" (for complex business logic)
+export const findByIdOrFail = async (id: string) => {
+  const item = await Model.findById(id);
+  if (!item) {
+    const error = new Error('Item not found') as any;
+    error.statusCode = 404;
+    throw error;
+  }
+  return item;
+};
 
-// Bad request
-const error = new Error('Invalid input') as any;
-error.statusCode = 400;
-throw error;
+// Permission errors (always throw)
+export const updateItem = async (id: string, data: UpdateData, userId: string) => {
+  const item = await Model.findById(id);
+  
+  if (!item) {
+    return null; // Or throw based on your pattern
+  }
+  
+  // Business rule validation
+  if (item.createdBy?.toString() !== userId) {
+    const error = new Error('Forbidden: You do not own this item') as any;
+    error.statusCode = 403;
+    throw error;
+  }
+  
+  Object.assign(item, data);
+  return await item.save();
+};
 
-// Internal server error (default)
-throw new Error('Something went wrong'); // 500
+// Validation errors
+export const createItem = async (data: CreateData) => {
+  // Business validation
+  const exists = await Model.findOne({ slug: data.slug });
+  if (exists) {
+    const error = new Error('Item with this slug already exists') as any;
+    error.statusCode = 400;
+    throw error;
+  }
+  
+  return await Model.create(data);
+};
+
+// Unexpected errors (let them bubble up - will be 500)
+export const processComplexOperation = async (data: any) => {
+  // Any error here becomes 500 automatically
+  const result = await externalApiCall(data);
+  return result;
+};
 ```
+
+**When to use each:**
+
+- **Return `null`**: Simple "not found" cases where controller decides the response
+- **Throw error**: Business logic failures, permission issues, validation errors
+- **Let bubble**: Unexpected errors (database, external API, etc.)
 
 ### Logging
 
