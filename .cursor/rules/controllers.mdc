@@ -14,12 +14,14 @@ Controllers are async functions that handle validated requests and return respon
 ```typescript
 import type { Request } from 'express';
 import type { ResponseExtended } from '@/types';
-import type { JwtPayload } from '@/utils/jwt.utils';
 import type {
   CreateItemSchemaType,
   GetItemsSchemaType,
+  UpdateItemSchemaType,
   CreateItemResponseSchema,
+  GetItemByIdResponseSchema,
   GetItemsResponseSchema,
+  UpdateItemResponseSchema,
 } from './module.schema';
 import {
   createItem,
@@ -30,33 +32,31 @@ import {
 } from './module.service';
 
 /**
- * Description of what this controller does
+ * Create new item
  */
-export const handleAction = async (
+export const handleCreate = async (
   req: Request<unknown, unknown, CreateItemSchemaType>,
   res: ResponseExtended<CreateItemResponseSchema>,
 ) => {
   // 1. Extract validated data (already validated by Zod middleware)
-  const { email, name } = req.body; // From body schema
-  const { id } = req.params; // From params schema
-  const { page = 1, limit = 10 } = req.query; // From query schema
+  const data = req.body;
 
   // 2. Access JWT payload (if route uses canAccess middleware)
   const userId = req.user?.sub;
 
   // 3. Call service layer for business logic
-  const result = await createItem({ email, name, userId });
+  const item = await createItem({ ...data, createdBy: userId });
 
-  // 4. Return response using typed helper (NEW PATTERN - RECOMMENDED)
+  // 4. Return typed response
   return res.created?.({
     success: true,
     message: 'Item created successfully',
-    data: result,
+    data: item,
   });
 };
 
 /**
- * Example: Get single item (NEW PATTERN)
+ * Get single item by ID
  */
 export const handleGetById = async (
   req: Request<{ id: string }, unknown, unknown>,
@@ -66,6 +66,13 @@ export const handleGetById = async (
 
   const item = await findById(id);
 
+  if (!item) {
+    return res.notFound?.({
+      success: false,
+      message: 'Item not found',
+    });
+  }
+
   return res.ok?.({
     success: true,
     data: item,
@@ -73,7 +80,7 @@ export const handleGetById = async (
 };
 
 /**
- * Example: List with pagination (NEW PATTERN)
+ * Get paginated list of items
  */
 export const handleGetItems = async (
   req: Request<unknown, unknown, unknown, GetItemsSchemaType>,
@@ -91,26 +98,11 @@ export const handleGetItems = async (
 };
 
 /**
- * Example: Create new item
- */
-export const handleCreate = async (
-  req: Request<unknown, unknown, CreateItemSchemaType>,
-  res: Response,
-) => {
-  const data = req.body;
-  const userId = req.user?.sub;
-
-  const item = await createItem({ ...data, createdBy: userId });
-
-  return successResponse(res, 'Item created', item, StatusCodes.CREATED);
-};
-
-/**
- * Example: Update item
+ * Update existing item
  */
 export const handleUpdate = async (
   req: Request<{ id: string }, unknown, UpdateItemSchemaType>,
-  res: Response,
+  res: ResponseExtended<UpdateItemResponseSchema>,
 ) => {
   const { id } = req.params;
   const data = req.body;
@@ -119,38 +111,34 @@ export const handleUpdate = async (
   const item = await updateItem(id, data, userId);
 
   if (!item) {
-    return successResponse(
-      res,
-      'Item not found',
-      undefined,
-      StatusCodes.NOT_FOUND,
-    );
+    return res.notFound?.({
+      success: false,
+      message: 'Item not found',
+    });
   }
 
-  return successResponse(res, 'Item updated', item);
+  return res.ok?.({
+    success: true,
+    message: 'Item updated successfully',
+    data: item,
+  });
 };
 
 /**
- * Example: Delete item
+ * Delete item
  */
 export const handleDelete = async (
   req: Request<{ id: string }, unknown, unknown>,
-  res: Response,
+  res: ResponseExtended<Record<string, never>>,
 ) => {
   const { id } = req.params;
 
   await deleteItem(id);
 
-  return successResponse(res, 'Item deleted successfully');
-};
-
-/**
- * Example: Controller with no request params (unused)
- */
-export const handlePublicAction = async (_: Request, res: Response) => {
-  const result = await performAction();
-
-  return successResponse(res, 'Action completed', result);
+  return res.ok?.({
+    success: true,
+    message: 'Item deleted successfully',
+  });
 };
 ```
 
@@ -217,29 +205,60 @@ const files = req.files; // For multiple files
 const url = (req.file as any).location; // S3 URL
 ```
 
-### Response Pattern
+### Response Pattern (RECOMMENDED)
 
-**NEW (RECOMMENDED): Use typed response helpers** from ResponseExtended:
+Use `ResponseExtended` typed response helpers for all controllers:
 
 ```typescript
 import type { ResponseExtended } from '@/types';
+import type { CreateItemResponseSchema } from './module.schema';
 
-// 200 OK response
+export const handleCreate = async (
+  req: Request<unknown, unknown, CreateItemSchemaType>,
+  res: ResponseExtended<CreateItemResponseSchema>,
+) => {
+  const item = await createItem(req.body);
+  
+  // 201 Created response
+  return res.created?.({
+    success: true,
+    message: 'Item created',
+    data: item,
+  });
+};
+```
+
+**Available Response Methods:**
+
+```typescript
+// 200 OK - Success response
 return res.ok?.({
   success: true,
   message: 'Success message',
   data: item,
 });
 
-// 201 Created response
+// 201 Created - Resource created
 return res.created?.({
   success: true,
   message: 'Item created',
   data: newItem,
 });
 
-// 204 No Content response
+// 204 No Content - Successful deletion
 return res.noContent?.();
+
+// 404 Not Found - Resource not found
+return res.notFound?.({
+  success: false,
+  message: 'Item not found',
+});
+
+// 400 Bad Request - Invalid input
+return res.badRequest?.({
+  success: false,
+  message: 'Invalid data',
+});
 
 // Paginated list response
 return res.ok?.({
@@ -251,26 +270,7 @@ return res.ok?.({
 });
 ```
 
-**LEGACY (STILL SUPPORTED): `successResponse()` helper** from [response.utils.ts](mdc:src/utils/response.utils.ts):
-
-```typescript
-import { successResponse } from '@/utils/response.utils';
-import { StatusCodes } from '@/plugins/magic/status-codes';
-
-// Basic success (200 OK)
-return successResponse(res, 'Success message');
-
-// Success with data
-return successResponse(res, 'User created', user);
-
-// Success with custom status code
-return successResponse(res, 'Created', item, StatusCodes.CREATED);
-
-// Success with data but no message
-return successResponse(res, undefined, { results, paginatorInfo });
-```
-
-**Response Helpers Benefits:**
+**Benefits:**
 
 - ✅ Type-safe response structure
 - ✅ Runtime validation (configurable via `RESPONSE_VALIDATION` env var)
@@ -278,7 +278,7 @@ return successResponse(res, undefined, { results, paginatorInfo });
 - ✅ Consistent response format across your API
 - ✅ Better IDE autocomplete and error detection
 
-**Response Format:**
+**Standard Response Format:**
 
 ```json
 {
@@ -306,29 +306,47 @@ res.cookie(AUTH_COOKIE_KEY, undefined, COOKIE_CONFIG);
 
 ### Error Handling
 
-- Controllers don't need try-catch blocks
-- Global error handler in [error-handler.ts](mdc:src/middlewares/error-handler.ts) catches all errors
-- Just throw errors - they'll be handled automatically:
+Controllers have two options for handling errors:
+
+**Option 1: Return typed error responses (RECOMMENDED)**
 
 ```typescript
-// Simple error (500)
-throw new Error('Something went wrong');
+const item = await findById(id);
 
-// Not found - use successResponse with 404
 if (!item) {
-  return successResponse(
-    res,
-    'Item not found',
-    undefined,
-    StatusCodes.NOT_FOUND,
-  );
+  return res.notFound?.({
+    success: false,
+    message: 'Item not found',
+  });
 }
 
-// Or throw with custom status
-const error = new Error('Not found') as any;
-error.statusCode = 404;
+if (!hasPermission) {
+  return res.forbidden?.({
+    success: false,
+    message: 'Access denied',
+  });
+}
+```
+
+**Option 2: Let global error handler catch thrown errors**
+
+```typescript
+// Services throw errors, global handler catches them
+const item = await findById(id); // Throws if not found
+
+// Or throw explicit errors
+throw new Error('Something went wrong'); // 500 error
+
+// Throw with custom status code
+const error = new Error('Forbidden') as any;
+error.statusCode = 403;
 throw error;
 ```
+
+**When to use each:**
+- Use **typed responses** when you need specific HTTP status codes and error messages
+- Use **throwing errors** for unexpected failures or service-level errors
+- Controllers don't need try-catch blocks - global error handler in [error-handler.ts](mdc:src/middlewares/error-handler.ts) catches all
 
 ### Status Codes
 
@@ -391,7 +409,7 @@ import * as userService from './user.service';
 ```typescript
 export const handleLoginByEmail = async (
   req: Request<unknown, unknown, LoginUserByEmailSchemaType>,
-  res: Response,
+  res: ResponseExtended<LoginResponseSchema>,
 ) => {
   const token = await loginUserByEmail(req.body);
 
@@ -399,13 +417,23 @@ export const handleLoginByEmail = async (
     res.cookie(AUTH_COOKIE_KEY, token, COOKIE_CONFIG);
   }
 
-  return successResponse(res, 'Login successful', { token });
+  return res.ok?.({
+    success: true,
+    message: 'Login successful',
+    data: { token },
+  });
 };
 
-export const handleLogout = async (_: Request, res: Response) => {
+export const handleLogout = async (
+  _: Request,
+  res: ResponseExtended<Record<string, never>>,
+) => {
   res.cookie(AUTH_COOKIE_KEY, undefined, COOKIE_CONFIG);
 
-  return successResponse(res, 'Logout successful');
+  return res.ok?.({
+    success: true,
+    message: 'Logout successful',
+  });
 };
 ```
 
@@ -414,13 +442,16 @@ export const handleLogout = async (_: Request, res: Response) => {
 ```typescript
 export const handleChangePassword = async (
   req: Request<unknown, unknown, ChangePasswordSchemaType>,
-  res: Response,
+  res: ResponseExtended<Record<string, never>>,
 ) => {
-  const userId = (req.user as JwtPayload).sub;
+  const userId = req.user?.sub;
 
   await changePassword(userId, req.body);
 
-  return successResponse(res, 'Password successfully changed');
+  return res.ok?.({
+    success: true,
+    message: 'Password successfully changed',
+  });
 };
 ```
 
@@ -429,24 +460,32 @@ export const handleChangePassword = async (
 ```typescript
 export const handleGetUsers = async (
   req: Request<unknown, unknown, unknown, GetUsersSchemaType>,
-  res: Response,
+  res: ResponseExtended<GetUsersResponseSchema>,
 ) => {
+  const userId = req.user?.sub;
+  
   const { results, paginatorInfo } = await getUsers(
-    { id: req.user.sub },
+    { id: userId },
     req.query,
   );
 
-  return successResponse(res, undefined, { results, paginatorInfo });
+  return res.ok?.({
+    success: true,
+    data: {
+      items: results,
+      paginator: paginatorInfo,
+    },
+  });
 };
 ```
 
 ## Common Mistakes to Avoid
 
 ❌ DON'T use direct `res.status().json()`
-✅ DO use `successResponse()` helper
+✅ DO use `ResponseExtended` typed helpers (`res.ok?.()`, `res.created?.()`, etc.)
 
-❌ DON'T use `req.jwtPayload`
-✅ DO use `req.user` for JWT payload
+❌ DON'T cast JWT payload with `as JwtPayload`
+✅ DO use optional chaining `req.user?.sub`
 
 ❌ DON'T put business logic in controllers
 ✅ DO move complex logic to services
@@ -455,10 +494,13 @@ export const handleGetUsers = async (
 ✅ DO trust validated data from req.body/params/query
 
 ❌ DON'T use try-catch everywhere
-✅ DO let global error handler catch errors
+✅ DO let global error handler catch errors OR use typed error responses
 
 ❌ DON'T send multiple responses
 ✅ DO return single response per request
 
 ❌ DON'T use namespace imports for services
 ✅ DO import individual service functions
+
+❌ DON'T forget response type in controller signature
+✅ DO type with `ResponseExtended<YourResponseSchema>`
