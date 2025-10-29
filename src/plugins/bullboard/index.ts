@@ -78,7 +78,7 @@ export const bullboardPlugin: PluginFactory<BullboardOptions> = (
           uiConfig: {
             boardTitle: 'Queues Manager',
             boardLogo: {
-              path: '/assets/images/logo.webp',
+              path: '/assets/images/logo.png',
               width: '30px',
               height: '30px',
             },
