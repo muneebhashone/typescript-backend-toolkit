@@ -4,6 +4,6 @@
 export * from '../../../queues/queue';
 {{else}}
 // Queues are disabled - providing stub exports
-export const checkQueueHealth = () => Promise.resolve(false);
+export const checkQueueHealth = () => () => Promise.resolve(false);
 export const closeAllQueues = () => Promise.resolve();
 {{/if}}

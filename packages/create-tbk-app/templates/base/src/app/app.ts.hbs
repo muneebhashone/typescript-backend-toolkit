@@ -30,15 +30,13 @@ export async function initializeApp(port: number) {
         enabled: true,
       }),
 {{#if AUTH}}
-      authPlugin({
+      authPlugin({{#if AUTH_SESSIONS}}{
         session: {
-          enabled: {{#if AUTH_SESSIONS}}true{{else}}false{{/if}},
-{{#if AUTH_SESSIONS}}
+          enabled: true,
           driver: '{{SESSION_DRIVER}}',
-{{/if}}
           debug: false,
         },
-      }),
+      }{{else}}{}{{/if}}),
 {{/if}}
 {{#if SECURITY}}
       securityPlugin({

@@ -167,6 +167,17 @@ export function resolveDependencies(config: ProjectConfig): {
   // Auth
   if (config.auth !== 'none') {
     addFeature('auth');
+
+    // Sessions require Redis (for Redis driver) or BullMQ (for cleanup queue)
+    if (config.auth === 'jwt-sessions') {
+      // Always add BullMQ for session cleanup queue
+      addFeature('queues');
+
+      // Add Redis if using Redis session driver or if cache isn't already Redis
+      if (config.sessionDriver === 'redis' || config.cache !== 'redis') {
+        addFeature('cacheRedis');
+      }
+    }
   }
 
   // Observability
