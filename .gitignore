@@ -133,8 +133,6 @@ dist
 .database
 .aider*
 
-.claude
-
 .dump
 
 openapi.yml 
