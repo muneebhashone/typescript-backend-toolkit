@@ -4,14 +4,15 @@ import config from '../../config/env';
 import type { ResponseExtended } from '../../types';
 import { successResponse } from '../../utils/response.utils';
 import { generateRandomPassword } from '../../utils/otp.utils';
-import type { 
-  CreateUserSchemaType, 
+import type {
+  CreateUserSchemaType,
   GetUsersSchemaType,
   CreateUserResponseSchema,
   GetUsersResponseSchema,
   CreateSuperAdminResponseSchema,
 } from './user.schema';
 import { createUser, deleteUser, getUsers } from './user.services';
+import { Types } from 'mongoose';
 
 export const handleDeleteUser = async (
   req: Request<MongoIdSchemaType, unknown>,
@@ -71,7 +72,7 @@ export const handleGetUsers = async (
 ) => {
   const { results, paginatorInfo } = await getUsers(
     {
-      id: req.user.sub,
+      id: new Types.ObjectId(req.user.sub),
     },
     req.query,
   );
