@@ -207,8 +207,12 @@ async function copyAndRenderDirectory(
       if (isHandlebarsTemplate) {
         // Read template, render with Handlebars, write output
         const templateContent = await fs.readFile(sourcePath, 'utf-8');
-        const rendered = renderTemplate(templateContent, context);
-        await writeFile(targetPath, rendered);
+        try {
+          const rendered = renderTemplate(templateContent, context);
+          await writeFile(targetPath, rendered);
+        } catch (error) {
+          throw new Error(`Failed to render template ${sourcePath}: ${error instanceof Error ? error.message : String(error)}`);
+        }
       } else {
         // Direct copy for non-template files
         await copyFile(sourcePath, targetPath);

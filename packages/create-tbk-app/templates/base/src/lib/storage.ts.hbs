@@ -4,5 +4,5 @@
 export * from '../../../storage/storage';
 {{else}}
 // Storage is disabled - providing stub exports
-export const checkStorageHealth = () => Promise.resolve(false);
+export const checkStorageHealth = () => () => Promise.resolve(false);
 {{/if}}

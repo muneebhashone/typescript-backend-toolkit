@@ -35,7 +35,7 @@ export const observabilityPlugin: PluginFactory<ObservabilityOptions> = (
           { name: 'email', check: checkEmailHealth() },
           { name: 'storage', check: checkStorageHealth() },
         ],
-        metricsEnabled: config.METRICS_ENABLED,
+        metricsEnabled: config.METRICS_ENABLED ?? false,
       });
 
       const urls = [];

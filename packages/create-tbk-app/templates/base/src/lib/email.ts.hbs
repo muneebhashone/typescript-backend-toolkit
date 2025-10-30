@@ -4,5 +4,5 @@
 export * from '../../../email/email';
 {{else}}
 // Email is disabled - providing stub exports
-export const checkEmailHealth = () => Promise.resolve(false);
+export const checkEmailHealth = () => () => Promise.resolve(false);
 {{/if}}

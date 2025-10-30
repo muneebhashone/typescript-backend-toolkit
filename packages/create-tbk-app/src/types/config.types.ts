@@ -19,6 +19,7 @@ export interface ProjectConfig {
   preset: PresetType;
   auth: AuthType;
   sessionDriver?: SessionDriver;
+  googleOAuth: boolean;
   cache: CacheProvider;
   queues: boolean;
   storage: StorageProvider;
@@ -41,6 +42,7 @@ export interface TemplateContext {
   AUTH: boolean;
   AUTH_JWT: boolean;
   AUTH_SESSIONS: boolean;
+  AUTH_GOOGLE_OAUTH: boolean;
   SESSION_DRIVER: SessionDriver | null;
 
   CACHE: boolean;
@@ -76,5 +78,5 @@ export interface TemplateContext {
 export interface PresetConfig {
   name: string;
   description: string;
-  config: Omit<ProjectConfig, 'projectName' | 'preset' | 'packageManager' | 'skipGit' | 'skipInstall'>;
+  config: Omit<ProjectConfig, 'projectName' | 'preset' | 'packageManager' | 'skipGit' | 'skipInstall' | 'googleOAuth'> & { googleOAuth?: boolean };
 }

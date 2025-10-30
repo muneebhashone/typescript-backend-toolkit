@@ -105,6 +105,20 @@ async function promptForCustomConfig() {
     sessionDriver = result.sessionDriver;
   }
 
+  // Google OAuth
+  let googleOAuth = false;
+  if (auth !== 'none') {
+    const result = await inquirer.prompt<{ googleOAuth: boolean }>([
+      {
+        type: 'confirm',
+        name: 'googleOAuth',
+        message: 'Enable Google OAuth login?',
+        default: false,
+      },
+    ]);
+    googleOAuth = result.googleOAuth;
+  }
+
   // Caching
   const { cache } = await inquirer.prompt<{ cache: CacheProvider }>([
     {
@@ -208,6 +222,7 @@ async function promptForCustomConfig() {
   return {
     auth,
     sessionDriver,
+    googleOAuth,
     cache,
     queues,
     queueDashboard,

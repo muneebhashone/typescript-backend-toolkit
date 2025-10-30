@@ -6,6 +6,7 @@ export const PRESETS: Record<string, PresetConfig> = {
     description: 'Bare-bones API with core features only (Express, MongoDB, MagicRouter)',
     config: {
       auth: 'none',
+      googleOAuth: false,
       cache: 'none',
       queues: false,
       storage: 'none',
@@ -21,6 +22,7 @@ export const PRESETS: Record<string, PresetConfig> = {
     description: 'Production-ready REST API with auth, security, and full observability',
     config: {
       auth: 'jwt',
+      googleOAuth: false,
       cache: 'memory',
       queues: false,
       storage: 'none',
@@ -37,6 +39,7 @@ export const PRESETS: Record<string, PresetConfig> = {
     config: {
       auth: 'jwt-sessions',
       sessionDriver: 'redis',
+      googleOAuth: false,
       cache: 'redis',
       queues: true,
       storage: 's3',

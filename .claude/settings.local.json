@@ -10,7 +10,20 @@
       "Bash(/dev/null)",
       "Bash(pnpm install:*)",
       "Bash(pnpm typecheck:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(if [ -d test-minimal ])",
+      "Bash(then rm -rf test-minimal)",
+      "Bash(fi)",
+      "Bash(node packages/create-tbk-app/dist/cli.js:*)",
+      "Bash(for file in \"c:\\Users\\themuneebh\\repos\\typescript-backend-toolkit\\packages\\create-tbk-app\\templates\\auth\\src\\modules\\auth\\auth.service.ts.hbs\" \"c:\\Users\\themuneebh\\repos\\typescript-backend-toolkit\\packages\\create-tbk-app\\templates\\auth\\src\\modules\\auth\\auth.controller.ts.hbs\" \"c:\\Users\\themuneebh\\repos\\typescript-backend-toolkit\\packages\\create-tbk-app\\templates\\auth\\src\\modules\\auth\\auth.router.ts.hbs\" \"c:\\Users\\themuneebh\\repos\\typescript-backend-toolkit\\packages\\create-tbk-app\\templates\\auth\\src\\plugins\\auth\\index.ts.hbs\" \"c:\\Users\\themuneebh\\repos\\typescript-backend-toolkit\\packages\\create-tbk-app\\templates\\auth\\src\\middlewares\\extract-jwt.ts.hbs\")",
+      "Bash(do)",
+      "Bash(done)",
+      "Bash(if [ -d test-standard-jwt ])",
+      "Bash(then rm -rf test-standard-jwt)",
+      "Bash(node dist/cli.js:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node -e:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

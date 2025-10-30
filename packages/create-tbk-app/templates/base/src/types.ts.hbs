@@ -66,7 +66,7 @@ export interface ResponseExtended<T extends Record<string, unknown> = Record<str
   noContent?: () => void;
 }
 
-// Extend Express Request globally to include formidable file properties
+// Extend Express Request globally to include custom properties
 declare module "express" {
     interface Request {
       file?: FormFile;

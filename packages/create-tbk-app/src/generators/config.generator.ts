@@ -59,6 +59,14 @@ export async function generateEnvExample(
     lines.push('JWT_EXPIRES_IN=86400');
     lines.push('');
 
+    if (context.AUTH_GOOGLE_OAUTH) {
+      lines.push('# Google OAuth');
+      lines.push('GOOGLE_CLIENT_ID=your-google-client-id');
+      lines.push('GOOGLE_CLIENT_SECRET=your-google-client-secret');
+      lines.push('GOOGLE_REDIRECT_URI=http://localhost:3000/auth/google/callback');
+      lines.push('');
+    }
+
     if (context.AUTH_SESSIONS) {
       lines.push('# Session Management');
       lines.push('SET_SESSION=1');
