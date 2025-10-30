@@ -332,7 +332,7 @@ Always use `import config from '@/config/env'` - never access `process.env` dire
 **ALWAYS use the CLI:**
 
 ```bash
-pnpm tbk generate:module <name> --path /api/v1
+pnpm tbk generate:module <name>
 ```
 
 This scaffolds all 6 files following project patterns. After generation:
