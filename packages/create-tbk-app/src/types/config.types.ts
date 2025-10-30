@@ -19,7 +19,7 @@ export interface ProjectConfig {
   preset: PresetType;
   auth: AuthType;
   sessionDriver?: SessionDriver;
-  googleOAuth: boolean;
+  googleOAuth?: boolean;
   cache: CacheProvider;
   queues: boolean;
   storage: StorageProvider;

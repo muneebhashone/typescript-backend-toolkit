@@ -12,7 +12,7 @@ export function createTemplateContext(config: ProjectConfig): TemplateContext {
     AUTH: config.auth !== 'none',
     AUTH_JWT: config.auth === 'jwt' || config.auth === 'jwt-sessions',
     AUTH_SESSIONS: config.auth === 'jwt-sessions',
-    AUTH_GOOGLE_OAUTH: config.googleOAuth,
+    AUTH_GOOGLE_OAUTH: config.googleOAuth ?? false,
     SESSION_DRIVER: config.auth === 'jwt-sessions' ? config.sessionDriver || 'mongo' : null,
 
     // Cache
