@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(pnpm build:*)",
+      "Bash(node dist/cli.js test-minimal:*)",
+      "Bash(node bin/index.js:*)",
+      "Bash(node -e \"import { pathExists } from ''./dist/cli.js''; console.log(await pathExists(''templates''));\")",
+      "Bash(test:*)",
+      "Bash(/dev/null)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(xargs:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

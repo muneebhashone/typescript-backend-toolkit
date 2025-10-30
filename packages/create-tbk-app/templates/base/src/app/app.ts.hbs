@@ -1,0 +1,95 @@
+import express from 'express';
+import compression from 'compression';
+import path from 'path';
+import { createApp } from './createApp';
+import config from '../config/env';
+{{#if SECURITY}}
+import { securityPlugin } from '@/plugins/security';
+{{/if}}
+import { observabilityPlugin } from '@/plugins/observability';
+import { magicRouterPlugin } from '@/plugins/magic';
+{{#if AUTH}}
+import { authPlugin } from '@/plugins/auth';
+{{/if}}
+{{#if REALTIME}}
+import { realtimePlugin } from '@/plugins/realtime';
+{{/if}}
+import { lifecyclePlugin } from '@/plugins/lifecycle';
+{{#if ADMIN}}
+import { adminDashboardPlugin } from '@/plugins/admin';
+{{/if}}
+{{#if QUEUE_DASHBOARD}}
+import { bullboardPlugin } from '@/plugins/bullboard';
+{{/if}}
+import { basicParserPlugin } from '@/plugins/basicParser';
+
+export async function initializeApp(port: number) {
+  const { app, server, plugins } = await createApp({
+    plugins: [
+      basicParserPlugin({
+        enabled: true,
+      }),
+{{#if AUTH}}
+      authPlugin({
+        session: {
+          enabled: {{#if AUTH_SESSIONS}}true{{else}}false{{/if}},
+{{#if AUTH_SESSIONS}}
+          driver: '{{SESSION_DRIVER}}',
+{{/if}}
+          debug: false,
+        },
+      }),
+{{/if}}
+{{#if SECURITY}}
+      securityPlugin({
+        corsEnabled: config.CORS_ENABLED,
+        corsOrigins: [config.CLIENT_SIDE_URL],
+        corsCredentials: true,
+        helmetEnabled: config.NODE_ENV === 'production',
+        rateLimitEnabled: config.RATE_LIMIT_ENABLED,
+        rateLimitWindowMs: config.RATE_LIMIT_WINDOW_MS,
+        rateLimitMax: config.RATE_LIMIT_MAX_REQUESTS,
+        trustProxy: config.TRUST_PROXY,
+      }),
+{{/if}}
+      observabilityPlugin({
+        requestId: true,
+        logging: true,
+        metrics: {{#if OBSERVABILITY_FULL}}config.METRICS_ENABLED{{else}}false{{/if}},
+      }),
+{{#if REALTIME}}
+      realtimePlugin(),
+{{/if}}
+      magicRouterPlugin({
+        path: '/docs',
+        description:
+          "Robust backend boilerplate designed for scalability, flexibility, and ease of development. It's packed with modern technologies and best practices to kickstart your next backend project",
+        servers: [{ url: '/api' }],
+      }),
+      lifecyclePlugin({
+        gracefulShutdownTimeout: 30000,
+      }),
+{{#if ADMIN}}
+      adminDashboardPlugin({ adminPath: '/admin', authGuard: true }),
+{{/if}}
+{{#if QUEUE_DASHBOARD}}
+      bullboardPlugin({
+        path: '/queues',
+      }),
+{{/if}}
+    ],
+    config: config,
+    port,
+  });
+
+  app.use(
+    '/assets',
+    express.static(path.join(process.cwd(), 'public', 'assets')),
+  );
+
+  app.use(compression({ threshold: 1024 * 10 }));
+
+  return { app, server, plugins };
+}
+
+export default initializeApp;

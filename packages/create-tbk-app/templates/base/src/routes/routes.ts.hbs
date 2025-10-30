@@ -1,0 +1,22 @@
+import express from 'express';
+{{#if AUTH}}
+import authRouter, { AUTH_ROUTER_ROOT } from '../modules/auth/auth.router';
+import userRouter, { USER_ROUTER_ROOT } from '../modules/user/user.router';
+{{/if}}
+{{#if OBSERVABILITY_FULL}}
+import healthCheckRouter, {
+  HEALTH_ROUTER_ROOT,
+} from '../modules/healthcheck/healthcheck.routes';
+{{/if}}
+
+const router = express.Router();
+
+{{#if OBSERVABILITY_FULL}}
+router.use(HEALTH_ROUTER_ROOT, healthCheckRouter);
+{{/if}}
+{{#if AUTH}}
+router.use(USER_ROUTER_ROOT, userRouter);
+router.use(AUTH_ROUTER_ROOT, authRouter);
+{{/if}}
+
+export default router;

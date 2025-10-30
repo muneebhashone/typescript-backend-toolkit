@@ -27,6 +27,26 @@ Before you get started, make sure you have the following installed on your machi
 
 ## Quick Start
 
+### Option 1: Scaffold a New Project (Recommended)
+
+Use the CLI scaffolder to create a new project with only the features you need:
+
+```bash
+# Interactive mode (recommended)
+npx create-tbk-app my-backend-api
+
+# Or with a preset
+npx create-tbk-app my-api --preset=standard
+
+# Then start developing
+cd my-api
+pnpm dev
+```
+
+See [create-tbk-app README](packages/create-tbk-app/README.md) for all options and presets.
+
+### Option 2: Clone the Full Toolkit
+
 ```bash
 # 1. Clone and setup
 git clone <repository>
@@ -35,7 +55,7 @@ cd typescript-backend-toolkit
 # 2. Start services
 docker compose up -d
 
-# 3. Install dependencies  
+# 3. Install dependencies
 pnpm install
 
 # 4. Configure environment

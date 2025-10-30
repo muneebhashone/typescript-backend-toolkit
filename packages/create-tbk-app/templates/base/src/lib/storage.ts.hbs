@@ -1,0 +1,8 @@
+{{#if STORAGE}}
+// This file will be replaced with the full storage implementation
+// when storage feature is enabled
+export * from '../../../storage/storage';
+{{else}}
+// Storage is disabled - providing stub exports
+export const checkStorageHealth = () => Promise.resolve(false);
+{{/if}}
