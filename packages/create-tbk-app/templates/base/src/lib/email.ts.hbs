@@ -1,0 +1,8 @@
+{{#if EMAIL}}
+// This file will be replaced with the full email implementation
+// when email feature is enabled
+export * from '../../../email/email';
+{{else}}
+// Email is disabled - providing stub exports
+export const checkEmailHealth = () => () => Promise.resolve(false);
+{{/if}}

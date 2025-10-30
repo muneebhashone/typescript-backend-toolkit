@@ -1,0 +1,14 @@
+import type { CookieOptions } from 'express';
+import config from '../../config/env';
+
+const clientSideUrl = new URL(config.CLIENT_SIDE_URL);
+
+export const AUTH_COOKIE_KEY = 'accessToken';
+
+export const COOKIE_CONFIG: CookieOptions = {
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: config.NODE_ENV === 'production',
+  maxAge: {{#if AUTH_SESSIONS}}config.SESSION_EXPIRES_IN{{else}}config.JWT_EXPIRES_IN{{/if}} * 1000,
+  domain: clientSideUrl.hostname,
+};

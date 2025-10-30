@@ -1,0 +1,78 @@
+import type { ToolkitPlugin, PluginFactory } from '@/plugins/types';
+{{#if AUTH_SESSIONS}}
+import {
+  initializeSessionManager,
+  type SessionManager,
+} from '@/modules/auth/session/session.manager';
+import type { SessionStoreConfig } from '@/modules/auth/session/session.types';
+{{/if}}
+import config from '@/config/env';
+import logger from '@/plugins/observability/logger';
+{{#if AUTH_SESSIONS}}
+import { scheduleSessionCleanup } from '../../queues/session-cleanup.queue';
+{{/if}}
+import { extractJwt } from '../../middlewares/extract-jwt';
+
+export interface AuthOptions {
+  jwtSecret?: string;
+  jwtExpiration?: string;
+  sessionSecret?: string;
+{{#if AUTH_SESSIONS}}
+  session?: Partial<SessionStoreConfig> & { enabled?: boolean };
+{{/if}}
+}
+
+export const authPlugin: PluginFactory<AuthOptions> = (
+  options = {},
+): ToolkitPlugin<AuthOptions> => {
+{{#if AUTH_SESSIONS}}
+  let sessionManager: SessionManager | null = null;
+{{/if}}
+
+  return {
+    name: 'auth',
+    priority: 70,
+    options,
+
+    async register({ app }) {
+      app.use(extractJwt);
+      app.set('auth:configured', true);
+
+      if (options.jwtSecret) {
+        app.set('auth:jwt:secret', options.jwtSecret);
+      }
+      if (options.jwtExpiration) {
+        app.set('auth:jwt:expiration', options.jwtExpiration);
+      }
+
+{{#if AUTH_SESSIONS}}
+      if (config.SET_SESSION && options.session?.enabled) {
+        sessionManager = await initializeSessionManager(options.session);
+        app.locals.sessionManager = sessionManager;
+        app.set('auth:session:enabled', true);
+
+        try {
+          const stats = await sessionManager.cleanupSessions('revoked');
+          if (options.session?.debug) {
+            logger.debug({ stats }, 'Startup session cleanup completed');
+          }
+        } catch (err) {
+          logger.warn({ err }, 'Startup session cleanup failed');
+        }
+
+        await scheduleSessionCleanup();
+      }
+{{/if}}
+    },
+
+    async onShutdown() {
+{{#if AUTH_SESSIONS}}
+      if (sessionManager) {
+        await sessionManager.cleanup();
+      }
+{{/if}}
+    },
+  };
+};
+
+export default authPlugin;

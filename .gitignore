@@ -133,8 +133,6 @@ dist
 .database
 .aider*
 
-.claude
-
 .dump
 
 openapi.yml 
@@ -147,3 +145,5 @@ Api.ts
 
 #Ignore cursor AI rules
 .cursor/rules/codacy.mdc
+
+/docs
