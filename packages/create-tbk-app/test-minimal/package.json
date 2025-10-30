@@ -1,0 +1,72 @@
+{
+  "name": "test-minimal",
+  "version": "1.0.0",
+  "description": "Backend API generated with create-tbk-app (minimal preset)",
+  "main": "dist/main.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "pnpm start:dev",
+    "start:dev": "dotenv -e .env.development -- tsx --watch ./src/main.ts",
+    "build": "tsup --config build.ts",
+    "start:prod": "dotenv -e .env.production -- node ./dist/main.js",
+    "start:local": "dotenv -e .env.local -- node ./dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "openapi": "dotenv -e .env.development -- tsx scripts/gen-openapi.ts",
+    "tbk": "dotenv -e .env.development -- tsx bin/tbk",
+    "gen-sdk": "npx swagger-typescript-api generate --path ./public/openapi.yml --output ./src/generated"
+  },
+  "keywords": [
+    "typescript",
+    "backend",
+    "express",
+    "mongodb",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongoose": "^8.5.1",
+    "zod": "^3.21.4",
+    "dotenv": "^16.4.5",
+    "@asteasolutions/zod-to-openapi": "^7.1.1",
+    "swagger-ui-express": "^5.0.1",
+    "openapi3-ts": "^4.3.3",
+    "yaml": "^2.5.0",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "validator": "^13.12.0",
+    "express-async-handler": "^1.2.0",
+    "formidable": "^3.5.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.6",
+    "@types/express": "^4.17.15",
+    "@types/node": "^18.11.18",
+    "@types/cookie-parser": "^1.4.3",
+    "@types/swagger-ui-express": "^4.1.6",
+    "@types/validator": "^13.7.17",
+    "@types/compression": "^1.7.2",
+    "@types/formidable": "^3.4.6",
+    "tsup": "^8.1.0",
+    "tsx": "^4.19.2",
+    "dotenv-cli": "^7.4.2",
+    "esbuild": "^0.19.8",
+    "rimraf": "^5.0.1",
+    "concurrently": "^9.1.0",
+    "commander": "^14.0.1",
+    "eslint": "~9.4.0",
+    "@eslint/js": "^9.4.0",
+    "typescript-eslint": "^7.11.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-import": "^2.29.1",
+    "globals": "^15.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@9.9.0"
+}

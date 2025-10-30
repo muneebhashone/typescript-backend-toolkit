@@ -1,0 +1,10 @@
+{{#if CACHE}}
+// This file will be replaced with the full cache implementation
+// when cache feature is enabled
+export * from '../../../cache/cache';
+{{else}}
+// Cache is disabled - providing stub exports
+export const checkCacheHealth = () => Promise.resolve(false);
+export const cacheProvider = null;
+export class RedisProvider {}
+{{/if}}
