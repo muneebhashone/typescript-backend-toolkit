@@ -412,10 +412,11 @@ export default ${moduleName}Router.getRouter();
     console.log(`  └── ${moduleName}.router.ts`);
     console.log();
     console.log(`Next steps:`);
-    console.log(`  1. Register the router in your main app file`);
+    console.log(`  1. Register the router in your main app file (src/routes/routes.ts)`);
     console.log(`  2. Customize the model fields in ${moduleName}.model.ts`);
     console.log(`  3. Update validation schemas in ${moduleName}.schema.ts`);
     console.log(`  4. Add business logic to ${moduleName}.services.ts`);
+    console.log(`  5. Register admin module in src/plugins/admin/registry.ts`);
   } catch (error) {
     console.error('Failed to create module:', error);
     process.exit(1);

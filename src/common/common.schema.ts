@@ -1,5 +1,6 @@
 import validator from "validator";
 import { z } from "zod";
+import { zMongoId } from "../plugins/magic/zod-extend";
 
 export const successResponseSchema = z.object({
 	success: z.boolean().default(true),
@@ -36,7 +37,7 @@ export const paginatedResponseSchema = z.object({
 });
 
 export const mongoIdSchema = z.object({
-	id: z.string().refine((value) => validator.isMongoId(value)),
+	id: zMongoId({ required_error: 'ID is required' }),
 });
 
 export const idSchema = z.object({

@@ -1,6 +1,8 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import type { FormFile } from '@/types';
+import { Types } from 'mongoose';
+import validator from 'validator';
 
 extendZodWithOpenApi(z);
 
@@ -123,6 +125,40 @@ const validateFormFile = (
 
   return { valid: errors.length === 0, errors };
 };
+
+/**
+ * Validate MongoDB ObjectIds
+ * @param options - Optional validation constraints
+ * @param options.required_error - Custom error message for required fields
+ *
+ * @example
+ * // No validation
+ * z.object({ id: zMongoId() })
+ *
+ * @example
+ * // With custom error message
+ * z.object({
+ *   id: zMongoId({
+ *     required_error: 'ID is required',
+ *   })
+ * })
+ */
+export const zMongoId = (options?: { required_error?: string }) =>
+  z
+    .custom<Types.ObjectId>(
+      (value) =>
+        // Only allow strings or native MongoDB ObjectIds
+        typeof value === 'string'
+          ? validator.isMongoId(value)
+          : typeof value === 'object' &&
+          value !== null &&
+          // If already an ObjectId, just accept
+          (value instanceof Types.ObjectId),
+      (value) => ({
+        message: options?.required_error || 'Invalid MongoDB ID',
+      }),
+    )
+    .openapi({ type: 'string', format: 'mongoid' });
 
 /**
  * Helper to describe a single file upload field in OpenAPI spec.
