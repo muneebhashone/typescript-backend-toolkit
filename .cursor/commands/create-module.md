@@ -20,6 +20,7 @@ Scaffold a fully-typed module with controller, service, router, schema, and mode
    Examples:
 
    ```bash
+   pnpm tbk generate:module product (recommended)
    pnpm tbk generate:module product --path /api
    pnpm tbk generate:module product --path /api/v1
    ```
