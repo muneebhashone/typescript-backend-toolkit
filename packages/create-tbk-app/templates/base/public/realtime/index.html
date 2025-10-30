@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Realtime Tester</title>
+    <link rel="stylesheet" href="/assets/styles/shared-styles.css" />
+    <link rel="stylesheet" href="/assets/styles/realtime.css" />
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="sidebar-header">Realtime Tester</div>
+
+      <div class="sidebar-section">
+        <h3>Connection Settings</h3>
+        <div class="sidebar-form">
+          <div class="sidebar-form-row">
+            <label for="ns">Namespace</label>
+            <input id="ns" type="text" value="/" />
+          </div>
+          <div class="sidebar-form-row">
+            <label for="path">Path</label>
+            <input id="path" type="text" value="/socket.io" />
+          </div>
+          <div class="sidebar-form-row">
+            <label for="token">Auth Token</label>
+            <input id="token" type="text" placeholder="optional" />
+          </div>
+          <div class="sidebar-form-row">
+            <label>Transports</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input id="t-websocket" type="checkbox" checked />
+                <span>websocket</span>
+              </label>
+              <label class="checkbox-label">
+                <input id="t-polling" type="checkbox" checked />
+                <span>polling</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Quick Actions</h3>
+        <div class="action-buttons">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <button id="connect">Connect</button>
+            <button id="disconnect" class="secondary" disabled>
+              Disconnect
+            </button>
+          </div>
+          <button id="ping" class="secondary">Send Ping</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Rooms</h3>
+        <div class="sidebar-form">
+          <div class="sidebar-form-row">
+            <input id="room-input" type="text" placeholder="room name" />
+          </div>
+          <div class="action-buttons">
+            <button id="room-join" class="secondary">Join Room</button>
+            <button id="room-leave" class="secondary">Leave Room</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Listeners</h3>
+        <div class="sidebar-form">
+          <div class="sidebar-form-row">
+            <input
+              id="listener-pattern"
+              type="text"
+              placeholder="e.g., chat:*"
+            />
+          </div>
+          <div class="action-buttons">
+            <button id="listener-add">Add Listener</button>
+            <button id="listeners-clear" class="secondary">Clear All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="content">
+      <div id="topbar" class="topbar">
+        <div class="topbar-section">
+          <span class="label">Status</span>
+          <div id="status" class="badge danger">Disconnected</div>
+        </div>
+        <div class="topbar-section">
+          <span class="label">Socket ID</span>
+          <code id="sid">—</code>
+        </div>
+        <div class="topbar-section">
+          <span class="label">Transport</span>
+          <code id="transport">—</code>
+        </div>
+        <div class="topbar-spacer"></div>
+        <button id="drawer-toggle" class="secondary small">
+          Listeners & Rooms
+        </button>
+      </div>
+      <!-- Custom Emit Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Custom Emit</h2>
+          <div class="panel-actions">
+            <button id="emit-collapse" class="secondary small">Hide</button>
+          </div>
+        </div>
+        <div id="emit-body" class="panel-body">
+          <div class="form-row">
+            <label for="event">Event Name</label>
+            <input id="event" type="text" placeholder="event name" />
+          </div>
+          <div class="form-row grid-2" style="display: flex; gap: 12px">
+            <div>
+              <label for="emit-target">Emit Target</label>
+              <div class="radio-group">
+                <label class="radio-label"
+                  ><input
+                    type="radio"
+                    name="emit-target"
+                    id="target-socket"
+                    value="socket"
+                    checked
+                  />
+                  <span>Socket</span></label
+                >
+                <label class="radio-label"
+                  ><input
+                    type="radio"
+                    name="emit-target"
+                    id="target-room"
+                    value="room"
+                  />
+                  <span>Room</span></label
+                >
+              </div>
+            </div>
+            <div>
+              <label>Payload Type</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    name="payload-type"
+                    id="pt-json"
+                    value="json"
+                    checked
+                  />
+                  <span>JSON</span>
+                </label>
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    name="payload-type"
+                    id="pt-string"
+                    value="string"
+                  />
+                  <span>String</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="form-row hidden" id="row-target-room">
+            <label for="target-room-name">Room Name</label>
+            <input id="target-room-name" type="text" placeholder="room name" />
+          </div>
+          <div class="form-row" id="row-payload-json">
+            <label for="payload">Payload (JSON)</label>
+            <textarea
+              id="payload"
+              rows="8"
+              placeholder='{"message":"hello"}'
+            ></textarea>
+          </div>
+          <div class="form-row hidden" id="row-payload-string">
+            <label for="payload-str">Payload (String)</label>
+            <input id="payload-str" type="text" placeholder="hello world" />
+          </div>
+          <div class="form-actions">
+            <button id="emit">Emit</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logs Panel -->
+      <div class="panel logs-panel">
+        <div class="panel-header">
+          <h2>Event Logs</h2>
+          <div class="panel-actions">
+            <label
+              class="checkbox-label"
+              title="Show logs that match any enabled listener"
+            >
+              <input id="filter-enabled" type="checkbox" />
+              <span>Only enabled listeners</span>
+            </label>
+            <select id="filter-listener">
+              <option value="">All listeners</option>
+            </select>
+            <button id="clear" class="secondary small">Clear</button>
+            <button id="reset-session" class="secondary small">
+              Reset Session
+            </button>
+          </div>
+        </div>
+        <div id="logs" class="logs"></div>
+      </div>
+    </div>
+
+    <!-- Right Drawer -->
+    <div id="drawer" class="drawer">
+      <div class="drawer-header">
+        <h2>Listeners & Rooms</h2>
+        <button id="drawer-close" class="secondary small">Close</button>
+      </div>
+      <div class="drawer-section">
+        <h3>Listeners</h3>
+        <div id="listeners" class="listeners"></div>
+      </div>
+      <div class="drawer-section">
+        <h3>Rooms</h3>
+        <div class="rooms-list" id="rooms"></div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.socket.io/4.8.1/socket.io.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="/assets/scripts/realtime.js"></script>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+{{#if AUTH}}
+import User from '@/modules/user/user.model';
+{{#if AUTH_SESSIONS}}
+import { SessionModel } from '@/modules/auth/session/session.model';
+{{/if}}
+{{/if}}
+import type { AdminResource } from './types';
+
+export const adminResources: AdminResource[] = [
+{{#if AUTH}}
+  {
+    name: 'users',
+    label: 'Users',
+    model: User,
+    readOnlyFields: ['_id', 'createdAt', 'updatedAt', 'password'],
+    fileFields: ['avatar'],
+    displayField: 'email',
+  },
+{{#if AUTH_SESSIONS}}
+  {
+    name: 'sessions',
+    label: 'Sessions',
+    model: SessionModel,
+    readOnlyFields: ['_id', 'createdAt', 'updatedAt'],
+    displayField: 'tokenHash',
+  },
+{{/if}}
+{{/if}}
+];
+
+export function getResource(name: string): AdminResource | undefined {
+  return adminResources.find((r) => r.name === name);
+}
+
+// Helper: map mongoose modelName -> admin resource
+const modelNameToResource = new Map<string, AdminResource>();
+for (const res of adminResources) {
+  try {
+    const modelName = res.model.modelName;
+    if (modelName) modelNameToResource.set(modelName, res);
+  } catch {
+    // ignore
+  }
+}
+
+export function getResourceByModelName(
+  modelName: string,
+): AdminResource | undefined {
+  return modelNameToResource.get(modelName);
+}

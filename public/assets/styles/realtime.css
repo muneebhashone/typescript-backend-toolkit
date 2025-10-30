@@ -1,0 +1,441 @@
+/* Realtime Tester Specific Styles */
+
+/* Sidebar customizations */
+#sidebar {
+  width: 280px;
+}
+
+/* Topbar */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+  margin: -8px -8px 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.topbar .topbar-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar .topbar-spacer {
+  flex: 1;
+}
+
+/* Right Drawer */
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 340px;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(100%);
+  transition: transform var(--transition);
+  display: flex;
+  flex-direction: column;
+  z-index: 99999;
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.drawer-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-section {
+  padding: 0 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-section:last-child {
+  border-bottom: none;
+}
+
+h3 {
+  margin: 0;
+  padding: 20px 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+/* Status info in sidebar */
+.status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-row .label {
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 80px;
+}
+
+.status-row code {
+  flex: 1;
+  text-align: right;
+  font-size: 12px;
+}
+
+/* Sidebar form */
+.sidebar-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-form-row label:not(.checkbox-label) {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-form-row input[type='text'] {
+  width: 100%;
+  font-size: 12px;
+  padding: 8px 10px;
+}
+
+.sidebar-form-row .checkbox-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sidebar-form-row .checkbox-label {
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+/* Action buttons in sidebar */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-buttons button {
+  width: 100%;
+}
+
+/* Content area - use flexbox for better height distribution */
+#content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: auto;
+}
+
+/* Panel customizations */
+.panel.padded {
+  flex-shrink: 0;
+}
+
+.logs-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Panel header with actions */
+.panel-header {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.panel-header h2 {
+  margin: 0;
+}
+
+.panel-body {
+  padding: 12px 16px 16px;
+}
+
+button.small {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* Panel headings */
+h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+/* Form layouts */
+.form-row {
+  margin-bottom: 12px;
+}
+
+.form-row:last-child {
+  margin-bottom: 0;
+}
+
+.form-row label:not(.checkbox-label):not(.radio-label) {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.form-row input[type='text'],
+.form-row textarea {
+  width: 100%;
+}
+
+.form-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+/* Checkbox and radio groups */
+.checkbox-group,
+.radio-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.checkbox-label,
+.radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition);
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.checkbox-label:hover,
+.radio-label:hover {
+  border-color: var(--primary);
+  background: var(--panel);
+}
+
+.checkbox-label input,
+.radio-label input {
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+/* Logs container */
+.logs {
+  flex: 1;
+  background: var(--bg);
+  padding: 12px;
+  overflow-y: auto;
+  font-size: 13px;
+  min-height: 0;
+}
+
+/* Listeners */
+.listeners {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.listener-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.listener-item .pattern {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  font-size: 12px;
+}
+
+.listener-item .controls {
+  display: flex;
+  gap: 6px;
+}
+
+/* Rooms */
+.rooms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.room-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+
+.room-badge .remove {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+/* Matched logs highlight */
+.log.matched {
+  background: rgba(38, 166, 91, 0.12);
+}
+
+.logs:empty::after {
+  content: 'No logs yet. Connect and emit events to see logs here.';
+  display: block;
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Log entries */
+.log {
+  display: grid;
+  grid-template-columns: 90px 60px 1fr;
+  gap: 8px;
+  padding: 8px 8px;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+  align-items: start;
+  transition: background var(--transition);
+}
+
+/* Ensure filtered logs are hidden even with .log display styles */
+.log.hidden {
+  display: none;
+}
+
+.log:hover {
+  background: rgba(22, 27, 34, 0.4);
+}
+
+.log:last-child {
+  border-bottom: none;
+}
+
+.log .time {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}
+
+.log .dir {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.log.in .dir {
+  color: var(--warning);
+  background: rgba(210, 153, 34, 0.15);
+  border: 1px solid rgba(210, 153, 34, 0.3);
+}
+
+.log.out .dir {
+  color: var(--primary);
+  background: rgba(31, 111, 235, 0.15);
+  border: 1px solid rgba(31, 111, 235, 0.3);
+}
+
+.log .event {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.log pre {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+  padding: 10px;
+  background: rgba(13, 17, 23, 0.8);
+  border: 1px solid rgba(48, 54, 61, 0.8);
+  border-radius: var(--radius);
+  font-size: 12px;
+  line-height: 1.5;
+  color: #a5d8ff;
+  overflow-x: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .log {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .log .dir {
+    width: fit-content;
+  }
+}

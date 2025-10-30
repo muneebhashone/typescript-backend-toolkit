@@ -1,0 +1,9 @@
+{{#if QUEUES}}
+// This file will be replaced with the full queue implementation
+// when queues feature is enabled
+export * from '../../../queues/queue';
+{{else}}
+// Queues are disabled - providing stub exports
+export const checkQueueHealth = () => () => Promise.resolve(false);
+export const closeAllQueues = () => Promise.resolve();
+{{/if}}

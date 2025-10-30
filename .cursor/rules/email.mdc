@@ -1,0 +1,461 @@
+---
+globs: src/email/**/*,email.queue.ts
+description: Email system using React Email and Mailgun with queue-based sending
+---
+
+# Email System
+
+## Architecture
+
+- **Templates**: React Email components in [src/email/templates/](mdc:src/email/templates/)
+- **Service**: Email service in [src/email/email.service.ts](mdc:src/email/email.service.ts)
+- **Provider**: Email provider abstraction in [src/lib/email.ts](mdc:src/lib/email.ts) (supports Mailgun & SMTP)
+- **Queue**: Background sending via [src/queues/email.queue.ts](mdc:src/queues/email.queue.ts)
+- **Development**: Preview server for templates
+
+## Email Configuration
+
+### Environment Variables
+
+```bash
+# Option 1: Mailgun (Recommended)
+MAILGUN_API_KEY=your-mailgun-api-key
+MAILGUN_DOMAIN=your-domain.com
+MAILGUN_FROM_EMAIL=noreply@your-domain.com
+
+# Option 2: SMTP (Fallback)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM=noreply@your-domain.com
+EMAIL_FROM=noreply@your-domain.com
+
+# Note: Provider auto-selects Mailgun if configured, otherwise SMTP
+```
+
+## Creating Email Templates
+
+### Step 1: Create React Component
+
+Create new file in `src/email/templates/TemplateName.tsx`:
+
+```typescript
+import {
+  Html,
+  Head,
+  Body,
+  Container,
+  Section,
+  Text,
+  Button,
+  Hr,
+  Img,
+} from "@react-email/components";
+
+interface TemplateNameProps {
+  name: string;
+  actionUrl: string;
+}
+
+export default function TemplateName({ name, actionUrl }: TemplateNameProps) {
+  return (
+    <Html>
+      <Head />
+      <Body style={styles.body}>
+        <Container style={styles.container}>
+          <Section style={styles.section}>
+            <Img
+              src="https://your-domain.com/logo.png"
+              alt="Logo"
+              width="150"
+              height="50"
+              style={styles.logo}
+            />
+
+            <Text style={styles.heading}>Hello, {name}!</Text>
+
+            <Text style={styles.text}>
+              Your email content goes here.
+            </Text>
+
+            <Button style={styles.button} href={actionUrl}>
+              Click Here
+            </Button>
+
+            <Hr style={styles.hr} />
+
+            <Text style={styles.footer}>
+              © 2025 Your Company. All rights reserved.
+            </Text>
+          </Section>
+        </Container>
+      </Body>
+    </Html>
+  );
+}
+
+const styles = {
+  body: {
+    backgroundColor: "#f6f9fc",
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  },
+  container: {
+    margin: "0 auto",
+    padding: "20px 0",
+  },
+  section: {
+    backgroundColor: "#ffffff",
+    borderRadius: "8px",
+    padding: "40px",
+  },
+  logo: {
+    margin: "0 auto 20px",
+    display: "block",
+  },
+  heading: {
+    fontSize: "24px",
+    fontWeight: "bold",
+    margin: "20px 0",
+    color: "#1a1a1a",
+  },
+  text: {
+    fontSize: "16px",
+    lineHeight: "24px",
+    color: "#525252",
+    margin: "16px 0",
+  },
+  button: {
+    backgroundColor: "#007bff",
+    color: "#ffffff",
+    padding: "12px 32px",
+    borderRadius: "6px",
+    textDecoration: "none",
+    display: "inline-block",
+    margin: "20px 0",
+  },
+  hr: {
+    borderColor: "#e6e6e6",
+    margin: "30px 0",
+  },
+  footer: {
+    fontSize: "14px",
+    color: "#8c8c8c",
+    textAlign: "center" as const,
+  },
+};
+
+// Preview props for development
+TemplateName.PreviewProps = {
+  name: "John Doe",
+  actionUrl: "https://example.com/action",
+} as TemplateNameProps;
+```
+
+### Step 2: Test Template
+
+```bash
+# Start email development server
+pnpm run email:dev
+
+# Open browser to preview
+# http://localhost:3001
+```
+
+## Sending Emails
+
+### Method 1: Direct Send (Simple)
+
+```typescript
+import { sendEmail } from '@/email/email.service';
+
+await sendEmail({
+  to: 'user@example.com',
+  subject: 'Welcome!',
+  template: 'TemplateName',
+  data: {
+    name: 'John Doe',
+    actionUrl: 'https://example.com/verify',
+  },
+});
+```
+
+### Method 2: Queue-based (Recommended)
+
+```typescript
+import { emailQueue } from '@/queues/email.queue';
+
+await emailQueue.add('sendEmail', {
+  to: 'user@example.com',
+  subject: 'Welcome!',
+  template: 'TemplateName',
+  data: {
+    name: 'John Doe',
+    actionUrl: 'https://example.com/verify',
+  },
+});
+```
+
+## Email Service Usage
+
+The email service in [email.service.ts](mdc:src/email/email.service.ts) handles:
+
+- Template rendering
+- HTML/text generation
+- Queue job creation
+
+### Function Signature
+
+```typescript
+interface SendEmailOptions {
+  to: string | string[]; // Recipient(s)
+  subject: string;
+  template: string; // Template name (without .tsx)
+  data: Record<string, any>; // Props for template
+  from?: string; // Optional: override default sender
+  replyTo?: string; // Optional: reply-to address
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+    contentType?: string;
+  }>;
+}
+
+export const sendEmail = async (options: SendEmailOptions): Promise<void>;
+```
+
+## Queue System
+
+Email queue in [email.queue.ts](mdc:src/queues/email.queue.ts) provides:
+
+- Async sending (doesn't block API response)
+- Automatic retries on failure
+- Queue monitoring via dashboard
+
+### Queue Configuration
+
+```typescript
+// Default options
+{
+  attempts: 3, // Retry up to 3 times
+  backoff: {
+    type: "exponential",
+    delay: 1000, // Start with 1 second delay
+  },
+}
+```
+
+### Custom Queue Options
+
+```typescript
+await emailQueue.add(
+  'sendEmail',
+  { to, subject, template, data },
+  {
+    delay: 60000, // Send after 1 minute
+    attempts: 5, // Retry up to 5 times
+    priority: 1, // Higher priority (default: 0)
+  },
+);
+```
+
+## Common Email Templates
+
+### Welcome Email
+
+```typescript
+await sendEmail({
+  to: user.email,
+  subject: 'Welcome to Our Platform!',
+  template: 'Welcome',
+  data: {
+    name: user.name,
+    verifyUrl: `${config.FRONTEND_URL}/verify?token=${token}`,
+  },
+});
+```
+
+### Password Reset
+
+```typescript
+await sendEmail({
+  to: user.email,
+  subject: 'Reset Your Password',
+  template: 'ResetPassword',
+  data: {
+    name: user.name,
+    resetUrl: `${config.FRONTEND_URL}/reset-password?token=${token}`,
+    expiresIn: '1 hour',
+  },
+});
+```
+
+### OTP Verification
+
+```typescript
+await sendEmail({
+  to: user.email,
+  subject: 'Your Verification Code',
+  template: 'OTP',
+  data: {
+    name: user.name,
+    otp: otpCode,
+    expiresIn: '10 minutes',
+  },
+});
+```
+
+### Notification
+
+```typescript
+await sendEmail({
+  to: user.email,
+  subject: 'New Activity',
+  template: 'Notification',
+  data: {
+    name: user.name,
+    message: 'You have a new message',
+    actionUrl: `${config.FRONTEND_URL}/messages`,
+  },
+});
+```
+
+## React Email Components
+
+### Available Components
+
+- `Html` - Root HTML element
+- `Head` - Head section
+- `Body` - Body section
+- `Container` - Main container
+- `Section` - Content section
+- `Text` - Text paragraph
+- `Heading` - Heading element
+- `Button` - Button/link
+- `Hr` - Horizontal rule
+- `Img` - Image
+- `Link` - Hyperlink
+- `Row` / `Column` - Grid layout
+
+### Styling
+
+```typescript
+// Inline styles (required for email compatibility)
+const styles = {
+  element: {
+    backgroundColor: "#ffffff",
+    padding: "20px",
+    fontSize: "16px",
+  },
+};
+
+<Text style={styles.element}>Content</Text>
+```
+
+## Monitoring
+
+### Queue Dashboard
+
+Access BullMQ dashboard at: `http://localhost:3000/queues`
+
+View:
+
+- Queued emails
+- Processing status
+- Failed emails
+- Retry attempts
+
+### Logs
+
+Check email sending logs:
+
+```typescript
+import { logger } from '@/plugins/observability/logger';
+
+// Logs are automatically added by email service
+logger.info('Email sent', { to, template });
+logger.error('Email failed', { to, template, error });
+```
+
+## Testing Emails
+
+### Development Mode
+
+Set `MAILGUN_TO_OVERRIDE` to redirect all emails:
+
+```bash
+MAILGUN_TO_OVERRIDE=dev@example.com
+```
+
+All emails will be sent to this address instead of actual recipients.
+
+### Preview in Browser
+
+```bash
+# Start dev server
+pnpm run email:dev
+
+# Visit http://localhost:3001
+# All templates listed with previews
+```
+
+### Manual Testing
+
+```bash
+# In development console or test file
+import { sendEmail } from "@/email/email.service";
+
+await sendEmail({
+  to: "test@example.com",
+  subject: "Test Email",
+  template: "TemplateName",
+  data: { /* test data */ },
+});
+```
+
+## Best Practices
+
+### Template Design
+
+- Keep templates simple and clean
+- Use inline styles (required for email clients)
+- Test in multiple email clients
+- Provide plain text fallback
+- Include unsubscribe link (if applicable)
+- Use responsive design
+- Optimize images (small file sizes)
+
+### Sending
+
+- Always use queue for production (async)
+- Set appropriate retry attempts
+- Handle failures gracefully
+- Log all email operations
+- Rate limit sending if needed
+- Verify email addresses before sending
+
+### Content
+
+- Personalize with user data
+- Clear subject lines
+- Brief and actionable content
+- Include clear call-to-action
+- Mobile-friendly design
+- Avoid spam trigger words
+
+## Common Mistakes to Avoid
+
+❌ DON'T send emails synchronously in API handlers
+✅ DO use queue for background sending
+
+❌ DON'T use external CSS
+✅ DO use inline styles
+
+❌ DON'T forget to handle email failures
+✅ DO set retry logic and monitor queue
+
+❌ DON'T send sensitive data in emails
+✅ DO send links to secure pages instead
+
+❌ DON'T spam users
+✅ DO respect user preferences and rate limits
