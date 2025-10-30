@@ -12,6 +12,7 @@ import type {
   CreateSuperAdminResponseSchema,
 } from './user.schema';
 import { createUser, deleteUser, getUsers } from './user.services';
+import { Types } from 'mongoose';
 
 export const handleDeleteUser = async (
   req: Request<MongoIdSchemaType, unknown>,
@@ -71,7 +72,7 @@ export const handleGetUsers = async (
 ) => {
   const { results, paginatorInfo } = await getUsers(
     {
-      id: req.user.sub,
+      id: new Types.ObjectId(req.user.sub),
     },
     req.query,
   );

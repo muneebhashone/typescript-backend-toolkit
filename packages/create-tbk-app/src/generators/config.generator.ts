@@ -189,6 +189,16 @@ export async function generateEnvExample(
   lines.push('# Response Validation');
   lines.push('RESPONSE_VALIDATION=warn  # strict | warn | off');
 
+  // OTP VERIFICATION
+  lines.push('# OTP Verification');
+  lines.push('OTP_VERIFICATION_ENABLED=false');
+  lines.push('');
+
+  // ADMIN EMAIL AND PASSWORD
+  lines.push('# Admin Email and Password');
+  lines.push('ADMIN_EMAIL=admin@example.com');
+  lines.push('');
+
   const filePath = path.join(targetDir, '.env.example');
   await writeFile(filePath, lines.join('\n'));
 }
