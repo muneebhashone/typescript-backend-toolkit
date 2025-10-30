@@ -55,7 +55,7 @@ export async function promptForProjectConfig(projectName?: string): Promise<Proj
       packageManager,
       skipGit,
       skipInstall,
-    };
+    } as any;
   }
 
   // Custom configuration - ask detailed questions

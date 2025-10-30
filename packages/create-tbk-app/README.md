@@ -384,6 +384,6 @@ MIT
 
 ## Links
 
-- [Main Toolkit Repository](#)
-- [Documentation](#)
-- [Report Issues](#)
+- [Main Toolkit Repository](https://github.com/muneebhashone/typescript-backend-toolkit)
+- [Documentation](https://github.com/muneebhashone/typescript-backend-toolkit/blob/main/packages/create-tbk-app/README.md)
+- [Report Issues](https://github.com/muneebhashone/typescript-backend-toolkit/issues)
