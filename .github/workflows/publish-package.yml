@@ -72,11 +72,19 @@ jobs:
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "tag=create-tbk-app-v$NEW_VERSION" >> $GITHUB_OUTPUT
 
+      - name: Get branch name
+        id: branch
+        run: |
+          # Get the actual branch name from git (works for workflow_dispatch)
+          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "Current branch: $BRANCH_NAME"
+
       - name: Commit version bump
         run: |
           git add packages/create-tbk-app/package.json
           git commit -m "chore(create-tbk-app): bump version to ${{ steps.bump-version.outputs.version }}"
-          git push origin HEAD:${{ github.ref_name }}
+          git push origin ${{ steps.branch.outputs.branch }}
 
       - name: Build package
         working-directory: packages/create-tbk-app
@@ -88,7 +96,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
-          pnpm publish --access public
+          pnpm publish --access public --no-git-checks
           rm .npmrc
 
       - name: Create git tag
