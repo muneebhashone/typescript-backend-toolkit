@@ -15,7 +15,7 @@
     "openapi": "dotenv -e .env.development -- tsx scripts/gen-openapi.ts",
     "seed": "dotenv -e .env.development -- tsx scripts/seed.ts",
     "email:dev": "email dev --dir ./src/email/templates",
-    "tbk": "dotenv -e .env.development -- tsx bin/tbk",
+    "tbk": "dotenv -e .env.development -- @tbk/cli",
     "gen-sdk": "npx swagger-typescript-api generate --path ./public/openapi.yml --output ./src/generated"
   },
   "devDependencies": {
@@ -49,7 +49,8 @@
     "tsup": "^8.1.0",
     "tsx": "^4.19.2",
     "typescript": "*",
-    "typescript-eslint": "^7.11.0"
+    "typescript-eslint": "^7.11.0",
+    "@tbk/cli": "workspace:tbk"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.1.1",
