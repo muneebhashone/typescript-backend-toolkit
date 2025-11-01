@@ -285,6 +285,7 @@ export class R2StorageProvider implements StorageProvider {
 }
 {{/if}}
 
+{{#if STORAGE_LOCAL}}
 /**
  * Local file system storage provider implementation
  * Always included for admin panel file uploads
@@ -388,7 +389,7 @@ export class LocalStorageProvider implements StorageProvider {
     }
   }
 }
-
+{{/if}}
 /**
  * Factory function to create the appropriate storage provider
  * Supports S3, Cloudflare R2, and local file system storage
@@ -412,9 +413,11 @@ const createStorageProvider = (): StorageProvider => {
       return new R2StorageProvider();
     {{/if}}
 
+    {{#if STORAGE_LOCAL}}
     case 'local':
       return new LocalStorageProvider();
-
+    {{/if}}
+    
     default:
       throw new StorageError(`Unsupported storage provider: ${provider}`);
   }
