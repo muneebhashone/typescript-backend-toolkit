@@ -114,7 +114,7 @@ export const registerUserByEmail = async (
 
   const otp = config.OTP_VERIFICATION_ENABLED ? generateOtp({ length: 6, charset: 'hex' }) : null;
 
-  const user = await createUser({ ...rest, role: 'DEFAULT_USER', otp }, false);
+  const user = await createUser({ ...rest, role: ROLE_ENUM.DEFAULT_USER, otp }, false);
 
   return user;
 };
