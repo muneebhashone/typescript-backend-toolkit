@@ -1,0 +1,112 @@
+# GitHub Actions workflow for publishing @tbk/cli to npm
+#
+# SETUP INSTRUCTIONS:
+# 1. Go to your repository Settings > Secrets and variables > Actions
+# 2. Click "New repository secret"
+# 3. Name: NPM_TOKEN
+# 4. Value: Your npm access token (create at https://www.npmjs.com/settings/{username}/tokens)
+# 5. Select "Automation" token type for CI/CD use
+# 6. Save the secret
+#
+# For more info: https://docs.github.com/en/actions/security-guides/encrypted-secrets
+
+name: Publish @tbk/cli to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bump version in package.json
+        id: bump-version
+        working-directory: packages/tbk
+        run: |
+          # Get current version
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+
+          # Bump version based on input
+          npm version ${{ inputs.version_type }} --no-git-tag-version
+
+          # Get new version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "New version: $NEW_VERSION"
+
+          # Set output for subsequent steps
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=tbk-cli-v$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get branch name
+        id: branch
+        run: |
+          # Get the actual branch name from git (works for workflow_dispatch)
+          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "Current branch: $BRANCH_NAME"
+
+      - name: Commit version bump
+        run: |
+          git add packages/tbk/package.json
+          git commit -m "chore(@tbk/cli): bump version to ${{ steps.bump-version.outputs.version }}"
+          git push origin ${{ steps.branch.outputs.branch }}
+
+      - name: Build package
+        working-directory: packages/tbk
+        run: pnpm build
+
+      - name: Publish to npm
+        working-directory: packages/tbk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+          pnpm publish --access public --no-git-checks
+          rm .npmrc
+
+      - name: Create git tag
+        run: |
+          git tag ${{ steps.bump-version.outputs.tag }}
+          git push origin ${{ steps.bump-version.outputs.tag }}
+
+      - name: Summary
+        run: |
+          echo "✅ Successfully published @tbk/cli@${{ steps.bump-version.outputs.version }} to npm"
+          echo "📦 Tagged as ${{ steps.bump-version.outputs.tag }}"
+          echo "🔗 Package: https://www.npmjs.com/package/@tbk/cli"
+
