@@ -114,7 +114,6 @@ export async function collectProjectConfig(
 
 export function renderSummary(config: ProjectConfig) {
   note(
-    'Project configuration',
     [
       `Name: ${config.projectName}`,
       `Preset: ${config.preset}`,
@@ -133,6 +132,7 @@ export function renderSummary(config: ProjectConfig) {
       `Initialize git repo: ${config.skipGit ? 'no' : 'yes'}`,
       `Install dependencies: ${config.skipInstall ? 'later' : 'now'}`,
     ].join('\n'),
+    'Project configuration',
   );
 }
 
@@ -280,13 +280,23 @@ async function collectBasicOptions(defaults: PromptDefaults) {
   } satisfies Pick<ProjectConfig, 'packageManager' | 'skipGit' | 'skipInstall'>;
 }
 
-async function collectAgentOptions(defaults: PromptDefaults): Promise<AgentId[]> {
+async function collectAgentOptions(
+  defaults: PromptDefaults,
+): Promise<AgentId[]> {
   const result = await promptMultiSelectValue<AgentId>({
     message: 'Which AI agents/IDEs do you use?',
     options: [
-      { label: 'Claude Code', value: 'claude', hint: 'Includes .claude commands' },
+      {
+        label: 'Claude Code',
+        value: 'claude',
+        hint: 'Includes .claude commands',
+      },
       { label: 'Cursor', value: 'cursor', hint: 'Includes Cursor rules' },
-      { label: 'Other editor/agent', value: 'other', hint: 'Adds AGENTS.md guide' },
+      {
+        label: 'Other editor/agent',
+        value: 'other',
+        hint: 'Adds AGENTS.md guide',
+      },
     ],
     initialValue: defaults.agents ?? [],
   });
