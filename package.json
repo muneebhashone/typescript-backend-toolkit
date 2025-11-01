@@ -47,7 +47,7 @@
     "tsx": "^4.19.2",
     "typescript": "*",
     "typescript-eslint": "^7.11.0",
-    "@tbk/cli": "workspace:tbk"
+    "@themuneebh-oss/tbk": "workspace:tbk"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.1.1",

@@ -18,7 +18,7 @@ export const CORE_DEPENDENCIES = {
 };
 
 export const CORE_DEV_DEPENDENCIES = {
-  '@tbk/cli': '^0.0.1',
+  '@themuneebh-oss/tbk': '^0.0.1',
   typescript: '^5.1.6',
   '@types/express': '^4.17.15',
   '@types/node': '^18.11.18',
