@@ -7,6 +7,8 @@ import { createModuleAction } from './actions/module.js';
 import { createSeedAction } from './actions/seed.js';
 import { createMakeSeederAction } from './actions/makeSeeder.js';
 import { createMakeFactoryAction } from './actions/makeFactory.js';
+import { createOpenApiAction } from './actions/openapi.js';
+import { createGenSdkAction } from './actions/genSdk.js';
 
 const program = new Command();
 
@@ -74,5 +76,19 @@ program
   )
   .option('--id-type <string|objectId>', 'Hint for _id type when ambiguous')
   .action(createMakeFactoryAction);
+
+// Documentation commands
+program
+  .command('docs:openapi')
+  .alias('d:openapi')
+  .description('Generate OpenAPI specification from routes')
+  .option('--env <file>', 'Environment file to load', '.env.development')
+  .action(createOpenApiAction);
+
+program
+  .command('docs:sdk')
+  .alias('d:sdk')
+  .description('Generate TypeScript SDK from OpenAPI spec')
+  .action(createGenSdkAction);
 
 program.parse();

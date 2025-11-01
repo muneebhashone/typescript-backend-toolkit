@@ -154,9 +154,10 @@ pnpm lint             # ESLint + Prettier
 pnpm tbk g:module <name>   # Generate complete module
 pnpm tbk g:plugin <name>   # Generate plugin
 pnpm tbk seed              # Run database seeders
+pnpm tbk docs:openapi      # Generate OpenAPI spec
+pnpm tbk docs:sdk          # Generate TypeScript SDK
 
-# Documentation
-pnpm openapi          # Generate OpenAPI spec
+# Other Tools
 pnpm email:dev        # Preview email templates
 ```
 

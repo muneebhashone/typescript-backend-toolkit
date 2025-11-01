@@ -12,11 +12,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "openapi": "dotenv -e .env.development -- tsx scripts/gen-openapi.ts",
-    "seed": "dotenv -e .env.development -- tsx scripts/seed.ts",
     "email:dev": "email dev --dir ./src/email/templates",
-    "tbk": "dotenv -e .env.development -- @tbk/cli",
-    "gen-sdk": "npx swagger-typescript-api generate --path ./public/openapi.yml --output ./src/generated"
+    "tbk": "tbk"
   },
   "devDependencies": {
     "@eslint/js": "^9.4.0",

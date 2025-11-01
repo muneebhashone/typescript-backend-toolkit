@@ -35,8 +35,12 @@ pnpm tbk seed                                       # Run database seeders
 
 ### OpenAPI Documentation
 ```bash
-pnpm openapi             # Generate OpenAPI spec (public/openapi.yml)
-pnpm gen-sdk             # Generate TypeScript SDK from OpenAPI spec
+pnpm tbk docs:openapi    # Generate OpenAPI spec (public/openapi.yml)
+pnpm tbk docs:sdk        # Generate TypeScript SDK from OpenAPI spec
+
+# Or use convenience aliases:
+pnpm openapi             # Alias for tbk docs:openapi
+pnpm gen-sdk             # Alias for tbk docs:sdk
 ```
 
 Visit `http://localhost:3000/docs` for live Swagger UI.

@@ -220,7 +220,8 @@ pnpm build            # Build for production
 pnpm start:prod       # Run production build
 pnpm typecheck        # Type check without building
 pnpm lint             # Run ESLint
-pnpm openapi          # Generate OpenAPI spec
+pnpm tbk docs:openapi # Generate OpenAPI spec
+pnpm tbk docs:sdk     # Generate TypeScript SDK
 
 # CLI tool (module generation)
 pnpm tbk generate:module <name>        # Generate CRUD module
