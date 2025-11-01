@@ -44,8 +44,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9.9.0
 
       - name: Configure Git
         run: |
@@ -62,14 +60,14 @@ jobs:
           # Get current version
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "Current version: $CURRENT_VERSION"
-          
+
           # Bump version based on input
           npm version ${{ inputs.version_type }} --no-git-tag-version
-          
+
           # Get new version
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "New version: $NEW_VERSION"
-          
+
           # Set output for subsequent steps
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "tag=create-tbk-app-v$NEW_VERSION" >> $GITHUB_OUTPUT
@@ -102,4 +100,3 @@ jobs:
         run: |
           echo "✅ Successfully published create-tbk-app@${{ steps.bump-version.outputs.version }} to npm"
           echo "📦 Tagged as ${{ steps.bump-version.outputs.tag }}"
-
