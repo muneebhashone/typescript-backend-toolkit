@@ -39,7 +39,7 @@ export const PRESETS: Record<string, PresetConfig> = {
     config: {
       auth: 'jwt-sessions',
       sessionDriver: 'redis',
-      googleOAuth: false,
+      googleOAuth: true,
       cache: 'redis',
       queues: true,
       storage: 's3',
