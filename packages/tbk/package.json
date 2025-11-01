@@ -1,0 +1,51 @@
+{
+  "name": "@tbk/cli",
+  "version": "0.0.1",
+  "description": "CLI tool for TypeScript Backend Toolkit - generate modules, plugins, middleware, seeders, and factories",
+  "type": "module",
+  "bin": {
+    "tbk": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
+  },
+  "keywords": [
+    "typescript",
+    "backend",
+    "express",
+    "mongodb",
+    "cli",
+    "scaffolding",
+    "generator",
+    "seeder",
+    "factory"
+  ],
+  "author": "muneebhashone",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/muneebhashone/typescript-backend-toolkit.git",
+    "directory": "packages/tbk"
+  },
+  "homepage": "https://github.com/muneebhashone/typescript-backend-toolkit/tree/main/packages/tbk",
+  "bugs": {
+    "url": "https://github.com/muneebhashone/typescript-backend-toolkit/issues"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^14.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "tsup": "^8.1.0",
+    "typescript": "^5.1.6"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
