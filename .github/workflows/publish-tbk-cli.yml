@@ -1,4 +1,4 @@
-# GitHub Actions workflow for publishing @tbk/cli to npm
+# GitHub Actions workflow for publishing @themuneebh-oss/tbk to npm
 #
 # SETUP INSTRUCTIONS:
 # 1. Go to your repository Settings > Secrets and variables > Actions
@@ -10,7 +10,7 @@
 #
 # For more info: https://docs.github.com/en/actions/security-guides/encrypted-secrets
 
-name: Publish @tbk/cli to npm
+name: Publish @themuneebh-oss/tbk to npm
 
 on:
   workflow_dispatch:
@@ -83,7 +83,7 @@ jobs:
       - name: Commit version bump
         run: |
           git add packages/tbk/package.json
-          git commit -m "chore(@tbk/cli): bump version to ${{ steps.bump-version.outputs.version }}"
+          git commit -m "chore(@themuneebh-oss/tbk): bump version to ${{ steps.bump-version.outputs.version }}"
           git push origin ${{ steps.branch.outputs.branch }}
 
       - name: Build package
@@ -106,7 +106,6 @@ jobs:
 
       - name: Summary
         run: |
-          echo "✅ Successfully published @tbk/cli@${{ steps.bump-version.outputs.version }} to npm"
+          echo "✅ Successfully published @themuneebh-oss/tbk@${{ steps.bump-version.outputs.version }} to npm"
           echo "📦 Tagged as ${{ steps.bump-version.outputs.tag }}"
-          echo "🔗 Package: https://www.npmjs.com/package/@tbk/cli"
-
+          echo "🔗 Package: https://www.npmjs.com/package/@themuneebh-oss/tbk"

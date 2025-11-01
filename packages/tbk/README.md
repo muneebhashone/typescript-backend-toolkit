@@ -1,4 +1,4 @@
-# @tbk/cli
+# @themuneebh-oss/tbk
 
 CLI tool for TypeScript Backend Toolkit projects. Generate modules, plugins, middleware, seeders, and factories with a single command.
 
@@ -7,13 +7,13 @@ CLI tool for TypeScript Backend Toolkit projects. Generate modules, plugins, mid
 This package is typically installed as a dev dependency in TypeScript Backend Toolkit projects:
 
 ```bash
-pnpm add -D @tbk/cli
+pnpm add -D @themuneebh-oss/tbk
 ```
 
 Or via npm:
 
 ```bash
-npm install -D @tbk/cli
+npm install -D @themuneebh-oss/tbk
 ```
 
 ## Usage
@@ -52,9 +52,11 @@ pnpm tbk generate:module product --path /api/v1
 ```
 
 **Options:**
+
 - `-p, --path <path>` - API path prefix (default: `/api`)
 
 **Creates:**
+
 - `src/modules/<name>/<name>.dto.ts` - Zod schemas and TypeScript types
 - `src/modules/<name>/<name>.model.ts` - Mongoose model
 - `src/modules/<name>/<name>.schema.ts` - Request/response validation schemas
@@ -71,6 +73,7 @@ pnpm tbk generate:plugin cache
 ```
 
 **Creates:**
+
 - `src/plugins/<name>/index.ts` - Plugin factory and registration
 
 ### generate:middleware
@@ -82,6 +85,7 @@ pnpm tbk generate:middleware rateLimiter
 ```
 
 **Creates:**
+
 - `src/middlewares/<name>.ts` - Middleware function
 
 ### seed
@@ -106,6 +110,7 @@ pnpm tbk seed --force
 ```
 
 **Options:**
+
 - `-g, --group <group>` - Group to run (base|dev|test|demo) (default: `dev`)
 - `--only <names>` - Comma-separated seeder names
 - `--fresh` - Drop involved collections before seeding
@@ -124,12 +129,14 @@ pnpm tbk make:seeder product/Product --count 10 --unique slug
 ```
 
 **Options:**
+
 - `-c, --count <number>` - Default count for dev/test (default: `5`)
 - `-u, --unique <field>` - Unique field to upsert by
 - `-d, --depends-on <names>` - Comma-separated additional dependencies
 - `--model <export>` - Model export name when not default
 
 **Creates:**
+
 - `src/modules/<module>/seeders/<Name>Seeder.ts`
 
 **Note:** The seeder must be manually registered in `src/seeders/registry.ts`.
@@ -144,11 +151,13 @@ pnpm tbk make:factory product/Product --model ProductModel --use service
 ```
 
 **Options:**
+
 - `--model <export>` - Model export name when not default
 - `--use <service|model>` - Prefer using service create function when present (default: `service`)
-- `--id-type <string|objectId>` - Hint for _id type when ambiguous
+- `--id-type <string|objectId>` - Hint for \_id type when ambiguous
 
 **Creates:**
+
 - `src/modules/<module>/factories/<name>.factory.ts`
 
 ## Requirements
@@ -160,6 +169,7 @@ pnpm tbk make:factory product/Product --model ProductModel --use service
 ## How It Works
 
 The CLI tool uses dynamic imports and model introspection to:
+
 - Analyze Mongoose schemas to detect fields, types, and relationships
 - Generate type-safe code following project patterns
 - Ensure consistency with existing codebase structure
@@ -185,4 +195,3 @@ MIT
 
 - [Main Toolkit Repository](https://github.com/muneebhashone/typescript-backend-toolkit)
 - [Report Issues](https://github.com/muneebhashone/typescript-backend-toolkit/issues)
-
