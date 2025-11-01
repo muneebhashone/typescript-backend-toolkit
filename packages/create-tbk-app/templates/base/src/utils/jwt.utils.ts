@@ -89,10 +89,10 @@ export const verifyToken = async <
     return verify(token, String(config.JWT_SECRET)) as T;
   } catch (err) {
     if (err instanceof Error) {
-      logger.error('verifyToken failed', { error: err.message });
+      logger.error({ error: err.message }, 'verifyToken failed');
       throw err;
     }
-    logger.error('verifyToken failed with unknown error', { err });
+    logger.error({ err }, 'verifyToken failed with unknown error');
     throw new Error('Token verification failed');
   }
 };
