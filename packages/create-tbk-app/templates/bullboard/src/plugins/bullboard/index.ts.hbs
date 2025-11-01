@@ -72,7 +72,7 @@ export const bullboardPlugin: PluginFactory<BullboardOptions> = (
 
       createBullBoard({
         queues: Object.entries(registeredQueues || {}).map(
-          ([, values]) => new BullMQAdapter(values.queue),
+          ([, values]) => new BullMQAdapter(values.queue) as any,
         ),
         options: {
           uiConfig: {

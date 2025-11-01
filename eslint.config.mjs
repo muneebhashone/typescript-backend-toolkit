@@ -20,6 +20,8 @@ export default [
       'public/**/*',
       'src/plugins/admin/*',
       'src/plugins/magic/*',
+      'packages/*',
+      'packages/**/*',
     ],
   },
   pluginJs.configs.recommended,
