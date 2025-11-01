@@ -5,13 +5,13 @@ CLI tool to scaffold TypeScript Backend Toolkit projects with customizable featu
 ## Quick Start
 
 ```bash
-# Interactive mode (recommended)
+# Guided prompts (recommended)
 npx create-tbk-app my-backend-api
 
-# With preset
-npx create-tbk-app my-api --preset=standard
+# Skip prompts and use defaults from flags
+npx create-tbk-app my-api -y --preset=standard
 
-# Custom configuration via flags
+# Provide defaults and confirm step-by-step
 npx create-tbk-app my-api --auth=jwt --cache=redis --email=resend
 ```
 
@@ -66,15 +66,22 @@ create-tbk-app [project-name] [options]
 Options:
   --preset <type>           Preset configuration (minimal, standard, full, custom)
   --auth <type>             Authentication (none, jwt, jwt-sessions)
+  --session-driver <driver> Session storage driver (mongo, redis)
   --cache <provider>        Cache provider (none, memory, redis)
   --storage <provider>      Storage provider (none, local, s3, r2)
   --email <provider>        Email provider (none, resend, mailgun, smtp)
-  --queues                  Enable background jobs
-  --realtime                Enable real-time features
-  --admin                   Include admin panel
+  --queues / --no-queues    Toggle background jobs
+  --queue-dashboard         Include queue monitoring dashboard (with queues)
+  --no-queue-dashboard      Disable queue monitoring dashboard
+  --realtime / --no-realtime Toggle real-time features
+  --admin / --no-admin      Toggle admin panel
+  --google-oauth            Enable Google OAuth login (with auth)
+  --observability <level>   Observability level (basic, full)
   --pm <manager>            Package manager (pnpm, npm, yarn)
   --skip-git                Skip git initialization
   --skip-install            Skip dependency installation
+  -y, --yes                 Skip prompts and accept defaults
+  --force                   Overwrite existing directory without prompting
   -h, --help                Display help
   -V, --version             Display version
 ```
@@ -93,6 +100,7 @@ You'll be prompted for:
 3. Custom features (if preset is "custom")
 4. Package manager preference
 5. Git/install preferences
+6. Final summary confirmation
 
 ### Non-Interactive Mode
 
@@ -102,7 +110,7 @@ You'll be prompted for:
 npx create-tbk-app my-api --preset=minimal
 
 # Standard with npm
-npx create-tbk-app my-api --preset=standard --pm=npm
+npx create-tbk-app my-api --preset=standard --pm=npm --skip-install --skip-git
 
 # Full-featured
 npx create-tbk-app my-api --preset=full
@@ -124,13 +132,19 @@ npx create-tbk-app my-api \
   --storage=s3 \
   --email=resend \
   --realtime \
-  --admin
+  --admin \
+  --pm=pnpm \
+  --skip-install \
+  --skip-git
 ```
 
 **Skip options:**
 ```bash
 # Don't install dependencies or init git
 npx create-tbk-app my-api --preset=standard --skip-install --skip-git
+
+# Force overwrite and skip prompts
+npx create-tbk-app my-api -y --preset=standard --pm=pnpm --force
 ```
 
 ## What Gets Generated
