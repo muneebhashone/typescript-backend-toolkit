@@ -403,12 +403,12 @@ templates/base/src/middlewares/can-access.ts
 
 #### 6.1 Scripts
 ```bash
-# Always copy
-templates/base/scripts/gen-openapi.ts
+# Note: gen-openapi.ts is now part of the tbk CLI (tbk docs:openapi)
+# No standalone scripts needed unless custom functionality is required
 
-# Only if AUTH (for seeding)
+# Only if AUTH (for seeding - deprecated, use tbk seed instead)
 {{#if AUTH}}
-templates/base/scripts/seed.ts
+templates/base/scripts/seed.ts (DEPRECATED - use tbk seed)
 {{/if}}
 ```
 

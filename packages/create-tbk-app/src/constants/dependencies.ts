@@ -18,6 +18,7 @@ export const CORE_DEPENDENCIES = {
 };
 
 export const CORE_DEV_DEPENDENCIES = {
+  '@tbk/cli': '^0.0.1',
   typescript: '^5.1.6',
   '@types/express': '^4.17.15',
   '@types/node': '^18.11.18',
@@ -156,7 +157,10 @@ export function resolveDependencies(config: ProjectConfig): {
   // Helper to merge feature dependencies
   const addFeature = (feature: keyof typeof FEATURE_DEPENDENCIES) => {
     Object.assign(dependencies, FEATURE_DEPENDENCIES[feature].dependencies);
-    Object.assign(devDependencies, FEATURE_DEPENDENCIES[feature].devDependencies);
+    Object.assign(
+      devDependencies,
+      FEATURE_DEPENDENCIES[feature].devDependencies,
+    );
   };
 
   // Security plugin (always included for standard and full presets)
@@ -231,9 +235,10 @@ export function resolveDependencies(config: ProjectConfig): {
 
 export function generateScripts(config: ProjectConfig): Record<string, string> {
   const scripts: Record<string, string> = {
-    dev: config.email !== 'none'
-      ? 'concurrently "pnpm start:dev" "pnpm email:dev"'
-      : 'pnpm start:dev',
+    dev:
+      config.email !== 'none'
+        ? 'concurrently "pnpm start:dev" "pnpm email:dev"'
+        : 'pnpm start:dev',
     'start:dev': 'dotenv -e .env.development -- tsx --watch ./src/main.ts',
     build: 'tsup --config build.ts',
     'start:prod': 'dotenv -e .env.production -- node ./dist/main.js',
@@ -241,9 +246,7 @@ export function generateScripts(config: ProjectConfig): Record<string, string> {
     typecheck: 'tsc --noEmit',
     lint: 'eslint',
     'lint:fix': 'eslint --fix',
-    openapi: 'dotenv -e .env.development -- tsx scripts/gen-openapi.ts',
-    tbk: 'dotenv -e .env.development -- tsx bin/tbk',
-    'gen-sdk': 'npx swagger-typescript-api generate --path ./public/openapi.yml --output ./src/generated',
+    tbk: 'tbk',
   };
 
   // Add email dev script if email is enabled

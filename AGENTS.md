@@ -14,7 +14,7 @@
 - `pnpm build` — compile TypeScript via `tsup` to `dist/`.
 - `pnpm start` | `pnpm start:dev|:prod|:local` — run compiled or env-specific entry via `dotenv-cli`.
 - `pnpm typecheck` — strict type checks without emit. `pnpm lint` | `pnpm lint:fix` — ESLint with Prettier.
-- Useful: `pnpm openapi` (generate spec), `pnpm seed` (dev seed), `pnpm email:dev` (preview emails).
+- Useful: `pnpm tbk docs:openapi` (generate spec), `pnpm tbk seed` (dev seed), `pnpm email:dev` (preview emails).
 
 ## Coding Style & Naming Conventions
 
