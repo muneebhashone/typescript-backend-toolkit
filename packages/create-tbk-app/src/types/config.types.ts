@@ -30,7 +30,7 @@ export interface ProjectConfig {
   admin: boolean;
   queueDashboard: boolean;
   observability: ObservabilityLevel;
-  agents: AgentId[];
+  agents?: AgentId[];
   packageManager: PackageManager;
   skipGit: boolean;
   skipInstall: boolean;
@@ -85,5 +85,13 @@ export interface TemplateContext {
 export interface PresetConfig {
   name: string;
   description: string;
-  config: Omit<ProjectConfig, 'projectName' | 'preset' | 'packageManager' | 'skipGit' | 'skipInstall' | 'googleOAuth'> & { googleOAuth?: boolean };
+  config: Omit<
+    ProjectConfig,
+    | 'projectName'
+    | 'preset'
+    | 'packageManager'
+    | 'skipGit'
+    | 'skipInstall'
+    | 'googleOAuth'
+  > & { googleOAuth?: boolean };
 }
