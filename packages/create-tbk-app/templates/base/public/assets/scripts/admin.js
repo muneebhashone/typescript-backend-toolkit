@@ -52,8 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle unauthorized - redirect to login
     if (res.status === 401) {
       window.location.href =
-        '/login?next=' +
-        encodeURIComponent(window.location.pathname);
+        '/login?next=' + encodeURIComponent(window.location.pathname);
       throw new Error('Unauthorized');
     }
 
@@ -501,7 +500,8 @@ document.addEventListener('DOMContentLoaded', () => {
           method: 'POST',
           headers: { accept: 'application/json' },
         });
-        window.location.href = './login';
+
+        window.location.href = '/admin/login';
       } catch (e) {
         alert('Logout failed. Please try again.');
       }

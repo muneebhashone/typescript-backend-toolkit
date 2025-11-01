@@ -129,13 +129,9 @@ export const bullboardPlugin: PluginFactory<BullboardOptions> = (
       });
 
       // Queues logout
-      app.post(`${path}/logout`, (req, res) => {
+      app.post(`${path}/logout`, (_req, res) => {
         clearQueueCookie(res);
-        const acceptsJson = req.headers.accept?.includes('application/json');
-        if (acceptsJson) {
-          return res.json({ ok: true });
-        }
-        return res.redirect(`${path}/login`);
+        return res.json({ ok: true });
       });
 
       // Mount BullBoard with asset injection and optional auth

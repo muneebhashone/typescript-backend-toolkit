@@ -23,6 +23,7 @@ import {
   checkDirectoryExists,
 } from './utils/validation.js';
 import type {
+  AgentId,
   AuthType,
   CacheProvider,
   EmailProvider,
@@ -51,6 +52,7 @@ interface CliOptions {
   pm?: string;
   skipGit?: boolean;
   skipInstall?: boolean;
+  agents?: string;
   yes?: boolean;
   force?: boolean;
 }
@@ -84,6 +86,7 @@ program
   .option('--pm <manager>', 'Package manager (pnpm, npm, yarn)')
   .option('--skip-git', 'Skip git initialization')
   .option('--skip-install', 'Skip dependency installation')
+  .option('--agents <agents>', 'Comma-separated AI agents/IDEs (claude,cursor,other)')
   .option('-y, --yes', 'Skip prompts and accept defaults')
   .option('--force', 'Overwrite target directory without prompting')
   .action(async (projectName: string | undefined, options: CliOptions) => {
@@ -152,6 +155,7 @@ interface NormalizedOptions {
   packageManager?: PackageManager;
   skipGit?: boolean;
   skipInstall?: boolean;
+  agents?: AgentId[];
   yes: boolean;
   force: boolean;
 }
@@ -195,6 +199,7 @@ function normalizeOptions(options: CliOptions): NormalizedOptions {
     packageManager: parseChoice(options.pm, ['pnpm', 'npm', 'yarn'], 'pm'),
     skipGit: getBooleanOption(options, 'skipGit'),
     skipInstall: getBooleanOption(options, 'skipInstall'),
+    agents: parseAgents(options.agents),
     yes: options.yes ?? false,
     force: options.force ?? false,
   };
@@ -286,6 +291,7 @@ function mapOptionsToDefaults(
     realtime: options.realtime,
     admin: options.admin,
     observability: options.observability,
+    agents: options.agents,
     packageManager: options.packageManager,
     skipGit: options.skipGit,
     skipInstall: options.skipInstall,
@@ -491,6 +497,7 @@ function buildConfigFromOptions(
     realtime,
     admin,
     observability,
+    agents: options.agents ?? [],
     packageManager: options.packageManager ?? 'pnpm',
     skipGit: resolveBooleanOption(options.skipGit, false),
     skipInstall: resolveBooleanOption(options.skipInstall, false),
@@ -514,6 +521,35 @@ function parseChoice<T extends string>(
   }
 
   return normalized;
+}
+
+function parseAgents(value: string | undefined): AgentId[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const allowed: AgentId[] = ['claude', 'cursor', 'other'];
+  const selections = value
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter((item) => item.length > 0);
+
+  if (selections.length === 0) {
+    return [];
+  }
+
+  const invalid = selections.filter(
+    (item): item is string => !allowed.includes(item as AgentId),
+  );
+
+  if (invalid.length > 0) {
+    throw new Error(
+      `Invalid value(s) "${invalid.join(', ')}" for --agents. Allowed values: ${allowed.join(', ')}`,
+    );
+  }
+
+  const unique = Array.from(new Set(selections)) as AgentId[];
+  return unique;
 }
 
 function getBooleanOption(options: CliOptions, key: keyof CliOptions) {

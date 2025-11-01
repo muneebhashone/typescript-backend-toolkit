@@ -1,0 +1,285 @@
+---
+globs: *.router.ts,*.routes.ts
+description: Routing patterns using MagicRouter for automatic OpenAPI generation
+---
+
+# Routing with MagicRouter
+
+## Core Principle
+
+NEVER use plain Express routing. ALWAYS use MagicRouter from [router.ts](mdc:src/plugins/magic/router.ts).
+
+## Pattern Template
+
+```typescript
+import MagicRouter from '@/plugins/magic/router';
+import { canAccess } from '@/middlewares/can-access';
+import {
+  handleAction,
+  handleGetById,
+  handleCreate,
+  handleSearch,
+} from './module.controller';
+import {
+  actionSchema,
+  createSchema,
+  idParamsSchema,
+  searchQuerySchema,
+  actionResponseSchema,
+  getMeResponseSchema,
+  createItemResponseSchema,
+  getItemByIdResponseSchema,
+  searchItemsResponseSchema,
+} from './module.schema';
+
+export const MODULE_ROUTER_ROOT = '/module';
+
+const moduleRouter = new MagicRouter(MODULE_ROUTER_ROOT);
+
+// Public route with schema validation and response config
+moduleRouter.post(
+  '/action',
+  {
+    requestType: { body: actionSchema },
+    responses: {
+      200: actionResponseSchema,
+    },
+  },
+  handleAction,
+);
+
+// Protected route with authentication
+moduleRouter.get(
+  '/me',
+  {
+    responses: {
+      200: getMeResponseSchema,
+    },
+  },
+  canAccess(),
+  handleGetById,
+);
+
+// Protected route with schema, auth, and response config
+moduleRouter.post(
+  '/create',
+  {
+    requestType: { body: createSchema },
+    responses: {
+      201: createItemResponseSchema,
+    },
+  },
+  canAccess(),
+  handleCreate,
+);
+
+// Route with params
+moduleRouter.get(
+  '/:id',
+  {
+    requestType: { params: idParamsSchema },
+    responses: {
+      200: getItemByIdResponseSchema,
+    },
+  },
+  handleGetById,
+);
+
+// Route with query params (paginated)
+moduleRouter.get(
+  '/search',
+  {
+    requestType: { query: searchQuerySchema },
+    responses: {
+      200: searchItemsResponseSchema,
+    },
+  },
+  handleSearch,
+);
+
+export default moduleRouter.getRouter();
+```
+
+## MagicRouter API
+
+### Router Instantiation
+
+```typescript
+const router = new MagicRouter(ROUTER_ROOT);
+```
+
+- Create router instance with root path (e.g., `/auth`, `/user`)
+- Root path used for route grouping and OpenAPI tag generation
+
+### Route Definition Signature
+
+```typescript
+router.method(path, config, ...handlers);
+```
+
+**Parameters:**
+
+1. `path`: Route path string (e.g., `/login`, `/:id`)
+2. `config`: Schema configuration object (use `{}` if none)
+3. `...handlers`: Middleware functions and controller (spread arguments)
+
+### Request Config Object
+
+```typescript
+{
+  requestType?: {
+    body?: ZodSchema,
+    params?: ZodSchema,
+    query?: ZodSchema,
+  },
+  responses?: {
+    200?: ResponseSchema,
+    201?: ResponseSchema,
+    404?: ResponseSchema,
+    // ... other status codes
+  },
+  contentType?: string,
+  multipart?: boolean,
+}
+```
+
+- Use empty object `{}` when no validation needed
+- Combine `body`, `params`, and `query` in same route when needed
+- Define `responses` for per-status schemas (strongly recommended)
+- Set `contentType`/`multipart` for uploads
+
+### Response Configuration (Recommended)
+
+Define response schemas in your schema file and import them:
+
+```typescript
+import { R } from '@/plugins/magic/response.builders';
+import { itemOutSchema } from './module.dto';
+
+export const createItemResponseSchema = R.success(itemOutSchema);
+export const getItemsResponseSchema = R.paginated(itemOutSchema);
+
+export type CreateItemResponseSchema = z.infer<typeof createItemResponseSchema>;
+export type GetItemsResponseSchema = z.infer<typeof getItemsResponseSchema>;
+
+// In module.router.ts
+responses: { 201: createItemResponseSchema }
+responses: { 200: getItemsResponseSchema }
+```
+
+**Response Builders:**
+
+- `R.success(schema)` - Standard envelope `{ success, message?, data? }`
+- `R.paginated(itemSchema)` - `{ success, data: { items, paginator } }`
+- `R.noContent()` - 204 empty response
+- `R.error(schema?)` - Error envelope
+- `R.raw(schema)` - Non-envelope response (e.g., healthcheck)
+
+## Handler Order
+
+The last handler is the controller. All preceding handlers are middleware.
+
+```typescript
+router.get('/me', {}, canAccess(), handleGetMe);
+```
+
+## Authentication
+
+Add `canAccess()` middleware for protected routes:
+
+```typescript
+router.get('/me', {}, canAccess(), handleGetCurrentUser);
+```
+
+- Security is auto-detected in OpenAPI when `canAccess()` is present
+- JWT payload available via `req.user` in controllers
+
+## Common Route Patterns
+
+### Body Validation
+
+```typescript
+router.post('/create', { requestType: { body: createSchema } }, handleCreate);
+```
+
+### Params Validation
+
+```typescript
+router.get('/:id', { requestType: { params: idParamsSchema } }, handleGetById);
+```
+
+### Query Validation
+
+```typescript
+router.get('/search', { requestType: { query: searchSchema } }, handleSearch);
+```
+
+### Combined Validation
+
+```typescript
+router.put(
+  '/:id',
+  {
+    requestType: {
+      params: idParamsSchema,
+      body: updateSchema,
+    },
+    responses: { 200: updateResponseSchema },
+  },
+  canAccess(),
+  handleUpdate,
+);
+```
+
+## File Uploads
+
+```typescript
+router.post(
+  '/upload',
+  {
+    requestType: { body: uploadSchema },
+    contentType: 'multipart/form-data',
+    multipart: true,
+    responses: { 201: uploadResponseSchema },
+  },
+  canAccess(),
+  handleUpload,
+);
+```
+
+Files are available on `req.body` (not `req.file`). Use `zFile()` / `zFiles()` helpers in schema.
+
+## Registering Routers
+
+```typescript
+// src/routes/routes.ts
+import moduleRouter, { MODULE_ROUTER_ROOT } from '@/modules/module/module.router';
+
+router.use(MODULE_ROUTER_ROOT, moduleRouter);
+```
+
+## OpenAPI Generation
+
+MagicRouter automatically generates OpenAPI documentation:
+
+- Tags from router root (e.g., `/users` → `Users` tag)
+- Security from presence of `canAccess()`
+- Schemas from `requestType` definitions
+- Response schemas from `responses` config
+
+## Common Mistakes to Avoid
+
+❌ Using plain Express routing (`router.get('/path', handler)`)  
+✅ Use MagicRouter signature (`router.get('/path', {}, handler)`)
+
+❌ Omitting the config object (`router.post('/create', handleCreate)`)  
+✅ Always include `{}` or request config (`router.post('/create', {}, handleCreate)`)
+
+❌ Passing handlers array (`router.get('/me', {}, [canAccess(), handler])`)  
+✅ Spread handlers (`router.get('/me', {}, canAccess(), handler)`)
+
+❌ Exporting the MagicRouter instance (`export default moduleRouter`)  
+✅ Call `.getRouter()` (`export default moduleRouter.getRouter()`)
+
+❌ Using wrong schema structure (`{ schema: body }`)  
+✅ Use `requestType` nesting (`{ requestType: { body: bodySchema } }`)

@@ -1,6 +1,5 @@
 import User from '@/modules/user/user.model';
 import { SessionModel } from '@/modules/auth/session/session.model';
-import Blog from '@/modules/blog/blog.model';
 import type { AdminResource } from './types';
 
 export const adminResources: AdminResource[] = [
@@ -18,13 +17,6 @@ export const adminResources: AdminResource[] = [
     model: SessionModel,
     readOnlyFields: ['_id', 'createdAt', 'updatedAt'],
     displayField: 'tokenHash',
-  },
-  {
-    name: 'blogs',
-    label: 'Blogs',
-    model: Blog,
-    readOnlyFields: ['_id', 'createdAt', 'updatedAt'],
-    displayField: 'name',
   },
 ];
 
