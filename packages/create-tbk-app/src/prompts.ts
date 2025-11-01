@@ -114,7 +114,7 @@ export async function collectProjectConfig(
 
 export function renderSummary(config: ProjectConfig) {
   note(
-    [
+    [ 
       `Name: ${config.projectName}`,
       `Preset: ${config.preset}`,
       `Auth: ${config.auth}${config.auth === 'jwt-sessions' && config.sessionDriver ? ` (${config.sessionDriver})` : ''}`,
