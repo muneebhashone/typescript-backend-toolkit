@@ -1,6 +1,6 @@
 {
   "name": "@themuneebh-oss/tbk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "CLI tool for TypeScript Backend Toolkit - generate modules, plugins, middleware, seeders, and factories",
   "type": "module",
   "bin": {
