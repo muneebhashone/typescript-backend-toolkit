@@ -1,223 +1,235 @@
-import inquirer from 'inquirer';
+import {
+  confirm,
+  intro,
+  isCancel,
+  note,
+  select,
+  text,
+  cancel,
+} from '@clack/prompts';
 import type {
-  ProjectConfig,
-  PresetType,
   AuthType,
   CacheProvider,
-  StorageProvider,
   EmailProvider,
-  SessionDriver,
+  ObservabilityLevel,
   PackageManager,
+  PresetType,
+  ProjectConfig,
+  SessionDriver,
+  StorageProvider,
 } from './types/config.types.js';
 import { PRESETS, getPresetChoices } from './constants/presets.js';
 
-export async function promptForProjectConfig(projectName?: string): Promise<ProjectConfig> {
-  console.log('\n🚀 Welcome to create-tbk-app!\n');
+type BooleanLike = boolean | undefined;
+type Choice<T extends string> = { value: T; label: string; hint?: string };
 
-  // Step 1: Project name
-  const { name } = await inquirer.prompt<{ name: string }>([
-    {
-      type: 'input',
-      name: 'name',
+const projectNameRegex = /^[a-z0-9-_]+$/;
+
+export interface PromptDefaults {
+  projectName?: string;
+  preset?: PresetType;
+  auth?: AuthType;
+  sessionDriver?: SessionDriver;
+  googleOAuth?: BooleanLike;
+  cache?: CacheProvider;
+  queues?: BooleanLike;
+  queueDashboard?: BooleanLike;
+  storage?: StorageProvider;
+  email?: EmailProvider;
+  realtime?: BooleanLike;
+  admin?: BooleanLike;
+  observability?: ObservabilityLevel;
+  packageManager?: PackageManager;
+  skipGit?: BooleanLike;
+  skipInstall?: BooleanLike;
+}
+
+export async function collectProjectConfig(
+  projectNameArg?: string,
+  defaults: PromptDefaults = {},
+): Promise<ProjectConfig> {
+  intro('create-tbk-app');
+
+  const projectName = ensureNotCancelled(
+    await text({
       message: 'What is your project named?',
-      default: projectName || 'my-backend',
-      validate: (input: string) => {
+      initialValue: projectNameArg || defaults.projectName || 'my-backend',
+      validate: (input) => {
         if (!input || input.trim().length === 0) {
           return 'Project name is required';
         }
-        if (!/^[a-z0-9-_]+$/.test(input)) {
-          return 'Project name can only contain lowercase letters, numbers, hyphens, and underscores';
+        if (!projectNameRegex.test(input)) {
+          return 'Use lowercase letters, numbers, hyphens, or underscores only';
         }
-        return true;
+        return undefined;
       },
-    },
-  ]);
+    }),
+  );
 
-  // Step 2: Preset selection
-  const { preset } = await inquirer.prompt<{ preset: PresetType }>([
-    {
-      type: 'list',
-      name: 'preset',
-      message: 'Which preset would you like to use?',
-      choices: getPresetChoices(),
-    },
-  ]);
+  const preset = await promptSelectValue<PresetType>({
+    message: 'Which preset would you like to use?',
+    options: getPresetChoices().map((choice) => ({
+      value: choice.value as PresetType,
+      label: choice.name,
+    })),
+    initialValue: defaults.preset,
+  });
 
-  // If not custom, use preset config
-  if (preset !== 'custom') {
-    const presetConfig = PRESETS[preset].config;
-    const { packageManager, skipGit, skipInstall } = await promptForBasicOptions();
+  let customConfig: Partial<ProjectConfig> = {};
 
-    return {
-      projectName: name,
-      preset,
-      ...presetConfig,
-      packageManager,
-      skipGit,
-      skipInstall,
-    } as any;
+  if (preset === 'custom') {
+    customConfig = await collectCustomConfig(defaults);
+  } else {
+    customConfig = { ...PRESETS[preset].config };
   }
 
-  // Custom configuration - ask detailed questions
-  const customConfig = await promptForCustomConfig();
-  const { packageManager, skipGit, skipInstall } = await promptForBasicOptions();
+  const basicOptions = await collectBasicOptions(defaults);
 
-  return {
-    projectName: name,
-    preset: 'custom',
-    ...customConfig,
-    packageManager,
-    skipGit,
-    skipInstall,
+  const finalConfig: ProjectConfig = {
+    projectName,
+    preset,
+    auth: customConfig.auth!,
+    sessionDriver: customConfig.sessionDriver,
+    googleOAuth: customConfig.googleOAuth ?? false,
+    cache: customConfig.cache!,
+    queues: customConfig.queues ?? false,
+    queueDashboard: customConfig.queueDashboard ?? false,
+    storage: customConfig.storage!,
+    email: customConfig.email!,
+    realtime: customConfig.realtime ?? false,
+    admin: customConfig.admin ?? false,
+    observability: customConfig.observability!,
+    packageManager: basicOptions.packageManager,
+    skipGit: basicOptions.skipGit,
+    skipInstall: basicOptions.skipInstall,
   };
+
+  return finalConfig;
 }
 
-async function promptForCustomConfig() {
-  console.log('\n📝 Let\'s customize your backend...\n');
+export function renderSummary(config: ProjectConfig) {
+  note(
+    'Project configuration',
+    [
+      `Name: ${config.projectName}`,
+      `Preset: ${config.preset}`,
+      `Auth: ${config.auth}${config.auth === 'jwt-sessions' && config.sessionDriver ? ` (${config.sessionDriver})` : ''}`,
+      `Google OAuth: ${config.googleOAuth ? 'yes' : 'no'}`,
+      `Cache: ${config.cache}`,
+      `Queues: ${config.queues ? 'enabled' : 'disabled'}`,
+      `Queue dashboard: ${config.queueDashboard ? 'yes' : 'no'}`,
+      `Storage: ${config.storage}`,
+      `Email: ${config.email}`,
+      `Realtime: ${config.realtime ? 'enabled' : 'disabled'}`,
+      `Admin: ${config.admin ? 'enabled' : 'disabled'}`,
+      `Observability: ${config.observability}`,
+      `Package manager: ${config.packageManager}`,
+      `Initialize git repo: ${config.skipGit ? 'no' : 'yes'}`,
+      `Install dependencies: ${config.skipInstall ? 'later' : 'now'}`,
+    ].join('\n'),
+  );
+}
 
-  // Authentication
-  const { auth } = await inquirer.prompt<{ auth: AuthType }>([
-    {
-      type: 'list',
-      name: 'auth',
-      message: 'Authentication system:',
-      choices: [
-        { name: 'None - No authentication', value: 'none' },
-        { name: 'JWT - Token-based auth', value: 'jwt' },
-        { name: 'JWT + Sessions - Token + session management', value: 'jwt-sessions' },
-      ],
-    },
-  ]);
+async function collectCustomConfig(
+  defaults: PromptDefaults,
+): Promise<Partial<ProjectConfig>> {
+  note('Custom configuration', 'Let’s pick the features you need.');
 
-  let sessionDriver: SessionDriver | undefined;
+  const auth = await promptSelectValue<AuthType>({
+    message: 'Authentication system',
+    options: [
+      { label: 'None – No authentication', value: 'none' },
+      { label: 'JWT – Token-based auth', value: 'jwt' },
+      {
+        label: 'JWT + Sessions – Token + session management',
+        value: 'jwt-sessions',
+      },
+    ],
+    initialValue: defaults.auth ?? 'none',
+  });
+
+  let sessionDriver: SessionDriver | undefined = defaults.sessionDriver;
   if (auth === 'jwt-sessions') {
-    const result = await inquirer.prompt<{ sessionDriver: SessionDriver }>([
-      {
-        type: 'list',
-        name: 'sessionDriver',
-        message: 'Session storage:',
-        choices: [
-          { name: 'MongoDB - Store sessions in MongoDB', value: 'mongo' },
-          { name: 'Redis - Store sessions in Redis (faster)', value: 'redis' },
-        ],
-      },
-    ]);
-    sessionDriver = result.sessionDriver;
+    sessionDriver = await promptSelectValue<SessionDriver>({
+      message: 'Session storage',
+      options: [
+        { label: 'MongoDB – Store sessions in MongoDB', value: 'mongo' },
+        { label: 'Redis – Store sessions in Redis (faster)', value: 'redis' },
+      ],
+      initialValue: defaults.sessionDriver ?? 'redis',
+    });
   }
 
-  // Google OAuth
-  let googleOAuth = false;
-  if (auth !== 'none') {
-    const result = await inquirer.prompt<{ googleOAuth: boolean }>([
-      {
-        type: 'confirm',
-        name: 'googleOAuth',
-        message: 'Enable Google OAuth login?',
-        default: false,
-      },
-    ]);
-    googleOAuth = result.googleOAuth;
-  }
+  const googleOAuth =
+    auth !== 'none'
+      ? await promptConfirmValue(
+          'Enable Google OAuth login?',
+          Boolean(defaults.googleOAuth),
+        )
+      : false;
 
-  // Caching
-  const { cache } = await inquirer.prompt<{ cache: CacheProvider }>([
-    {
-      type: 'list',
-      name: 'cache',
-      message: 'Caching strategy:',
-      choices: [
-        { name: 'None - No caching', value: 'none' },
-        { name: 'Memory - In-memory cache (dev/testing)', value: 'memory' },
-        { name: 'Redis - Redis cache (production)', value: 'redis' },
-      ],
-    },
-  ]);
+  const cache = await promptSelectValue<CacheProvider>({
+    message: 'Caching strategy',
+    options: [
+      { label: 'None – No caching', value: 'none' },
+      { label: 'Memory – In-memory cache (dev/testing)', value: 'memory' },
+      { label: 'Redis – Redis cache (production)', value: 'redis' },
+    ],
+    initialValue: defaults.cache ?? 'none',
+  });
 
-  // Background jobs
-  const { queues } = await inquirer.prompt<{ queues: boolean }>([
-    {
-      type: 'confirm',
-      name: 'queues',
-      message: 'Enable background jobs? (BullMQ + Redis)',
-      default: false,
-    },
-  ]);
+  const queues = await promptConfirmValue(
+    'Enable background jobs? (BullMQ + Redis)',
+    Boolean(defaults.queues),
+  );
 
-  let queueDashboard = false;
-  if (queues) {
-    const result = await inquirer.prompt<{ queueDashboard: boolean }>([
-      {
-        type: 'confirm',
-        name: 'queueDashboard',
-        message: 'Include queue monitoring dashboard?',
-        default: true,
-      },
-    ]);
-    queueDashboard = result.queueDashboard;
-  }
+  const queueDashboard = queues
+    ? await promptConfirmValue(
+        'Include queue monitoring dashboard?',
+        defaults.queueDashboard ?? true,
+      )
+    : false;
 
-  // File storage
-  const { storage } = await inquirer.prompt<{ storage: StorageProvider }>([
-    {
-      type: 'list',
-      name: 'storage',
-      message: 'File storage:',
-      choices: [
-        { name: 'None - No file uploads', value: 'none' },
-        { name: 'Local - Store files on disk', value: 'local' },
-        { name: 'AWS S3 - Amazon S3', value: 's3' },
-        { name: 'Cloudflare R2 - S3-compatible', value: 'r2' },
-      ],
-    },
-  ]);
+  const storage = await promptSelectValue<StorageProvider>({
+    message: 'File storage provider',
+    options: [
+      { label: 'None – No file uploads', value: 'none' },
+      { label: 'Local – Store files on disk', value: 'local' },
+      { label: 'AWS S3 – Amazon S3', value: 's3' },
+      { label: 'Cloudflare R2 – S3 compatible', value: 'r2' },
+    ],
+    initialValue: defaults.storage ?? 'none',
+  });
 
-  // Email
-  const { email } = await inquirer.prompt<{ email: EmailProvider }>([
-    {
-      type: 'list',
-      name: 'email',
-      message: 'Email service:',
-      choices: [
-        { name: 'None - No email sending', value: 'none' },
-        { name: 'Resend - Modern email API', value: 'resend' },
-        { name: 'Mailgun - Transactional email', value: 'mailgun' },
-        { name: 'SMTP - Traditional SMTP', value: 'smtp' },
-      ],
-    },
-  ]);
+  const email = await promptSelectValue<EmailProvider>({
+    message: 'Email service',
+    options: [
+      { label: 'None – No email sending', value: 'none' },
+      { label: 'Resend – Modern email API', value: 'resend' },
+      { label: 'Mailgun – Transactional email', value: 'mailgun' },
+      { label: 'SMTP – Traditional SMTP', value: 'smtp' },
+    ],
+    initialValue: defaults.email ?? 'none',
+  });
 
-  // Real-time
-  const { realtime } = await inquirer.prompt<{ realtime: boolean }>([
-    {
-      type: 'confirm',
-      name: 'realtime',
-      message: 'Enable real-time features? (Socket.IO)',
-      default: false,
-    },
-  ]);
+  const realtime = await promptConfirmValue(
+    'Enable real-time features? (Socket.IO)',
+    Boolean(defaults.realtime),
+  );
 
-  // Admin panel
-  const { admin } = await inquirer.prompt<{ admin: boolean }>([
-    {
-      type: 'confirm',
-      name: 'admin',
-      message: 'Include admin panel? (Django-style auto-generated UI)',
-      default: false,
-    },
-  ]);
+  const admin = await promptConfirmValue(
+    'Include admin panel? (auto-generated UI)',
+    Boolean(defaults.admin),
+  );
 
-  // Observability
-  const { observability } = await inquirer.prompt<{ observability: 'basic' | 'full' }>([
-    {
-      type: 'list',
-      name: 'observability',
-      message: 'Observability level:',
-      choices: [
-        { name: 'Basic - Logging only', value: 'basic' },
-        { name: 'Full - Logging + Metrics + Health checks', value: 'full' },
-      ],
-    },
-  ]);
+  const observability = await promptSelectValue<ObservabilityLevel>({
+    message: 'Observability level',
+    options: [
+      { label: 'Basic – Logging only', value: 'basic' },
+      { label: 'Full – Logging + metrics + health checks', value: 'full' },
+    ],
+    initialValue: defaults.observability ?? 'full',
+  });
 
   return {
     auth,
@@ -231,49 +243,78 @@ async function promptForCustomConfig() {
     realtime,
     admin,
     observability,
-  };
+  } satisfies Partial<ProjectConfig>;
 }
 
-async function promptForBasicOptions() {
-  const { packageManager } = await inquirer.prompt<{ packageManager: PackageManager }>([
-    {
-      type: 'list',
-      name: 'packageManager',
-      message: 'Package manager:',
-      choices: [
-        { name: 'pnpm (recommended)', value: 'pnpm' },
-        { name: 'npm', value: 'npm' },
-        { name: 'yarn', value: 'yarn' },
-      ],
-      default: 'pnpm',
-    },
-  ]);
+async function collectBasicOptions(defaults: PromptDefaults) {
+  const packageManager = await promptSelectValue<PackageManager>({
+    message: 'Package manager',
+    options: [
+      { label: 'pnpm (recommended)', value: 'pnpm' },
+      { label: 'npm', value: 'npm' },
+      { label: 'yarn', value: 'yarn' },
+    ],
+    initialValue: defaults.packageManager ?? 'pnpm',
+  });
 
-  const { skipGit } = await inquirer.prompt<{ skipGit: boolean }>([
-    {
-      type: 'confirm',
-      name: 'skipGit',
-      message: 'Initialize git repository?',
-      default: true,
-      // Invert the response since we ask "Initialize" but store "skip"
-      transformer: (value: boolean) => !value,
-    },
-  ]);
+  const initializeGit = await promptConfirmValue(
+    'Initialize a git repository?',
+    !(defaults.skipGit ?? false),
+  );
 
-  const { skipInstall } = await inquirer.prompt<{ skipInstall: boolean }>([
-    {
-      type: 'confirm',
-      name: 'skipInstall',
-      message: 'Install dependencies now?',
-      default: true,
-      // Invert the response
-      transformer: (value: boolean) => !value,
-    },
-  ]);
+  const installDepsNow = await promptConfirmValue(
+    'Install dependencies now?',
+    !(defaults.skipInstall ?? false),
+  );
 
   return {
     packageManager,
-    skipGit: !skipGit, // Invert for storage
-    skipInstall: !skipInstall, // Invert for storage
-  };
+    skipGit: !initializeGit,
+    skipInstall: !installDepsNow,
+  } satisfies Pick<ProjectConfig, 'packageManager' | 'skipGit' | 'skipInstall'>;
+}
+
+async function promptSelectValue<T extends string>({
+  message,
+  options,
+  initialValue,
+}: {
+  message: string;
+  options: Choice<T>[];
+  initialValue?: T;
+}): Promise<T> {
+  const selectPrompt = select as unknown as (opts: {
+    message: string;
+    options: Choice<T>[];
+    initialValue?: T;
+  }) => Promise<T | symbol>;
+
+  const result = await selectPrompt({
+    message,
+    options,
+    initialValue,
+  });
+
+  return ensureNotCancelled(result);
+}
+
+async function promptConfirmValue(
+  message: string,
+  initialValue: boolean,
+): Promise<boolean> {
+  const result = await confirm({
+    message,
+    initialValue,
+  });
+
+  return ensureNotCancelled(result);
+}
+
+function ensureNotCancelled<T>(value: T | symbol): T {
+  if (isCancel(value)) {
+    cancel('Setup cancelled.');
+    throw new Error('User cancelled');
+  }
+
+  return value as T;
 }

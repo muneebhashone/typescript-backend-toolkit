@@ -147,3 +147,5 @@ Api.ts
 .cursor/rules/codacy.mdc
 
 /docs
+
+.codacy
