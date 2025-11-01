@@ -1,0 +1,353 @@
+---
+description: Development workflow and commands
+---
+
+# Development Workflow
+
+## Setup
+
+### Initial Setup
+
+```bash
+# 1. Install dependencies
+pnpm install
+
+# 2. Start Docker services (MongoDB + Redis)
+docker compose up -d
+
+# 3. Copy environment template
+cp .env.sample .env
+
+# 4. Edit .env with your values
+nano .env
+
+# 5. (Optional) Seed database
+pnpm run seeder
+
+# 6. Start development server
+pnpm run dev
+```
+
+### Prerequisites
+
+- Node.js (v18+)
+- pnpm (package manager)
+- Docker and Docker Compose
+- MongoDB (via Docker or local)
+- Redis (via Docker or local)
+
+## Development Commands
+
+### Running the Server
+
+```bash
+# Development with hot reload
+pnpm run dev
+
+# Backend only (without email template server)
+pnpm run start:dev
+
+# Production build + start
+pnpm run build && pnpm run start:prod
+
+# Local production (uses .env.local)
+pnpm run start:local
+```
+
+### Building
+
+```bash
+# Build TypeScript to dist/
+pnpm run build
+
+# Build uses tsup (configured in build.ts)
+```
+
+### Linting
+
+```bash
+# Check for linting errors
+pnpm run lint
+
+# Auto-fix linting errors
+pnpm run lint:fix
+```
+
+### Database
+
+```bash
+# Run database seeder
+pnpm run seeder
+```
+
+### Email Development
+
+```bash
+# Start email template development server
+pnpm run email:dev
+
+# Access at: http://localhost:3001
+```
+
+## Project Structure
+
+```
+src/
+├── main.ts                 # Application entry point
+├── config/                 # Configuration management
+├── lib/                    # Core libraries (DB, Redis, AWS, etc.)
+├── modules/                # Feature modules (auth, user, etc.)
+│   └── module-name/
+│       ├── module.model.ts
+│       ├── module.controller.ts
+│       ├── module.service.ts
+│       ├── module.router.ts
+│       ├── module.schema.ts
+│       └── module.dto.ts
+├── middlewares/            # Express middlewares
+├── queues/                 # BullMQ background jobs
+├── routes/                 # Route registration
+├── email/                  # Email templates (React Email)
+└── utils/                  # Utility functions
+```
+
+## Key Endpoints
+
+### API Documentation
+
+- Swagger UI: `http://localhost:3000/docs`
+- OpenAPI JSON: `http://localhost:3000/openapi.yml`
+
+### Queue Dashboard
+
+- BullMQ Admin: `http://localhost:3000/queues`
+
+### Health Check
+
+- `GET http://localhost:3000/api/health`
+
+## Development Workflow
+
+### Creating a New Feature
+
+1. Create new module in `src/modules/feature-name/`
+2. Create model, controller, service, router, schema files
+3. Register router in `src/routes/routes.ts`
+4. Test in Swagger UI
+5. (Optional) Add seeder
+
+See [new-module.mdc](mdc:.cursor/rules/new-module.mdc) for detailed steps.
+
+### Making Changes
+
+1. Edit files (hot reload enabled in dev mode)
+2. Check for linter errors: `pnpm run lint`
+3. Fix errors: `pnpm run lint:fix`
+4. Test changes in Swagger UI or API client
+5. Commit changes
+
+### Adding Dependencies
+
+```bash
+# Add runtime dependency
+pnpm add package-name
+
+# Add dev dependency
+pnpm add -D package-name
+```
+
+## Testing the API
+
+### Using Swagger UI
+
+1. Navigate to `http://localhost:3000/docs`
+2. Expand endpoint
+3. Click "Try it out"
+4. Fill in parameters
+5. Execute request
+6. View response
+
+### Using curl
+
+```bash
+# Public endpoint
+curl http://localhost:3000/api/health
+
+# Protected endpoint (requires JWT)
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  http://localhost:3000/api/user/profile
+
+# POST request
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}'
+```
+
+### Using Postman/Insomnia
+
+1. Import OpenAPI spec from `http://localhost:3000/docs.json`
+2. All endpoints auto-configured
+3. Set Authorization header for protected routes
+
+## Debugging
+
+### Logging
+
+Logs use Pino logger from [logger.ts](mdc:src/plugins/observability/logger.ts):
+
+```typescript
+import { logger } from '@/plugins/observability/logger';
+
+logger.info('Info message', { data });
+logger.error('Error message', { error });
+logger.debug('Debug message', { data });
+```
+
+### VS Code Debugging
+
+Add to `.vscode/launch.json`:
+
+```json
+{
+  "type": "node",
+  "request": "launch",
+  "name": "Debug Dev Server",
+  "runtimeExecutable": "pnpm",
+  "runtimeArgs": ["run", "dev"],
+  "skipFiles": ["<node_internals>/**"]
+}
+```
+
+### MongoDB Debugging
+
+```bash
+# Connect to MongoDB
+docker exec -it mongodb mongosh
+
+# List databases
+show dbs
+
+# Use database
+use your-db-name
+
+# List collections
+show collections
+
+# Query data
+db.users.find()
+```
+
+### Redis Debugging
+
+```bash
+# Connect to Redis
+docker exec -it redis redis-cli
+
+# List all keys
+KEYS *
+
+# Get value
+GET key-name
+
+# Monitor commands
+MONITOR
+```
+
+## Common Issues
+
+### Port Already in Use
+
+```bash
+# Find process using port 3000
+lsof -i :3000
+
+# Kill process
+kill -9 PID
+```
+
+### MongoDB Connection Failed
+
+- Check Docker is running: `docker ps`
+- Check connection string in `.env`
+- Restart MongoDB: `docker compose restart mongodb`
+
+### Redis Connection Failed
+
+- Check Docker is running: `docker ps`
+- Check Redis config in `.env`
+- Restart Redis: `docker compose restart redis`
+
+### TypeScript Errors
+
+```bash
+# Check TypeScript errors
+npx tsc --noEmit
+
+# Clean build and rebuild
+rm -rf dist && pnpm run build
+```
+
+### Module Not Found
+
+```bash
+# Clear node_modules and reinstall
+rm -rf node_modules pnpm-lock.yaml
+pnpm install
+```
+
+## Production Deployment
+
+### Build
+
+```bash
+pnpm run build
+```
+
+### Start Production Server
+
+```bash
+# Using .env.production
+pnpm run start:prod
+
+# Using PM2 (recommended)
+pm2 start ecosystem.config.js
+```
+
+### Environment Variables
+
+- Set all required variables in production environment
+- Use strong secrets (min 32 characters)
+- Enable production mode: `NODE_ENV=production`
+
+## Best Practices
+
+### Code Style
+
+- Use TypeScript strict mode
+- No `any` types
+- Use Zod for validation
+- Follow ESLint rules
+- Use async/await (not callbacks)
+
+### Git Workflow
+
+- Create feature branches
+- Write descriptive commit messages
+- Keep commits focused
+- Review changes before committing
+- Never commit `.env` files
+
+### Performance
+
+- Use `.lean()` for Mongoose queries when not modifying
+- Add database indexes for queried fields
+- Use background jobs for heavy operations
+- Cache frequently accessed data in Redis
+
+### Security
+
+- Never log sensitive data (passwords, tokens)
+- Validate all inputs with Zod
+- Use JWT for authentication
+- Rate limit API endpoints (if configured)
+- Keep dependencies updated

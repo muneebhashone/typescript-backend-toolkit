@@ -3,6 +3,8 @@ import type { ProjectConfig, TemplateContext } from '../types/config.types.js';
 import { toKebabCase, toPascalCase } from './validation.js';
 
 export function createTemplateContext(config: ProjectConfig): TemplateContext {
+  const agents = config.agents ?? [];
+
   return {
     PROJECT_NAME: config.projectName,
     PROJECT_NAME_KEBAB: toKebabCase(config.projectName),
@@ -53,6 +55,11 @@ export function createTemplateContext(config: ProjectConfig): TemplateContext {
 
     // Preset
     PRESET: config.preset,
+
+    // Agents/IDEs
+    AGENT_CLAUDE: agents.includes('claude'),
+    AGENT_CURSOR: agents.includes('cursor'),
+    AGENT_OTHER: agents.includes('other'),
   };
 }
 
@@ -123,6 +130,22 @@ export function shouldIncludeFile(filePath: string, context: TemplateContext): b
   // Security plugin
   if (fileName.includes('/security/') || fileName.includes('\\security\\')) {
     if (!context.SECURITY) return false;
+  }
+
+  if (fileName.includes('/.claude/') || fileName.includes('\\.claude\\')) {
+    if (!context.AGENT_CLAUDE) return false;
+  }
+
+  if (fileName.includes('/.cursor/') || fileName.includes('\\.cursor\\')) {
+    if (!context.AGENT_CURSOR) return false;
+  }
+
+  if (fileName.endsWith('/claude.md') || fileName.endsWith('\\claude.md')) {
+    if (!context.AGENT_CLAUDE) return false;
+  }
+
+  if (fileName.endsWith('/agents.md') || fileName.endsWith('\\agents.md')) {
+    if (!context.AGENT_OTHER) return false;
   }
 
   return true;

@@ -1,0 +1,285 @@
+---
+description: Step-by-step guide for creating a new module using the tbk CLI
+---
+
+# Creating a New Module
+
+This guide shows how to create a new module using the `tbk` CLI tool and customize it according to project patterns.
+
+## Quick Start
+
+### Step 1: Generate Module Scaffolding
+
+Use the `tbk` CLI to generate all module files automatically:
+
+```bash
+pnpm exec tbk generate:module <module-name>
+```
+
+Or with custom API path prefix:
+
+```bash
+pnpm exec tbk generate:module <module-name> --path /api/v1
+```
+
+**Example:**
+
+```bash
+pnpm exec tbk generate:module product
+# Creates: src/modules/product/ with all required files
+```
+
+This creates a complete module structure:
+
+```
+src/modules/<module-name>/
+├── <module-name>.dto.ts         # TypeScript types and Zod schemas
+├── <module-name>.model.ts       # Mongoose model
+├── <module-name>.schema.ts      # Request/response validation schemas
+├── <module-name>.services.ts    # Business logic and database operations
+├── <module-name>.controller.ts  # HTTP request handlers
+└── <module-name>.router.ts      # MagicRouter route definitions
+```
+
+### Step 2: Customize Module Files
+
+The generated files follow project patterns but need customization for your specific use case. Refer to these rules for detailed patterns:
+
+#### 2.1 Update Model (`<module-name>.model.ts`)
+
+- **Rule:** `@models`
+- Add/modify fields in the Mongoose schema
+- Define indexes, virtuals, and methods
+- Configure schema options (timestamps, etc.)
+
+#### 2.2 Update DTOs (`<module-name>.dto.ts`)
+
+- Define input/output types using Zod
+- Use shared helpers for pagination schemas
+- Export type definitions for type safety
+
+#### 2.3 Update Validation Schemas (`<module-name>.schema.ts`)
+
+- **Rule:** `@schemas`
+- Add/modify Zod validation for create/update operations
+- Configure query parameter validation (pagination, search, filters)
+- Define proper error messages and transformations
+
+#### 2.4 Update Services (`<module-name>.services.ts`)
+
+- **Rule:** `@services`
+- Implement business logic
+- Handle database operations using the model
+- Throw errors with descriptive messages (`error.statusCode` when needed)
+- Optimize queries with proper filtering, pagination, and sorting
+
+#### 2.5 Update Controller (`<module-name>.controller.ts`)
+
+- **Rule:** `@controllers`
+- Handle HTTP request/response
+- Use `ResponseExtended` helpers (`res.ok?.()`, `res.created?.()`, etc.)
+- Keep controllers thin - delegate logic to services
+
+#### 2.6 Update Router (`<module-name>.router.ts`)
+
+- **Rule:** `@routing`
+- Configure MagicRouter routes
+- Add proper middleware (authentication, authorization)
+- Use `canAccess()` for protected routes
+- Bind request validation schemas via route config
+
+### Step 3: Register Router
+
+Add the router to `src/routes/routes.ts`:
+
+```typescript
+import <module-name>Router, { <MODULE_NAME>_ROUTER_ROOT } from '@/modules/<module-name>/<module-name>.router';
+
+router.use(<MODULE_NAME>_ROUTER_ROOT, <module-name>Router);
+```
+
+### Step 4: Test the Module
+
+1. Start development server:
+
+   ```bash
+   pnpm dev
+   ```
+
+2. Visit Swagger UI:
+
+   ```
+   http://localhost:3000/docs
+   ```
+
+3. Test all endpoints using the interactive API documentation
+
+4. Verify:
+   - All CRUD operations work correctly
+   - Validation catches invalid inputs
+   - Error responses are properly formatted
+   - OpenAPI documentation is accurate
+
+## Module File Responsibilities
+
+### 1. DTO (`*.dto.ts`)
+
+- Zod schemas for input/output validation
+- TypeScript type definitions (`z.infer`)
+- Paginated response schemas via shared helpers
+
+### 2. Model (`*.model.ts`)
+
+- Mongoose schema definition
+- Database field types and constraints
+- Indexes and virtuals
+- Model interface extending Document
+
+### 3. Schema (`*.schema.ts`)
+
+- Request validation schemas (create, update, query)
+- Zod transformations and refinements
+- Type exports for controllers
+
+### 4. Services (`*.services.ts`)
+
+- Business logic implementation
+- Database operations (CRUD)
+- Data transformation
+- Error handling (throw errors with `statusCode`)
+
+### 5. Controller (`*.controller.ts`)
+
+- HTTP request/response handling
+- Call service methods
+- Return standardized responses with typed helpers
+- Handle HTTP status codes
+
+### 6. Router (`*.router.ts`)
+
+- Route definitions using MagicRouter
+- Middleware configuration
+- Request validation binding
+- OpenAPI metadata
+
+## Best Practices
+
+### Follow Project Patterns
+
+- **Always** use MagicRouter for automatic OpenAPI generation
+- **Never** use plain Express `app.get()` or `router.get()`
+- **Always** validate requests with Zod schemas
+- **Always** use TypeScript strict mode - no `any` types
+
+### Error Handling
+
+- Throw descriptive errors in services
+- Let global error handler format responses
+- Use proper HTTP status codes
+
+### Type Safety
+
+- Export and use TypeScript types from DTOs
+- Use Zod's `.infer` for type generation
+- Keep runtime validation and TypeScript types in sync
+
+### Code Organization
+
+- Keep controllers thin - delegate to services
+- Put business logic in services
+- Use common utilities for shared functionality
+- Follow the single responsibility principle
+
+## Advanced Customization
+
+### Adding Authentication
+
+Use `canAccess()` middleware in router:
+
+```typescript
+import { canAccess } from '@/middlewares/can-access';
+
+router.post(
+  '/',
+  { requestType: { body: createSchema } },
+  canAccess(), // Add authentication
+  handleCreate,
+);
+```
+
+### Adding Custom Middleware
+
+```typescript
+router.get(
+  '/:id',
+  {},
+  canAccess(),
+  customMiddleware, // Your custom middleware
+  handleGetById,
+);
+```
+
+### Adding Indexes
+
+In model file:
+
+```typescript
+schema.index({ field1: 1, field2: -1 });
+schema.index({ searchField: 'text' }); // Text search
+```
+
+### Adding Relationships
+
+```typescript
+// In model
+field: { type: Schema.Types.ObjectId, ref: 'OtherModel' }
+
+// In service
+const result = await Model.find().populate('field');
+```
+
+## Optional: Add Seeder
+
+Create `<module-name>.seeder.ts` for test data:
+
+```typescript
+import Model from './<module-name>.model';
+
+export const seed<ModuleName> = async () => {
+  const count = await Model.countDocuments();
+  if (count > 0) return;
+
+  await Model.create([
+    { /* seed data */ },
+  ]);
+
+  console.log('<ModuleName> seeded');
+};
+```
+
+## Checklist
+
+- [ ] Generated module using `tbk generate:module <name>`
+- [ ] Customized model with proper fields and indexes
+- [ ] Updated validation schemas for your use case
+- [ ] Implemented business logic in services
+- [ ] Added proper error handling
+- [ ] Configured authentication/authorization if needed
+- [ ] Registered router in `routes.ts`
+- [ ] Tested all endpoints in Swagger UI
+- [ ] Verified OpenAPI documentation
+- [ ] (Optional) Created seeder for test data
+
+## Common Commands
+
+```bash
+# Generate new module
+pnpm exec tbk generate:module <name>
+
+# Generate with custom path
+pnpm exec tbk generate:module <name> --path /api/v2
+
+# Other generators
+pnpm exec tbk generate:plugin <name>
+pnpm exec tbk generate:middleware <name>
+```

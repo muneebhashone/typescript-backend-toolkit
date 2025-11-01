@@ -173,6 +173,10 @@ Selected features: ${JSON.stringify(context, null, 2)}
       }
     }
   }
+
+  if (context.AGENT_CLAUDE) {
+    await copyClaudeCommandsIfAvailable(targetDir, templateBaseDir);
+  }
 }
 
 async function copyAndRenderDirectory(
@@ -218,5 +222,27 @@ async function copyAndRenderDirectory(
         await copyFile(sourcePath, targetPath);
       }
     }
+  }
+}
+
+async function copyClaudeCommandsIfAvailable(
+  targetDir: string,
+  templateBaseDir: string,
+): Promise<void> {
+  const targetCommandsDir = path.join(targetDir, '.claude', 'commands');
+  const candidateSources = [
+    path.resolve(templateBaseDir, '..', '..', '..', '.claude', 'commands'),
+    path.resolve(process.cwd(), '.claude', 'commands'),
+  ];
+
+  for (const source of candidateSources) {
+    if (!(await pathExists(source))) {
+      continue;
+    }
+
+    await fs.ensureDir(targetCommandsDir);
+    await fs.emptyDir(targetCommandsDir);
+    await fs.copy(source, targetCommandsDir, { overwrite: true, errorOnExist: false });
+    return;
   }
 }

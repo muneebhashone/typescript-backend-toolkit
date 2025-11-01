@@ -1,0 +1,302 @@
+---
+globs: *.service.ts,*.services.ts
+description: Service layer patterns for business logic and data access
+---
+
+# Service Layer Patterns
+
+## Core Principle
+
+Services contain business logic, database operations, external API calls, and complex computations. They should be framework-agnostic (no Express req/res).
+
+## Service Template
+
+```typescript
+import { Model } from './module.model';
+import { logger } from '@/plugins/observability/logger';
+import type { CreateInput, UpdateInput } from './module.dto';
+
+export const findById = async (id: string) => {
+  const item = await Model.findById(id);
+  return item;
+};
+
+export const findAll = async (options: {
+  page: number;
+  limit: number;
+  search?: string;
+}) => {
+  const { page, limit, search } = options;
+  const skip = (page - 1) * limit;
+
+  const query = search ? { name: { $regex: search, $options: 'i' } } : {};
+
+  const [items, total] = await Promise.all([
+    Model.find(query).skip(skip).limit(limit).lean(),
+    Model.countDocuments(query),
+  ]);
+
+  return {
+    data: items,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
+export const create = async (data: CreateInput) => {
+  const item = await Model.create(data);
+
+  logger.info('Item created', { itemId: item._id });
+
+  return item.toObject();
+};
+
+export const update = async (
+  id: string,
+  data: UpdateInput,
+  userId?: string,
+) => {
+  const item = await Model.findById(id);
+
+  if (!item) {
+    return null;
+  }
+
+  if (item.createdBy?.toString() !== userId) {
+    const error = new Error('Forbidden') as any;
+    error.statusCode = 403;
+    throw error;
+  }
+
+  Object.assign(item, data);
+  await item.save();
+
+  logger.info('Item updated', { itemId: id, userId });
+
+  return item.toObject();
+};
+
+export const remove = async (id: string, userId?: string) => {
+  const item = await Model.findById(id);
+
+  if (!item) {
+    return false;
+  }
+
+  if (item.createdBy?.toString() !== userId) {
+    const error = new Error('Forbidden') as any;
+    error.statusCode = 403;
+    throw error;
+  }
+
+  await item.deleteOne();
+
+  logger.info('Item deleted', { itemId: id, userId });
+
+  return true;
+};
+
+export const performComplexOperation = async (input: {
+  userId: string;
+  data: any;
+}) => {
+  const user = await UserModel.findById(input.userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const result = await Model.create({
+    ...input.data,
+    userId: input.userId,
+  });
+
+  await triggerEmailJob(user.email, result);
+
+  return result;
+};
+
+const triggerEmailJob = async (email: string, data: any) => {
+  const { emailQueue } = await import('@/queues/email.queue');
+  await emailQueue.add('sendNotification', { email, data });
+};
+```
+
+## Key Patterns
+
+### Database Operations
+
+```typescript
+const item = await Model.findById(id);
+const items = await Model.find({ status: 'active' });
+const created = await Model.create({ name: 'Test' });
+const updated = await Model.findByIdAndUpdate(id, { name: 'New' }, { new: true });
+await Model.findByIdAndDelete(id);
+const count = await Model.countDocuments({ status: 'active' });
+const leanItems = await Model.find().lean();
+```
+
+### Pagination Helper
+
+```typescript
+import { getPaginator } from '@/utils/pagination.utils';
+
+const paginatorInfo = getPaginator(limit, page, totalRecords);
+const items = await Model.find()
+  .skip(paginatorInfo.skip)
+  .limit(paginatorInfo.limit);
+```
+
+### Background Jobs
+
+```typescript
+import { emailQueue } from '@/queues/email.queue';
+
+await emailQueue.add('jobName', { data }, { delay: 5000, attempts: 3 });
+```
+
+### Email Sending
+
+```typescript
+import { sendEmail } from '@/email/email.service';
+
+await sendEmail({
+  to: user.email,
+  subject: 'Welcome',
+  template: 'Welcome',
+  data: { name: user.name },
+});
+```
+
+### File Storage (S3)
+
+```typescript
+import { uploadFile, deleteFile, getFileUrl } from '@/lib/storage';
+
+const { url, key } = await uploadFile({ file, key: `uploads/${userId}/${filename}` });
+await deleteFile(fileKey);
+const fileUrl = getFileUrl(fileKey);
+```
+
+### Authentication & Tokens
+
+```typescript
+import { signToken, verifyToken } from '@/utils/jwt.utils';
+import { hashPassword, compareHash } from '@/utils/password.utils';
+import { generateOtp } from '@/utils/otp.utils';
+
+const token = await signToken({ sub: user._id, email: user.email });
+const payload = await verifyToken(token);
+const hashed = await hashPassword(plainPassword);
+const isValid = await compareHash(hashedPassword, plainPassword);
+const otp = generateOtp({ length: 6, charset: 'numeric' });
+```
+
+### Error Handling
+
+```typescript
+export const findById = async (id: string) => {
+  const item = await Model.findById(id);
+  return item; // null if not found
+};
+
+export const findByIdOrFail = async (id: string) => {
+  const item = await Model.findById(id);
+  if (!item) {
+    const error = new Error('Item not found') as any;
+    error.statusCode = 404;
+    throw error;
+  }
+  return item;
+};
+
+export const updateItem = async (id: string, data: UpdateData, userId: string) => {
+  const item = await Model.findById(id);
+  if (!item) {
+    return null;
+  }
+
+  if (item.createdBy?.toString() !== userId) {
+    const error = new Error('Forbidden') as any;
+    error.statusCode = 403;
+    throw error;
+  }
+
+  Object.assign(item, data);
+  await item.save();
+  return item;
+};
+
+export const createItem = async (data: CreateData) => {
+  const exists = await Model.findOne({ slug: data.slug });
+  if (exists) {
+    const error = new Error('Item with this slug already exists') as any;
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return await Model.create(data);
+};
+```
+
+### Logging
+
+```typescript
+import { logger } from '@/plugins/observability/logger';
+
+logger.info('Operation performed', { userId, itemId });
+logger.error('Error occurred', { error: err.message, stack: err.stack });
+logger.warn('Warning', { data });
+```
+
+## Advanced Patterns
+
+### Transactions
+
+```typescript
+import { startSession } from 'mongoose';
+
+const session = await startSession();
+session.startTransaction();
+
+try {
+  await Model1.create([data1], { session });
+  await Model2.create([data2], { session });
+
+  await session.commitTransaction();
+} catch (error) {
+  await session.abortTransaction();
+  throw error;
+} finally {
+  session.endSession();
+}
+```
+
+### Caching
+
+```typescript
+import { cacheClient } from '@/lib/cache';
+
+const cached = await cacheClient.get(`key:${id}`);
+if (cached) {
+  return JSON.parse(cached);
+}
+
+await cacheClient.set(`key:${id}`, JSON.stringify(data), 'EX', 3600);
+await cacheClient.del(`key:${id}`);
+```
+
+## Common Mistakes to Avoid
+
+- ❌ Importing Express types (Request, Response)
+- ❌ Handling HTTP status codes in services (except via thrown errors)
+- ❌ Performing heavy operations synchronously
+- ❌ Forgetting to log important operations
+
+- ✅ Keep services framework-agnostic
+- ✅ Let controllers decide HTTP responses
+- ✅ Use background jobs for heavy tasks
+- ✅ Log creates, updates, deletes, and errors

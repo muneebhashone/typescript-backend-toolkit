@@ -6,8 +6,10 @@ import {
   select,
   text,
   cancel,
+  multiselect,
 } from '@clack/prompts';
 import type {
+  AgentId,
   AuthType,
   CacheProvider,
   EmailProvider,
@@ -42,6 +44,7 @@ export interface PromptDefaults {
   packageManager?: PackageManager;
   skipGit?: BooleanLike;
   skipInstall?: BooleanLike;
+  agents?: AgentId[];
 }
 
 export async function collectProjectConfig(
@@ -84,6 +87,7 @@ export async function collectProjectConfig(
   }
 
   const basicOptions = await collectBasicOptions(defaults);
+  const agentOptions = await collectAgentOptions(defaults);
 
   const finalConfig: ProjectConfig = {
     projectName,
@@ -99,6 +103,7 @@ export async function collectProjectConfig(
     realtime: customConfig.realtime ?? false,
     admin: customConfig.admin ?? false,
     observability: customConfig.observability!,
+    agents: agentOptions,
     packageManager: basicOptions.packageManager,
     skipGit: basicOptions.skipGit,
     skipInstall: basicOptions.skipInstall,
@@ -123,6 +128,7 @@ export function renderSummary(config: ProjectConfig) {
       `Realtime: ${config.realtime ? 'enabled' : 'disabled'}`,
       `Admin: ${config.admin ? 'enabled' : 'disabled'}`,
       `Observability: ${config.observability}`,
+      `Agents/IDEs: ${config.agents.length > 0 ? config.agents.join(', ') : 'none'}`,
       `Package manager: ${config.packageManager}`,
       `Initialize git repo: ${config.skipGit ? 'no' : 'yes'}`,
       `Install dependencies: ${config.skipInstall ? 'later' : 'now'}`,
@@ -274,6 +280,20 @@ async function collectBasicOptions(defaults: PromptDefaults) {
   } satisfies Pick<ProjectConfig, 'packageManager' | 'skipGit' | 'skipInstall'>;
 }
 
+async function collectAgentOptions(defaults: PromptDefaults): Promise<AgentId[]> {
+  const result = await promptMultiSelectValue<AgentId>({
+    message: 'Which AI agents/IDEs do you use?',
+    options: [
+      { label: 'Claude Code', value: 'claude', hint: 'Includes .claude commands' },
+      { label: 'Cursor', value: 'cursor', hint: 'Includes Cursor rules' },
+      { label: 'Other editor/agent', value: 'other', hint: 'Adds AGENTS.md guide' },
+    ],
+    initialValue: defaults.agents ?? [],
+  });
+
+  return result;
+}
+
 async function promptSelectValue<T extends string>({
   message,
   options,
@@ -296,6 +316,31 @@ async function promptSelectValue<T extends string>({
   });
 
   return ensureNotCancelled(result);
+}
+
+async function promptMultiSelectValue<T extends string>({
+  message,
+  options,
+  initialValue,
+}: {
+  message: string;
+  options: Choice<T>[];
+  initialValue?: T[];
+}): Promise<T[]> {
+  const multiselectPrompt = multiselect as unknown as (opts: {
+    message: string;
+    options: Choice<T>[];
+    initialValue?: T[];
+  }) => Promise<T[] | symbol>;
+
+  const result = await multiselectPrompt({
+    message,
+    options,
+    initialValue,
+  });
+
+  const values = ensureNotCancelled(result);
+  return Array.isArray(values) ? values : [];
 }
 
 async function promptConfirmValue(

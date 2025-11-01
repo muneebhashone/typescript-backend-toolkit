@@ -1,0 +1,305 @@
+---
+globs: *.schema.ts
+description: Zod schema patterns for validation and OpenAPI documentation
+---
+
+# Zod Schema Patterns
+
+## Core Principle
+
+Every module should have a schema file that defines request/response validation using Zod schemas.
+
+## Import Pattern
+
+```typescript
+import { z } from 'zod';
+import validator from 'validator';
+```
+
+## Complete Response Schema Workflow
+
+**IMPORTANT:** This section shows the complete pattern for defining response schemas, using them in routers, and typing controllers.
+
+### Step 1: Define in Schema File (`*.schema.ts`)
+
+```typescript
+import { z } from 'zod';
+import validator from 'validator';
+import { R } from '@/plugins/magic/response.builders';
+import { itemOutSchema } from './item.dto';
+
+// Request validation schemas
+export const createItemSchema = z.object({
+  name: z.string({ required_error: 'Name is required' }).min(1).max(100),
+  description: z.string().min(10).max(500).optional(),
+  status: z.enum(['active', 'inactive']).default('active'),
+});
+
+export const updateItemSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().min(10).max(500).optional(),
+  status: z.enum(['active', 'inactive']).optional(),
+});
+
+// Response schemas using R builders
+export const createItemResponseSchema = R.success(itemOutSchema);
+export const getItemByIdResponseSchema = R.success(itemOutSchema);
+export const getItemsResponseSchema = R.paginated(itemOutSchema);
+export const updateItemResponseSchema = R.success(itemOutSchema);
+
+// Export request types
+export type CreateItemSchemaType = z.infer<typeof createItemSchema>;
+export type UpdateItemSchemaType = z.infer<typeof updateItemSchema>;
+
+// Export response types (PascalCase for types)
+export type CreateItemResponseSchema = z.infer<typeof createItemResponseSchema>;
+export type GetItemByIdResponseSchema = z.infer<typeof getItemByIdResponseSchema>;
+export type GetItemsResponseSchema = z.infer<typeof getItemsResponseSchema>;
+export type UpdateItemResponseSchema = z.infer<typeof updateItemResponseSchema>;
+```
+
+### Step 2: Use in Router (`*.router.ts`)
+
+```typescript
+import MagicRouter from '@/plugins/magic/router';
+import { canAccess } from '@/middlewares/can-access';
+import {
+  createItemSchema,
+  listQuerySchema,
+  createItemResponseSchema,
+  getItemsResponseSchema,
+} from './item.schema';
+import { handleCreate, handleGetItems } from './item.controller';
+
+const router = new MagicRouter('/items');
+
+router.post('/', {
+  requestType: { body: createItemSchema },
+  responses: { 201: createItemResponseSchema },
+}, canAccess(), handleCreate);
+
+router.get('/', {
+  requestType: { query: listQuerySchema },
+  responses: { 200: getItemsResponseSchema },
+}, canAccess(), handleGetItems);
+
+export default router.getRouter();
+```
+
+### Step 3: Type Controller (`*.controller.ts`)
+
+```typescript
+import type { Request } from 'express';
+import type { ResponseExtended } from '@/types';
+import type {
+  CreateItemSchemaType,
+  CreateItemResponseSchema,
+} from './item.schema';
+import { createItem } from './item.service';
+
+export const handleCreate = async (
+  req: Request<unknown, unknown, CreateItemSchemaType>,
+  res: ResponseExtended<CreateItemResponseSchema>,
+) => {
+  const item = await createItem(req.body);
+
+  return res.created?.({
+    success: true,
+    message: 'Item created',
+    data: item,
+  });
+};
+```
+
+**Benefits of this workflow:**
+- ✅ End-to-end type safety from request to response
+- ✅ Accurate OpenAPI documentation generation
+- ✅ Runtime validation (optional)
+- ✅ IDE autocomplete for response structure
+- ✅ Consistent response formats across API
+
+## Schema Structure
+
+Schemas are exported directly, NOT wrapped in request/response objects:
+
+```typescript
+import { z } from 'zod';
+import validator from 'validator';
+
+export const createItemSchema = z.object({
+  name: z.string({ required_error: 'Name is required' }).min(1).max(100),
+  description: z
+    .string({ required_error: 'Description is required' })
+    .min(10)
+    .max(500),
+  status: z.enum(['active', 'inactive']).default('active'),
+  categoryId: z
+    .string({ required_error: 'Category ID is required' })
+    .refine((value) => validator.isMongoId(value), 'Category ID must be valid'),
+});
+
+export const updateItemSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().min(10).max(500).optional(),
+  status: z.enum(['active', 'inactive']).optional(),
+});
+```
+
+## Common Patterns
+
+### String Validation with Required Error
+
+```typescript
+z.string({ required_error: 'Field name is required' }).min(1).max(64);
+```
+
+### Email Validation
+
+```typescript
+z.string({ required_error: 'Email is required' }).email({
+  message: 'Email is not valid',
+});
+```
+
+### MongoDB ObjectId Validation
+
+Use validator package, NOT regex:
+
+```typescript
+z.string({ required_error: 'ID is required' })
+  .min(1)
+  .refine((value) => validator.isMongoId(value), 'ID must be valid');
+```
+
+### Query Parameters with Transform
+
+```typescript
+export const listItemsQuerySchema = z.object({
+  searchString: z.string().optional(),
+  limitParam: z
+    .string()
+    .default('10')
+    .refine((value) => !Number.isNaN(Number(value)) && Number(value) >= 0, 'Input must be positive integer')
+    .transform(Number),
+  pageParam: z
+    .string()
+    .default('1')
+    .refine((value) => !Number.isNaN(Number(value)) && Number(value) >= 0, 'Input must be positive integer')
+    .transform(Number),
+  filterByStatus: z.enum(['active', 'inactive', 'archived']).optional(),
+});
+```
+
+### Enum Validation
+
+```typescript
+z.enum(['pending', 'approved', 'rejected']).optional();
+```
+
+## Schema Composition
+
+### Merging Schemas
+
+```typescript
+export const baseItemSchema = z.object({
+  name: z.string({ required_error: 'Name is required' }).min(1),
+  description: z.string().optional(),
+});
+
+export const createItemSchema = z
+  .object({
+    categoryId: z.string().refine((value) => validator.isMongoId(value)),
+    tags: z.array(z.string()).optional(),
+  })
+  .merge(baseItemSchema)
+  .strict();
+```
+
+### Cross-Field Validation with `.refine()`
+
+```typescript
+export const createItemWithConfirmationSchema = z
+  .object({
+    price: z.number().positive(),
+    confirmPrice: z.number().positive(),
+    discountPrice: z.number().positive().optional(),
+  })
+  .refine(({ price, confirmPrice }) => price === confirmPrice, 'Price and confirm price must match')
+  .refine(({ price, discountPrice }) => !discountPrice || discountPrice < price, 'Discount price must be less than original price');
+```
+
+### Strict Mode
+
+```typescript
+z.object({
+  name: z.string(),
+  email: z.string().email(),
+}).strict();
+```
+
+## Reusable Schema Patterns
+
+### Password Validation Function (`common.schema.ts`)
+
+```typescript
+export const passwordValidationSchema = (fieldName: string) =>
+  z
+    .string({ required_error: `${fieldName} is required` })
+    .min(8)
+    .max(64)
+    .refine(
+      (value) =>
+        validator.isStrongPassword(value, {
+          minLength: 8,
+          minLowercase: 1,
+          minNumbers: 1,
+          minUppercase: 1,
+          minSymbols: 1,
+        }),
+      'Password is too weak',
+    );
+```
+
+### MongoDB ID Schema Helper
+
+```typescript
+export const mongoIdSchema = z.object({
+  id: z.string().refine((value) => validator.isMongoId(value)),
+});
+```
+
+### Response Schemas
+
+```typescript
+import { R } from '@/plugins/magic/response.builders';
+import { itemOutSchema } from './item.dto';
+
+export const createItemResponseSchema = R.success(itemOutSchema);
+export const getItemsResponseSchema = R.paginated(itemOutSchema);
+```
+
+## Type Inference
+
+```typescript
+export type CreateItemSchemaType = z.infer<typeof createItemSchema>;
+export type UpdateItemSchemaType = z.infer<typeof updateItemSchema>;
+export type CreateItemResponseSchema = z.infer<typeof createItemResponseSchema>;
+```
+
+## Key Patterns to Follow
+
+- ✅ Use named import `import { z } from 'zod'`
+- ✅ Use validator helpers (`validator.isMongoId`, etc.)
+- ✅ Provide `{ required_error: '...' }` for required fields
+- ✅ Export request & response types with `z.infer`
+- ✅ Use `.merge()` for schema composition
+- ✅ Use `.strict()` to disallow extra properties
+- ✅ Define response schemas in schema files (not routers)
+- ✅ Export response schemas & types (camelCase / PascalCase)
+- ✅ Use response builders `R.success`, `R.paginated`, etc.
+- ✅ Keep controllers thin by relying on typed response schemas
+
+- ❌ Don't use regex for MongoDB IDs
+- ❌ Don't validate data in controllers
+- ❌ Don't define response schemas inline in routers
+- ❌ Don't import Zod as default or namespace

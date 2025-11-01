@@ -32,10 +32,9 @@ export const adminDashboardPlugin: PluginFactory<AdminDashboardOptions> = (
     options,
 
     register({ app, port }) {
-
       app.use(express.json());
       app.use(express.urlencoded({ extended: true }));
-      app.use(cookieParser())
+      app.use(cookieParser());
 
       app.get(`/admin/login`, (req, res) => {
         const loginPath = path.join(
@@ -86,11 +85,7 @@ export const adminDashboardPlugin: PluginFactory<AdminDashboardOptions> = (
 
       app.post(`/admin/logout`, (req, res) => {
         clearAdminCookie(res);
-        const acceptsJson = req.headers.accept?.includes('application/json');
-        if (acceptsJson) {
-          return res.json({ ok: true });
-        }
-
+        return res.json({ ok: true });
       });
 
       app.use(`/admin/api`, adminAuthGuardApi, adminApiRouter);

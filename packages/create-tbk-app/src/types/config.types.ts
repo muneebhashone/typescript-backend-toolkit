@@ -1,5 +1,7 @@
 export type PresetType = 'minimal' | 'standard' | 'full' | 'custom';
 
+export type AgentId = 'claude' | 'cursor' | 'other';
+
 export type AuthType = 'none' | 'jwt' | 'jwt-sessions';
 
 export type CacheProvider = 'none' | 'memory' | 'redis';
@@ -28,6 +30,7 @@ export interface ProjectConfig {
   admin: boolean;
   queueDashboard: boolean;
   observability: ObservabilityLevel;
+  agents: AgentId[];
   packageManager: PackageManager;
   skipGit: boolean;
   skipInstall: boolean;
@@ -73,6 +76,10 @@ export interface TemplateContext {
   SECURITY: boolean;
 
   PRESET: PresetType;
+
+  AGENT_CLAUDE: boolean;
+  AGENT_CURSOR: boolean;
+  AGENT_OTHER: boolean;
 }
 
 export interface PresetConfig {
