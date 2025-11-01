@@ -1,6 +1,6 @@
 {
   "name": "create-tbk-app",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "CLI tool to scaffold TypeScript Backend Toolkit projects",
   "type": "module",
   "bin": {
