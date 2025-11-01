@@ -5,16 +5,13 @@ import type { FilterQuery } from 'mongoose';
 import { adminResources, getResource } from './registry';
 import { buildSearchQuery, getFields } from './utils/schema-introspection';
 import type { AdminField } from './types';
-import { LocalStorageProvider } from '@/lib/storage';
+import { storageProvider } from '@/lib/storage';
 import type { FormFile } from '@/types';
 import logger from '@/plugins/observability/logger';
-import fs from 'fs';
 
 export const adminApiRouter = Router();
 
-// Admin module uses local storage by default for simplicity
-// Files are stored in public/uploads/admin and served at /uploads/admin
-const adminStorageProvider = new LocalStorageProvider();
+const adminStorageProvider = storageProvider;
 
 /**
  * Middleware to handle file uploads for admin resources
