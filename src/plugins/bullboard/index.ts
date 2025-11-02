@@ -78,7 +78,7 @@ export const bullboardPlugin: PluginFactory<BullboardOptions> = (
           uiConfig: {
             boardTitle: 'Queues Manager',
             boardLogo: {
-              path: '/assets/images/logo.png',
+              path: 'https://raw.githubusercontent.com/muneebhashone/typescript-backend-toolkit/main/logo.png',
               width: '30px',
               height: '30px',
             },
