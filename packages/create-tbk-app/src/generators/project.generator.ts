@@ -96,6 +96,15 @@ export async function generateProject(
     console.log('');
     console.log(chalk.yellow('Happy coding! 🚀'));
     console.log('');
+    console.log(
+      chalk.dim(
+        'If you find this toolkit helpful, please consider starring the repo:',
+      ),
+    );
+    console.log(
+      chalk.cyan('https://github.com/muneebhashone/typescript-backend-toolkit'),
+    );
+    console.log('');
   } catch (error) {
     spinner.fail('Project generation failed');
     throw error;

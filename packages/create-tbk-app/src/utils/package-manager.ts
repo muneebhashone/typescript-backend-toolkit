@@ -34,7 +34,6 @@ export async function initGitRepository(targetDir: string): Promise<void> {
     const child = spawn('git', ['init'], {
       cwd: targetDir,
       stdio: 'inherit',
-      shell: true,
     });
 
     child.on('close', (code) => {
@@ -67,7 +66,6 @@ export async function createInitialCommit(targetDir: string): Promise<void> {
       const child = spawn('git', commands[index], {
         cwd: targetDir,
         stdio: 'inherit',
-        shell: true,
       });
 
       child.on('close', (code) => {
