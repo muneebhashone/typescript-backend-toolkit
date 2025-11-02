@@ -1,7 +1,7 @@
 import express, { type Application } from 'express';
 import { createServer, type Server } from 'http';
 import type { AppContext, ToolkitPlugin } from '../plugins/types';
-import { createChildLogger } from '@/plugins/observability/logger';
+import { createChildLogger } from '@/plugins/logger';
 import config from '@/config/env';
 
 const logger = createChildLogger({

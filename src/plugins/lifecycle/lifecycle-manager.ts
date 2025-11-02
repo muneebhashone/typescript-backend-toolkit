@@ -1,5 +1,5 @@
 import type { Server } from 'http';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 
 export type CleanupFunction = () => Promise<void> | void;
 

@@ -27,6 +27,7 @@ import type {
   AuthType,
   CacheProvider,
   EmailProvider,
+  ModuleId,
   ObservabilityLevel,
   PackageManager,
   PresetType,
@@ -53,6 +54,7 @@ interface CliOptions {
   skipGit?: boolean;
   skipInstall?: boolean;
   agents?: string;
+  modules?: string;
   yes?: boolean;
   force?: boolean;
 }
@@ -87,6 +89,7 @@ program
   .option('--skip-git', 'Skip git initialization')
   .option('--skip-install', 'Skip dependency installation')
   .option('--agents <agents>', 'Comma-separated AI agents/IDEs (claude,cursor,other)')
+  .option('--modules <modules>', 'Comma-separated modules (upload,healthcheck)')
   .option('-y, --yes', 'Skip prompts and accept defaults')
   .option('--force', 'Overwrite target directory without prompting')
   .action(async (projectName: string | undefined, options: CliOptions) => {
@@ -156,6 +159,7 @@ interface NormalizedOptions {
   skipGit?: boolean;
   skipInstall?: boolean;
   agents?: AgentId[];
+  modules?: ModuleId[];
   yes: boolean;
   force: boolean;
 }
@@ -200,6 +204,7 @@ function normalizeOptions(options: CliOptions): NormalizedOptions {
     skipGit: getBooleanOption(options, 'skipGit'),
     skipInstall: getBooleanOption(options, 'skipInstall'),
     agents: parseAgents(options.agents),
+    modules: parseModules(options.modules),
     yes: options.yes ?? false,
     force: options.force ?? false,
   };
@@ -292,6 +297,7 @@ function mapOptionsToDefaults(
     admin: options.admin,
     observability: options.observability,
     agents: options.agents,
+    modules: options.modules,
     packageManager: options.packageManager,
     skipGit: options.skipGit,
     skipInstall: options.skipInstall,
@@ -498,6 +504,7 @@ function buildConfigFromOptions(
     admin,
     observability,
     agents: options.agents ?? [],
+    modules: options.modules ?? [],
     packageManager: options.packageManager ?? 'pnpm',
     skipGit: resolveBooleanOption(options.skipGit, false),
     skipInstall: resolveBooleanOption(options.skipInstall, false),
@@ -549,6 +556,35 @@ function parseAgents(value: string | undefined): AgentId[] | undefined {
   }
 
   const unique = Array.from(new Set(selections)) as AgentId[];
+  return unique;
+}
+
+function parseModules(value: string | undefined): ModuleId[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const allowed: ModuleId[] = ['upload', 'healthcheck'];
+  const selections = value
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter((item) => item.length > 0);
+
+  if (selections.length === 0) {
+    return [];
+  }
+
+  const invalid = selections.filter(
+    (item): item is string => !allowed.includes(item as ModuleId),
+  );
+
+  if (invalid.length > 0) {
+    throw new Error(
+      `Invalid value(s) "${invalid.join(', ')}" for --modules. Allowed values: ${allowed.join(', ')}`,
+    );
+  }
+
+  const unique = Array.from(new Set(selections)) as ModuleId[];
   return unique;
 }
 

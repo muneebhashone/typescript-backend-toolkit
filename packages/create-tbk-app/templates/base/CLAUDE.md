@@ -250,7 +250,7 @@ export const create = async (data: CreateInput) => {
 - Services throw errors with `statusCode` property for HTTP status codes
 - Controllers decide how to handle null returns
 - Never import Express types (Request/Response) in services
-- Use logger from `@/plugins/observability/logger`
+- Use logger from `@/plugins/logger`
 
 ### File Uploads with Formidable
 
@@ -356,7 +356,7 @@ This scaffolds all 6 files following project patterns. After generation:
 TypeScript paths configured in `tsconfig.json`:
 - `@/*` resolves to `./src/*`
 
-Example: `import { logger } from '@/plugins/observability/logger'`
+Example: `import { logger } from '@/plugins/logger'`
 
 ### MongoDB ID Validation
 

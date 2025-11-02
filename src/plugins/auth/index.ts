@@ -5,7 +5,7 @@ import {
 } from '@/modules/auth/session/session.manager';
 import type { SessionStoreConfig } from '@/modules/auth/session/session.types';
 import config from '@/config/env';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 import { scheduleSessionCleanup } from '../../queues/session-cleanup.queue';
 import { extractJwt } from '../../middlewares/extract-jwt';
 

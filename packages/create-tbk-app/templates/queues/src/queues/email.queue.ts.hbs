@@ -2,7 +2,7 @@ import {
   type SendResetPasswordTypePayload,
   sendResetPasswordEmail,
 } from '../email/email.service';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 import { Queue } from '../lib/queue';
 
 export const ResetPasswordQueue = Queue<SendResetPasswordTypePayload>(

@@ -15,6 +15,7 @@ export const PRESETS: Record<string, PresetConfig> = {
       admin: false,
       queueDashboard: false,
       observability: 'basic',
+      modules: [],
     },
   },
   standard: {
@@ -31,6 +32,7 @@ export const PRESETS: Record<string, PresetConfig> = {
       admin: false,
       queueDashboard: false,
       observability: 'full',
+      modules: ['healthcheck'],
     },
   },
   full: {
@@ -48,6 +50,7 @@ export const PRESETS: Record<string, PresetConfig> = {
       admin: true,
       queueDashboard: true,
       observability: 'full',
+      modules: ['upload', 'healthcheck'],
     },
   },
 };

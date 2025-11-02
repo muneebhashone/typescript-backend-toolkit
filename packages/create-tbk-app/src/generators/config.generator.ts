@@ -177,10 +177,14 @@ export async function generateEnvExample(
     lines.push('');
   }
 
+  // Logging
+  lines.push('# Logging');
+  lines.push('LOG_LEVEL=debug  # trace | debug | info | warn | error | fatal');
+  lines.push('');
+
   // Observability
   if (context.OBSERVABILITY_FULL) {
     lines.push('# Observability');
-    lines.push('LOG_LEVEL=info');
     lines.push('METRICS_ENABLED=1');
     lines.push('');
   }
@@ -270,6 +274,7 @@ export async function generateReadme(
   features.push('- MongoDB with Mongoose');
   features.push('- Auto-generated OpenAPI documentation');
   features.push('- Type-safe routing with MagicRouter');
+  features.push('- Structured logging with Pino');
 
   if (context.AUTH) {
     if (context.AUTH_SESSIONS) {

@@ -369,7 +369,7 @@ StatusCodes.INTERNAL_SERVER_ERROR; // 500
 Use Pino logger from [logger.ts](mdc:src/plugins/observability/logger.ts):
 
 ```typescript
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 
 logger.info('Action performed', { userId, action: 'create' });
 logger.error('Error occurred', { error: error.message, userId });

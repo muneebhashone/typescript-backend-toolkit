@@ -183,7 +183,8 @@ export interface ToolkitPlugin {
 ```
 
 **Built-in plugins:**
-- **observability** - Pino logger, metrics (Prometheus), request IDs
+- **logger** - Pino logger with pretty printing, HTTP request logging, child logger factory
+- **observability** - Metrics (Prometheus), request IDs, health checks
 - **security** - Helmet, CORS, rate limiting
 - **cache** - Redis/memory caching with middleware
 - **magic** - MagicRouter, OpenAPI generation, response validation
@@ -250,7 +251,7 @@ export const create = async (data: CreateInput) => {
 - Services throw errors with `statusCode` property for HTTP status codes
 - Controllers decide how to handle null returns
 - Never import Express types (Request/Response) in services
-- Use logger from `@/plugins/observability/logger`
+- Use logger from `@/plugins/logger`
 
 ### File Uploads with Formidable
 
@@ -356,7 +357,7 @@ This scaffolds all 6 files following project patterns. After generation:
 TypeScript paths configured in `tsconfig.json`:
 - `@/*` resolves to `./src/*`
 
-Example: `import { logger } from '@/plugins/observability/logger'`
+Example: `import { logger } from '@/plugins/logger'`
 
 ### MongoDB ID Validation
 
@@ -423,6 +424,7 @@ Models are introspected and rendered with full CRUD. Configure admin access in `
 - `src/lib/storage.ts` - S3/R2/local file storage
 - `src/lib/queue.ts` - BullMQ queue configuration
 - `src/email/email.service.ts` - Email sending (SMTP/Resend/Mailgun)
+- `src/plugins/logger/index.ts` - Logger plugin with Pino, HTTP logging, child logger factory
 - `src/plugins/magic/router.ts` - MagicRouter implementation
 - `src/plugins/magic/response.builders.ts` - Response schema builders (R.success, etc.)
 - `src/middlewares/can-access.ts` - JWT authentication middleware

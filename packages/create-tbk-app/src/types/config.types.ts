@@ -2,6 +2,8 @@ export type PresetType = 'minimal' | 'standard' | 'full' | 'custom';
 
 export type AgentId = 'claude' | 'cursor' | 'other';
 
+export type ModuleId = 'upload' | 'healthcheck';
+
 export type AuthType = 'none' | 'jwt' | 'jwt-sessions';
 
 export type CacheProvider = 'none' | 'memory' | 'redis';
@@ -31,6 +33,7 @@ export interface ProjectConfig {
   queueDashboard: boolean;
   observability: ObservabilityLevel;
   agents?: AgentId[];
+  modules?: ModuleId[];
   packageManager: PackageManager;
   skipGit: boolean;
   skipInstall: boolean;
@@ -80,6 +83,9 @@ export interface TemplateContext {
   AGENT_CLAUDE: boolean;
   AGENT_CURSOR: boolean;
   AGENT_OTHER: boolean;
+
+  MODULE_UPLOAD: boolean;
+  MODULE_HEALTHCHECK: boolean;
 }
 
 export interface PresetConfig {

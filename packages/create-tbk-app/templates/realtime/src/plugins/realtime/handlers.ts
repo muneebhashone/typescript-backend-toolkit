@@ -1,5 +1,5 @@
 import type { Server } from 'socket.io';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 
 export function registerRealtimeHandlers(io: Server) {
   io.on('connection', (socket) => {

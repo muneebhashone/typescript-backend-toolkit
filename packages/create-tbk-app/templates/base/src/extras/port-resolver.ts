@@ -1,6 +1,6 @@
 import net from 'net';
 import readline from 'readline/promises';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 
 /**
  * Check if a port is available on the given host

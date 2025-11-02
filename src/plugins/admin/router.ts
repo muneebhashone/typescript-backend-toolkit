@@ -7,7 +7,7 @@ import { buildSearchQuery, getFields } from './utils/schema-introspection';
 import type { AdminField } from './types';
 import { storageProvider } from '@/lib/storage';
 import type { FormFile } from '@/types';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 
 export const adminApiRouter = Router();
 

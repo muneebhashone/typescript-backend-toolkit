@@ -5,7 +5,7 @@ import type {
   ResponseAny,
   MagicMiddleware,
 } from '@/plugins/magic/router';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 import type {
   CacheMiddlewareOptions,
   InvalidateOptions,

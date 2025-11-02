@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
 import config from '@/config/env';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 
 interface QueueSessionPayload {
   sub: string; // username

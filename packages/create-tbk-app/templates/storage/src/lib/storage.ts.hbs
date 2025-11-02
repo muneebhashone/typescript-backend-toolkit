@@ -9,7 +9,7 @@ import { join, dirname } from 'node:path';
 import { createReadStream } from 'node:fs';
 {{/if}}
 import config from '@/config/env';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 import type { FormFile } from '../types';
 import { StorageError } from './errors';
 

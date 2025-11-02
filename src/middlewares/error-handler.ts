@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import config from '@/config/env';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 import type { ResponseExtended } from '@/types';
 import { errorResponse } from '@/utils/response.utils';
 import { StatusCodesValues } from '@/plugins/magic/status-codes';

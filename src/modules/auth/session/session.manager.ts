@@ -9,7 +9,7 @@ import type {
 import { MongoSessionStore } from './mongo.session.store';
 import { RedisSessionStore } from './redis.session.store';
 import { hashToken, isSessionExpired } from './session.utils';
-import { createChildLogger } from '@/plugins/observability/logger';
+import { createChildLogger } from '@/plugins/logger';
 import { cacheProvider, RedisProvider } from '@/lib/cache';
 import config from '@/config/env';
 
