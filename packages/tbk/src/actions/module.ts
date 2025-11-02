@@ -239,7 +239,7 @@ export const handleGet${className}ById = async (
   req: Request<MongoIdSchemaType>,
   res: ResponseExtended<Get${className}ByIdResponseSchema>,
 ) => {
-  const ${moduleName} = await get${className}ById(req.params.id);
+  const ${moduleName} = await get${className}ById(req.params.id.toString());
   return res.ok?.({
     success: true,
     data: ${moduleName},
@@ -251,7 +251,7 @@ export const handleUpdate${className} = async (
   req: Request<MongoIdSchemaType, unknown, Update${className}SchemaType>,
   res: ResponseExtended<Update${className}ResponseSchema>,
 ) => {
-  const ${moduleName} = await update${className}(req.params.id, req.body);
+  const ${moduleName} = await update${className}(req.params.id.toString(), req.body);
   return res.ok?.({
     success: true,
     message: "${className} updated successfully",
@@ -412,7 +412,9 @@ export default ${moduleName}Router.getRouter();
     console.log(`  └── ${moduleName}.router.ts`);
     console.log();
     console.log(`Next steps:`);
-    console.log(`  1. Register the router in your main app file (src/routes/routes.ts)`);
+    console.log(
+      `  1. Register the router in your main app file (src/routes/routes.ts)`,
+    );
     console.log(`  2. Customize the model fields in ${moduleName}.model.ts`);
     console.log(`  3. Update validation schemas in ${moduleName}.schema.ts`);
     console.log(`  4. Add business logic to ${moduleName}.services.ts`);
