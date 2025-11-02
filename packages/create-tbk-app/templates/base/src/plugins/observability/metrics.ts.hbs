@@ -1,3 +1,4 @@
+{{#if OBSERVABILITY_FULL}}
 import {
   Registry,
   Counter,
@@ -95,3 +96,44 @@ export class MetricsCollector {
 export const metricsCollector = new MetricsCollector();
 
 export default metricsCollector;
+{{else}}
+// Stub implementation for basic observability (no metrics collection)
+export class MetricsCollector {
+  public readonly register = {
+    contentType: 'text/plain',
+  };
+
+  recordRequest(
+    _method: string,
+    _route: string,
+    _statusCode: number,
+    _duration: number,
+  ): void {
+    // No-op
+  }
+
+  startRequest(_method: string, _route: string): void {
+    // No-op
+  }
+
+  endRequest(_method: string, _route: string): void {
+    // No-op
+  }
+
+  incrementCacheHits(_key: string): void {
+    // No-op
+  }
+
+  incrementCacheMisses(_key: string): void {
+    // No-op
+  }
+
+  async getMetrics(): Promise<string> {
+    return '';
+  }
+}
+
+export const metricsCollector = new MetricsCollector();
+
+export default metricsCollector;
+{{/if}}
