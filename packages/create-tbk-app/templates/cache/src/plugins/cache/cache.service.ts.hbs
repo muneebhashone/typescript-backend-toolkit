@@ -1,7 +1,7 @@
 import { promisify } from 'node:util';
 import { gzip, gunzip } from 'node:zlib';
 import { cacheProvider } from '@/lib/cache';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 import { metricsCollector } from '@/plugins/observability/metrics';
 import { CacheError } from '@/lib/errors';
 import type {

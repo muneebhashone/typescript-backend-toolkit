@@ -1,6 +1,6 @@
 import type { ToolkitPlugin, PluginFactory } from '../types';
 import config from '@/config/env';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 import { CacheService } from './cache.service';
 import { initializeCacheMiddleware } from './cache.middleware';
 

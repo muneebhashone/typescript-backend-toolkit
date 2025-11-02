@@ -196,7 +196,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 Logs use Pino logger from [logger.ts](mdc:src/plugins/observability/logger.ts):
 
 ```typescript
-import { logger } from '@/plugins/observability/logger';
+import { logger } from '@/plugins/logger';
 
 logger.info('Info message', { data });
 logger.error('Error message', { error });

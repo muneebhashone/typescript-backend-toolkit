@@ -1,7 +1,7 @@
 import type { Processor, QueueOptions, WorkerOptions } from 'bullmq';
 import { Queue as BullQueue, Worker } from 'bullmq';
 
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 import { cacheProvider, RedisProvider } from './cache';
 import { QueueError } from './errors';
 

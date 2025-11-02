@@ -177,6 +177,21 @@ Selected features: ${JSON.stringify(context, null, 2)}
   if (context.AGENT_CLAUDE) {
     await copyClaudeCommandsIfAvailable(targetDir, templateBaseDir);
   }
+
+  // Copy selected modules
+  const modules = [
+    { enabled: context.MODULE_UPLOAD, dir: 'modules/upload' },
+    { enabled: context.MODULE_HEALTHCHECK, dir: 'modules/healthcheck' },
+  ];
+
+  for (const module of modules) {
+    if (module.enabled) {
+      const moduleDir = path.join(templateBaseDir, module.dir);
+      if (await pathExists(moduleDir)) {
+        await copyAndRenderDirectory(moduleDir, targetDir, context);
+      }
+    }
+  }
 }
 
 async function copyAndRenderDirectory(

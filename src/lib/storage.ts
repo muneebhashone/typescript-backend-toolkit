@@ -3,7 +3,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { createReadStream, promises as fs } from 'node:fs';
 import { join, dirname } from 'node:path';
 import config from '@/config/env';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 import type { FormFile } from '../types';
 import { StorageError } from './errors';
 

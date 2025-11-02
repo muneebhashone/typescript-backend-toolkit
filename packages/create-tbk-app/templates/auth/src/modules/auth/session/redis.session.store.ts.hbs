@@ -9,7 +9,7 @@ import {
   hashToken,
   calculateExpiresAt,
 } from './session.utils';
-import { createChildLogger } from '@/plugins/observability/logger';
+import { createChildLogger } from '@/plugins/logger';
 
 const logger = createChildLogger({ context: 'RedisSessionStore' });
 

@@ -2,7 +2,7 @@ import '@/plugins/magic/zod-extend';
 import { initializeApp } from '@/app/app';
 import config from '@/config/env';
 import { connectDatabase } from '@/lib/database';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 import apiRoutes from '@/routes/routes';
 import errorHandler from '@/middlewares/error-handler';
 

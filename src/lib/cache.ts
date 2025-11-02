@@ -1,7 +1,7 @@
 import type { RedisOptions } from 'ioredis';
 import Redis from 'ioredis';
 import config from '../config/env';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 import { CacheError } from './errors';
 
 /**

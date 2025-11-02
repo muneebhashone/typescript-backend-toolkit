@@ -3,6 +3,7 @@ import compression from 'compression';
 import path from 'path';
 import { createApp } from './createApp';
 import config from '../config/env';
+import { loggerPlugin } from '@/plugins/logger';
 import { securityPlugin } from '@/plugins/security';
 import { observabilityPlugin } from '@/plugins/observability';
 import { magicRouterPlugin } from '@/plugins/magic';
@@ -16,6 +17,11 @@ import { basicParserPlugin } from '@/plugins/basicParser';
 export async function initializeApp(port: number) {
   const { app, server, plugins } = await createApp({
     plugins: [
+      loggerPlugin({
+        enabled: true,
+        level: config.LOG_LEVEL,
+        pretty: true,
+      }),
       basicParserPlugin({
         enabled: true,
       }),
@@ -38,7 +44,6 @@ export async function initializeApp(port: number) {
       }),
       observabilityPlugin({
         requestId: true,
-        logging: true,
         metrics: config.METRICS_ENABLED,
       }),
       realtimePlugin(),

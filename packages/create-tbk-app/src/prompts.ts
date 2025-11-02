@@ -13,6 +13,7 @@ import type {
   AuthType,
   CacheProvider,
   EmailProvider,
+  ModuleId,
   ObservabilityLevel,
   PackageManager,
   PresetType,
@@ -45,6 +46,7 @@ export interface PromptDefaults {
   skipGit?: BooleanLike;
   skipInstall?: BooleanLike;
   agents?: AgentId[];
+  modules?: ModuleId[];
 }
 
 export async function collectProjectConfig(
@@ -88,6 +90,7 @@ export async function collectProjectConfig(
 
   const basicOptions = await collectBasicOptions(defaults);
   const agentOptions = await collectAgentOptions(defaults);
+  const moduleOptions = await collectModuleOptions(defaults);
 
   const finalConfig: ProjectConfig = {
     projectName,
@@ -104,6 +107,7 @@ export async function collectProjectConfig(
     admin: customConfig.admin ?? false,
     observability: customConfig.observability!,
     agents: agentOptions,
+    modules: moduleOptions,
     packageManager: basicOptions.packageManager,
     skipGit: basicOptions.skipGit,
     skipInstall: basicOptions.skipInstall,
@@ -127,7 +131,8 @@ export function renderSummary(config: ProjectConfig) {
       `Realtime: ${config.realtime ? 'enabled' : 'disabled'}`,
       `Admin: ${config.admin ? 'enabled' : 'disabled'}`,
       `Observability: ${config.observability}`,
-      `Agents/IDEs: ${config.agents.length > 0 ? config.agents.join(', ') : 'none'}`,
+      `Agents/IDEs: ${config.agents?.length ?? 0 > 0 ? config.agents!.join(', ') : 'none'}`,
+      `Modules: ${config.modules?.length ?? 0 > 0 ? config.modules!.join(', ') : 'none'}`,
       `Package manager: ${config.packageManager}`,
       `Initialize git repo: ${config.skipGit ? 'no' : 'yes'}`,
       `Install dependencies: ${config.skipInstall ? 'later' : 'now'}`,
@@ -299,6 +304,29 @@ async function collectAgentOptions(
       },
     ],
     initialValue: defaults.agents ?? [],
+  });
+
+  return result;
+}
+
+async function collectModuleOptions(
+  defaults: PromptDefaults,
+): Promise<ModuleId[]> {
+  const result = await promptMultiSelectValue<ModuleId>({
+    message: 'Which base modules would you like to include?',
+    options: [
+      {
+        label: 'Upload',
+        value: 'upload',
+        hint: 'File upload example module',
+      },
+      {
+        label: 'Healthcheck',
+        value: 'healthcheck',
+        hint: 'Health check endpoints',
+      },
+    ],
+    initialValue: defaults.modules ?? [],
   });
 
   return result;

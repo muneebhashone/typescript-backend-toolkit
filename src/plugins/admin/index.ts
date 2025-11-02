@@ -11,7 +11,7 @@ import {
 } from './admin-auth';
 
 import path from 'path';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 
 import { adminApiRouter, registerAdminUI } from './router';
 import cookieParser from 'cookie-parser';

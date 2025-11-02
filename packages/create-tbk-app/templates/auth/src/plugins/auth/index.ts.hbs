@@ -7,7 +7,7 @@ import {
 import type { SessionStoreConfig } from '@/modules/auth/session/session.types';
 {{/if}}
 import config from '@/config/env';
-import logger from '@/plugins/observability/logger';
+import logger from '@/plugins/logger';
 {{#if AUTH_SESSIONS}}
 import { scheduleSessionCleanup } from '../../queues/session-cleanup.queue';
 {{/if}}

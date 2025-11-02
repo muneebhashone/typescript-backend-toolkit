@@ -3,7 +3,7 @@ import {
   getSessionManager,
   SessionManager,
 } from '../modules/auth/session/session.manager';
-import { createChildLogger } from '@/plugins/observability/logger';
+import { createChildLogger } from '@/plugins/logger';
 import config from '../config/env';
 
 const logger = createChildLogger({ context: 'SessionCleanupQueue' });

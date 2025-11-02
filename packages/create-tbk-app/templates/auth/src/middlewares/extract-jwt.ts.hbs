@@ -3,7 +3,7 @@ import { type JwtPayload, verifyToken } from '@/utils/jwt.utils';
 import type { RequestAny, ResponseAny } from '@/plugins/magic/router';
 import config from '@/config/env';
 
-import { createChildLogger } from '@/plugins/observability/logger';
+import { createChildLogger } from '@/plugins/logger';
 
 {{#if AUTH_SESSIONS}}
 // Session validation imports

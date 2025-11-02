@@ -60,6 +60,10 @@ export function createTemplateContext(config: ProjectConfig): TemplateContext {
     AGENT_CLAUDE: agents.includes('claude'),
     AGENT_CURSOR: agents.includes('cursor'),
     AGENT_OTHER: agents.includes('other'),
+
+    // Modules
+    MODULE_UPLOAD: config.modules?.includes('upload') ?? false,
+    MODULE_HEALTHCHECK: config.modules?.includes('healthcheck') ?? false,
   };
 }
 
@@ -146,6 +150,15 @@ export function shouldIncludeFile(filePath: string, context: TemplateContext): b
 
   if (fileName.endsWith('/agents.md') || fileName.endsWith('\\agents.md')) {
     if (!context.AGENT_OTHER) return false;
+  }
+
+  // Module files
+  if (fileName.includes('/upload/') || fileName.includes('\\upload\\')) {
+    if (!context.MODULE_UPLOAD) return false;
+  }
+
+  if (fileName.includes('/healthcheck/') || fileName.includes('\\healthcheck\\')) {
+    if (!context.MODULE_HEALTHCHECK) return false;
   }
 
   return true;
