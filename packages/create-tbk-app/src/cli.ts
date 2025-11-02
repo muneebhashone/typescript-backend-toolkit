@@ -314,6 +314,13 @@ async function validateAndAdjustConfig(
     throw new Error(`Invalid project name: ${validation.error}`);
   }
 
+  // Validate upload module requires storage provider
+  if (config.modules?.includes('upload') && config.storage === 'none') {
+    throw new Error(
+      'The upload module requires a storage provider. Please select a storage provider (local, s3, or r2) when using the upload module.',
+    );
+  }
+
   return resolveProjectDirectory(config, options, interactive);
 }
 

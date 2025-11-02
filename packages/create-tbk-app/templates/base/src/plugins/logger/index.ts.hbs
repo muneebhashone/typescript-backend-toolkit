@@ -211,11 +211,7 @@ export const loggerPlugin: PluginFactory<LoggerOptions> = (
       // Register HTTP logging middleware
       app.use(httpLogger);
 
-      logger.debug('Logger plugin registered', {
-        level: options.level || defaultLogLevel,
-        pretty: options.pretty !== undefined ? options.pretty : isDevelopment,
-        redact: options.redact?.length || 0,
-      });
+      logger.debug('Logger plugin registered');
 
       return [];
     },

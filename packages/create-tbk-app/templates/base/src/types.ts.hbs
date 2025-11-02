@@ -1,5 +1,7 @@
 import type { Request, Response } from 'express';
+{{#if REALTIME}}
 import type { Server } from 'socket.io';
+{{/if}}
 import type { AnyZodObject, ZodEffects, ZodSchema } from 'zod';
 {{#if AUTH_JWT}}
 import type { JwtPayload } from '@/utils/jwt.utils';

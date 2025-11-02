@@ -92,6 +92,25 @@ export async function collectProjectConfig(
   const agentOptions = await collectAgentOptions(defaults);
   const moduleOptions = await collectModuleOptions(defaults);
 
+  // Check if upload module is selected but storage is 'none'
+  let storage = customConfig.storage!;
+  if (moduleOptions.includes('upload') && storage === 'none') {
+    note(
+      'The upload module requires a storage provider to function properly.',
+      'Storage provider required',
+    );
+
+    storage = await promptSelectValue<StorageProvider>({
+      message: 'Select a storage provider for file uploads',
+      options: [
+        { label: 'Local – Store files on disk', value: 'local' },
+        { label: 'AWS S3 – Amazon S3', value: 's3' },
+        { label: 'Cloudflare R2 – S3 compatible', value: 'r2' },
+      ],
+      initialValue: 'local',
+    });
+  }
+
   const finalConfig: ProjectConfig = {
     projectName,
     preset,
@@ -101,7 +120,7 @@ export async function collectProjectConfig(
     cache: customConfig.cache!,
     queues: customConfig.queues ?? false,
     queueDashboard: customConfig.queueDashboard ?? false,
-    storage: customConfig.storage!,
+    storage,
     email: customConfig.email!,
     realtime: customConfig.realtime ?? false,
     admin: customConfig.admin ?? false,
@@ -204,7 +223,7 @@ async function collectCustomConfig(
   const storage = await promptSelectValue<StorageProvider>({
     message: 'File storage provider',
     options: [
-      { label: 'None – No file uploads', value: 'none' },
+      { label: 'None – No file uploads', value: 'none', hint: 'Upload module will not be available' },
       { label: 'Local – Store files on disk', value: 'local' },
       { label: 'AWS S3 – Amazon S3', value: 's3' },
       { label: 'Cloudflare R2 – S3 compatible', value: 'r2' },
@@ -318,7 +337,7 @@ async function collectModuleOptions(
       {
         label: 'Upload',
         value: 'upload',
-        hint: 'File upload example module',
+        hint: 'File upload example module (requires storage provider)',
       },
       {
         label: 'Healthcheck',
