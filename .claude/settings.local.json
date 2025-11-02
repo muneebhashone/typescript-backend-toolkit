@@ -32,7 +32,8 @@
       "Bash(then rm -rf test-standard)",
       "Bash(rm:*)",
       "Bash(mkdir:*)",
-      "Bash(pnpm --filter create-tbk-app typecheck:*)"
+      "Bash(pnpm --filter create-tbk-app typecheck:*)",
+      "Bash(pnpm --filter create-tbk-app build:*)"
     ],
     "deny": [],
     "ask": []
