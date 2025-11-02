@@ -68,12 +68,8 @@ module-name/
 - **Database**: MongoDB + Mongoose
 - **Cache/Queue**: Redis + BullMQ
 - **Auth**: JWT (with optional OTP)
-- **Storage**: AWS S3
-- **Email**: React Email + Mailgun
+- **Storage**: AWS S3 (or R2 or Local)
+- **Email**: React Email + Mailgun / Resend / Nodemailer
 - **Real-time**: Socket.io
 - **API Docs**: Swagger/OpenAPI (auto-generated)
 - **Logger**: Pino
-
-## Package Manager
-
-ALWAYS use `pnpm` - never npm or yarn
