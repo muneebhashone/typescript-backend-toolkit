@@ -242,7 +242,7 @@ export function generateScripts(config: ProjectConfig): Record<string, string> {
     typecheck: 'tsc --noEmit',
     lint: 'eslint',
     'lint:fix': 'eslint --fix',
-    tbk: 'tbk',
+    tbk: 'dotenv -e .env.development -- node --import tsx ./node_modules/@themuneebh-oss/tbk/dist/cli.js',
   };
 
   // Add email dev script if email is enabled
