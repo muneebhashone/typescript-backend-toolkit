@@ -33,7 +33,12 @@
       "Bash(rm:*)",
       "Bash(mkdir:*)",
       "Bash(pnpm --filter create-tbk-app typecheck:*)",
-      "Bash(pnpm --filter create-tbk-app build:*)"
+      "Bash(pnpm --filter create-tbk-app build:*)",
+      "Bash(pnpm outdated)",
+      "Bash(pnpm remove:*)",
+      "Bash(pnpm update:*)",
+      "Bash(node --version:*)",
+      "Bash(pnpm outdated:*)"
     ],
     "deny": [],
     "ask": []
