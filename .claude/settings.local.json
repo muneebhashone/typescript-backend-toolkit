@@ -26,7 +26,12 @@
       "Bash(cat:*)",
       "Bash(pnpm tbk generate:plugin:*)",
       "Bash(find:*)",
-      "Bash(timeout 15 pnpm start:dev:*)"
+      "Bash(timeout 15 pnpm start:dev:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(if [ -d test-standard ])",
+      "Bash(then rm -rf test-standard)",
+      "Bash(rm:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

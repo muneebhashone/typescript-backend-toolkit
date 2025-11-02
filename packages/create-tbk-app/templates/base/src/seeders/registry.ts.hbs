@@ -1,4 +1,10 @@
 import type { Seeder } from './types';
+{{#if AUTH}}
 import { UserSeeder } from '../modules/user/seeders/UserSeeder';
+{{/if}}
 
-export const seeders: Seeder[] = [UserSeeder];
+export const seeders: Seeder[] = [
+{{#if AUTH}}
+  UserSeeder,
+{{/if}}
+];

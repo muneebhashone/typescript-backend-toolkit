@@ -121,7 +121,7 @@ export const registerUserByEmail = async (
 
 export const loginUserByEmail = async (
   payload: LoginUserByEmailSchemaType,
-  metadata?: { userAgent?: string; ipAddress?: string },
+  {{#if AUTH_SESSIONS}}metadata{{else}}_metadata{{/if}}?: { userAgent?: string; ipAddress?: string },
 ): Promise<{ token: string; sessionId?: string }> => {
   const user = await getUserByEmail(payload.email, '+password');
 
@@ -141,7 +141,9 @@ export const loginUserByEmail = async (
     username: user.username,
   };
 
+{{#if AUTH_SESSIONS}}
   let sessionId: string | undefined;
+{{/if}}
 
 {{#if AUTH_SESSIONS}}
   if (config.SET_SESSION) {
@@ -177,7 +179,7 @@ export const loginUserByEmail = async (
 {{#if AUTH_GOOGLE_OAUTH}}
 export const googleLogin = async (
   payload: GoogleCallbackSchemaType,
-  metadata?: { userAgent?: string; ipAddress?: string },
+  {{#if AUTH_SESSIONS}}metadata{{else}}_metadata{{/if}}?: { userAgent?: string; ipAddress?: string },
 ): Promise<{ user: UserType; token: string; sessionId?: string }> => {
   const { code, error } = payload;
 
@@ -237,8 +239,10 @@ export const googleLogin = async (
     username: user.username,
   };
 
+{{#if AUTH_SESSIONS}}
   let sessionId: string | undefined;
 
+{{/if}}
 {{#if AUTH_SESSIONS}}
   if (config.SET_SESSION) {
     const sessionManager = getSessionManager();

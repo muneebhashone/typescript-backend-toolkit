@@ -97,7 +97,7 @@ export const handleRegisterUser = async (
 
 // Using new res.ok() helper
 export const handleLogout = async (
-  req: Request,
+  {{#if AUTH_SESSIONS}}req{{else}}_req{{/if}}: Request,
   res: ResponseExtended<LogoutResponseSchema>,
 ) => {
 {{#if AUTH_SESSIONS}}
