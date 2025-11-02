@@ -71,7 +71,11 @@ export async function generateProject(
     console.log(`  cd ${config.projectName}`);
 
     if (config.skipInstall) {
-      console.log(`  ${config.packageManager} install`);
+      const installCommand =
+        config.packageManager === 'pnpm'
+          ? `${config.packageManager} install`
+          : `${config.packageManager} install --force`;
+      console.log(`  ${installCommand}`);
     }
 
     console.log('  cp .env.example .env.development');

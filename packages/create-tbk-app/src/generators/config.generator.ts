@@ -270,6 +270,10 @@ export async function generateReadme(
   context: TemplateContext,
 ): Promise<void> {
   const lines: string[] = [];
+  const installCommand =
+    config.packageManager === 'pnpm'
+      ? `${config.packageManager} install`
+      : `${config.packageManager} install --force`;
 
   lines.push(`# ${config.projectName}`);
   lines.push('');
@@ -356,7 +360,7 @@ export async function generateReadme(
   lines.push('1. Install dependencies:');
   lines.push('');
   lines.push('```bash');
-  lines.push(`${config.packageManager} install`);
+  lines.push(installCommand);
   lines.push('```');
   lines.push('');
   lines.push('2. Copy environment variables:');
@@ -488,15 +492,15 @@ export async function generateReadme(
   lines.push('');
   lines.push('```');
   lines.push('src/');
-  lines.push('├── app/              # Application setup');
-  lines.push('├── config/           # Configuration');
-  lines.push('├── lib/              # Core libraries');
-  lines.push('├── middlewares/      # Express middlewares');
-  lines.push('├── modules/          # Feature modules');
-  lines.push('├── plugins/          # Plugin system');
-  lines.push('├── routes/           # Route registration');
-  lines.push('├── utils/            # Utilities');
-  lines.push('└── main.ts           # Entry point');
+  lines.push('??? app/              # Application setup');
+  lines.push('??? config/           # Configuration');
+  lines.push('??? lib/              # Core libraries');
+  lines.push('??? middlewares/      # Express middlewares');
+  lines.push('??? modules/          # Feature modules');
+  lines.push('??? plugins/          # Plugin system');
+  lines.push('??? routes/           # Route registration');
+  lines.push('??? utils/            # Utilities');
+  lines.push('??? main.ts           # Entry point');
   lines.push('```');
   lines.push('');
 
