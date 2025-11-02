@@ -3,7 +3,7 @@ import express from 'express';
 import authRouter, { AUTH_ROUTER_ROOT } from '../modules/auth/auth.router';
 import userRouter, { USER_ROUTER_ROOT } from '../modules/user/user.router';
 {{/if}}
-{{#if OBSERVABILITY_FULL}}
+{{#if (or OBSERVABILITY_FULL MODULE_HEALTHCHECK)}}
 import healthCheckRouter, {
   HEALTH_ROUTER_ROOT,
 } from '../modules/healthcheck/healthcheck.routes';
@@ -11,7 +11,7 @@ import healthCheckRouter, {
 
 const router = express.Router();
 
-{{#if OBSERVABILITY_FULL}}
+{{#if (or OBSERVABILITY_FULL MODULE_HEALTHCHECK)}}
 router.use(HEALTH_ROUTER_ROOT, healthCheckRouter);
 {{/if}}
 {{#if AUTH}}

@@ -5,10 +5,8 @@ import {
   type SessionManager,
 } from '@/modules/auth/session/session.manager';
 import type { SessionStoreConfig } from '@/modules/auth/session/session.types';
-{{/if}}
 import config from '@/config/env';
 import logger from '@/plugins/logger';
-{{#if AUTH_SESSIONS}}
 import { scheduleSessionCleanup } from '../../queues/session-cleanup.queue';
 {{/if}}
 import { extractJwt } from '../../middlewares/extract-jwt';

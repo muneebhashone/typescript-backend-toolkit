@@ -5,5 +5,5 @@ export * from '../../../auth/middlewares/can-access';
 {{else}}
 // Auth is disabled - providing stub export
 import { Request, Response, NextFunction } from 'express';
-export const canAccess = () => (req: Request, res: Response, next: NextFunction) => next();
+export const canAccess = () => (_req: Request, _res: Response, next: NextFunction) => next();
 {{/if}}
