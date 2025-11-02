@@ -43,7 +43,9 @@ export interface RequestExtended extends Request {
 {{#if AUTH_JWT}}
   user: JwtPayload;
 {{/if}}
+{{#if REALTIME}}
   io: Server;
+{{/if}}
 {{#if AUTH_SESSIONS}}
   session?: SessionRecord;
 {{/if}}

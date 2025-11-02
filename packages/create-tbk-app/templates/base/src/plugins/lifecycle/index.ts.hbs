@@ -15,7 +15,7 @@ export const lifecyclePlugin: PluginFactory<LifecycleOptions> = (
     priority: 10,
     options,
 
-    register({ app, server }) {
+    register({ {{#if REALTIME}}app,{{/if}} server }) {
       const lifecycle = new LifecycleManager({
         gracefulShutdownTimeout: 30000,
       });
