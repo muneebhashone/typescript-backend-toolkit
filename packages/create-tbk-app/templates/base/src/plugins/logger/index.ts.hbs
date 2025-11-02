@@ -1,5 +1,6 @@
 import pino from 'pino';
 import pinoHttp from 'pino-http';
+import type { Request } from 'express';
 import type { RequestExtended } from '@/types';
 import { ServerResponse as ResponseHTTP } from 'node:http';
 import type { ToolkitPlugin, PluginFactory } from '@/plugins/types';
@@ -60,7 +61,7 @@ function createLogger(options: LoggerOptions = {}) {
         }
       : undefined,
     formatters: {
-      level: (label) => {
+      level: (label: string) => {
         return { level: label.toUpperCase() };
       },
     },
@@ -82,7 +83,7 @@ export const logger = createLogger();
  */
 export const httpLogger = pinoHttp({
   logger,
-  customLogLevel: (_req, res, err) => {
+  customLogLevel: (_req: Request, res: ResponseHTTP, err?: Error) => {
     if (res.statusCode >= 500 || err) {
       return 'error';
     }
@@ -91,10 +92,10 @@ export const httpLogger = pinoHttp({
     }
     return 'info';
   },
-  customSuccessMessage: (req, res) => {
+  customSuccessMessage: (req: Request, res: ResponseHTTP) => {
     return `${req.method} ${req.url} ${res.statusCode}`;
   },
-  customErrorMessage: (req, res, err) => {
+  customErrorMessage: (req: Request, res: ResponseHTTP, err: Error) => {
     return `${req.method} ${req.url} ${res.statusCode} - ${err.message}`;
   },
   customAttributeKeys: {
@@ -104,7 +105,7 @@ export const httpLogger = pinoHttp({
     responseTime: 'duration',
   },
   serializers: {
-    req: (req) => {
+    req: (req: Request) => {
       const extended = req as RequestExtended;
       return {
         id: extended.id,
@@ -116,8 +117,8 @@ export const httpLogger = pinoHttp({
           'user-agent': req.headers['user-agent'],
           'x-request-id': req.headers['x-request-id'],
         },
-        remoteAddress: req.remoteAddress,
-        remotePort: req.remotePort,
+        remoteAddress: req.socket?.remoteAddress,
+        remotePort: req.socket?.remotePort,
       };
     },
     res: (res: unknown) => ({

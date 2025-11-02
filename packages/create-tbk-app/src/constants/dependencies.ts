@@ -15,6 +15,12 @@ export const CORE_DEPENDENCIES = {
   validator: '^13.12.0',
   'express-async-handler': '^1.2.0',
   formidable: '^3.5.4',
+  // Logger dependencies (logger plugin is always included)
+  pino: '^9.1.0',
+  'pino-http': '^10.1.0',
+  'pino-pretty': '^11.1.0',
+  // Basic observability dependencies (requestId middleware)
+  nanoid: '^3.3.7',
 };
 
 export const CORE_DEV_DEPENDENCIES = {
@@ -71,12 +77,9 @@ export const FEATURE_DEPENDENCIES = {
   },
   observabilityFull: {
     dependencies: {
-      pino: '^9.1.0',
-      'pino-http': '^10.1.0',
-      'pino-pretty': '^11.1.0',
+      // pino, pino-http, pino-pretty, and nanoid are now in CORE_DEPENDENCIES
       'prom-client': '^15.1.3',
       morgan: '^1.10.0',
-      nanoid: '^3.3.7',
     },
     devDependencies: {
       '@types/morgan': '^1.9.4',
