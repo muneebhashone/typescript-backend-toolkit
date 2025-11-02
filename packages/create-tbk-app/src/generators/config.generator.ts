@@ -1,7 +1,10 @@
 import path from 'path';
 import type { ProjectConfig, TemplateContext } from '../types/config.types.js';
 import { writeFile } from '../utils/file.utils.js';
-import { resolveDependencies, generateScripts } from '../constants/dependencies.js';
+import {
+  resolveDependencies,
+  generateScripts,
+} from '../constants/dependencies.js';
 
 export async function generatePackageJson(
   targetDir: string,
@@ -46,7 +49,9 @@ export async function generateEnvExample(
   lines.push('NODE_ENV=development');
   lines.push('');
   lines.push('# Database');
-  lines.push(`MONGO_DATABASE_URL=mongodb://localhost:27017/${config.projectName}`);
+  lines.push(
+    `MONGO_DATABASE_URL=mongodb://localhost:27017/${config.projectName}`,
+  );
   lines.push('');
   lines.push('# Client');
   lines.push('CLIENT_SIDE_URL=http://localhost:3000');
@@ -63,7 +68,9 @@ export async function generateEnvExample(
       lines.push('# Google OAuth');
       lines.push('GOOGLE_CLIENT_ID=your-google-client-id');
       lines.push('GOOGLE_CLIENT_SECRET=your-google-client-secret');
-      lines.push('GOOGLE_REDIRECT_URI=http://localhost:3000/auth/google/callback');
+      lines.push(
+        'GOOGLE_REDIRECT_URI=http://localhost:3000/auth/google/callback',
+      );
       lines.push('');
     }
 
@@ -114,7 +121,9 @@ export async function generateEnvExample(
       lines.push('AWS_S3_BUCKET=your-bucket-name');
 
       if (context.STORAGE_R2) {
-        lines.push('AWS_ENDPOINT=https://your-account-id.r2.cloudflarestorage.com');
+        lines.push(
+          'AWS_ENDPOINT=https://your-account-id.r2.cloudflarestorage.com',
+        );
       }
     } else if (context.STORAGE_LOCAL) {
       lines.push('LOCAL_STORAGE_PATH=./uploads');
@@ -264,7 +273,9 @@ export async function generateReadme(
 
   lines.push(`# ${config.projectName}`);
   lines.push('');
-  lines.push(`Backend API generated with **create-tbk-app** using the **${config.preset}** preset.`);
+  lines.push(
+    `Backend API generated with **create-tbk-app** using the **${config.preset}** preset.`,
+  );
   lines.push('');
   lines.push('## Features');
   lines.push('');
@@ -278,7 +289,9 @@ export async function generateReadme(
 
   if (context.AUTH) {
     if (context.AUTH_SESSIONS) {
-      features.push(`- JWT Authentication with Session Management (${context.SESSION_DRIVER})`);
+      features.push(
+        `- JWT Authentication with Session Management (${context.SESSION_DRIVER})`,
+      );
     } else {
       features.push('- JWT Authentication');
     }
@@ -301,7 +314,9 @@ export async function generateReadme(
   }
 
   if (context.STORAGE) {
-    features.push(`- File storage (${context.STORAGE_PROVIDER?.toUpperCase()})`);
+    features.push(
+      `- File storage (${context.STORAGE_PROVIDER?.toUpperCase()})`,
+    );
   }
 
   if (context.EMAIL) {
@@ -354,12 +369,16 @@ export async function generateReadme(
   lines.push('');
 
   if (context.STORAGE_S3 || context.STORAGE_R2) {
-    lines.push('> **Note:** Configure your AWS/R2 credentials for file storage');
+    lines.push(
+      '> **Note:** Configure your AWS/R2 credentials for file storage',
+    );
     lines.push('');
   }
 
   if (context.EMAIL) {
-    lines.push(`> **Note:** Configure your ${context.EMAIL_PROVIDER} API key for email sending`);
+    lines.push(
+      `> **Note:** Configure your ${context.EMAIL_PROVIDER} API key for email sending`,
+    );
     lines.push('');
   }
 
@@ -373,14 +392,24 @@ export async function generateReadme(
   lines.push('## Available Commands');
   lines.push('');
   lines.push('```bash');
-  lines.push(`${config.packageManager} dev           # Start dev server with hot reload`);
+  lines.push(
+    `${config.packageManager} dev           # Start dev server with hot reload`,
+  );
   lines.push(`${config.packageManager} build         # Build for production`);
   lines.push(`${config.packageManager} start:prod    # Run production build`);
-  lines.push(`${config.packageManager} typecheck     # Type check without building`);
+  lines.push(
+    `${config.packageManager} typecheck     # Type check without building`,
+  );
   lines.push(`${config.packageManager} lint          # Run ESLint`);
-  lines.push(`${config.packageManager} lint:fix      # Auto-fix linting issues`);
-  lines.push(`${config.packageManager} openapi       # Generate OpenAPI spec`);
-  lines.push(`${config.packageManager} tbk           # Run CLI tool (see below)`);
+  lines.push(
+    `${config.packageManager} lint:fix      # Auto-fix linting issues`,
+  );
+  lines.push(
+    `${config.packageManager} tbk docs:openapi       # Generate OpenAPI spec`,
+  );
+  lines.push(
+    `${config.packageManager} tbk docs:sdk          # Generate TypeScript SDK`,
+  );
   lines.push('```');
   lines.push('');
 
@@ -389,14 +418,26 @@ export async function generateReadme(
   lines.push('Generate new modules, plugins, and more:');
   lines.push('');
   lines.push('```bash');
-  lines.push(`${config.packageManager} tbk generate:module <name>     # Generate CRUD module`);
-  lines.push(`${config.packageManager} tbk generate:plugin <name>     # Generate plugin`);
-  lines.push(`${config.packageManager} tbk generate:middleware <name> # Generate middleware`);
+  lines.push(
+    `${config.packageManager} tbk generate:module <name>     # Generate CRUD module`,
+  );
+  lines.push(
+    `${config.packageManager} tbk generate:plugin <name>     # Generate plugin`,
+  );
+  lines.push(
+    `${config.packageManager} tbk generate:middleware <name> # Generate middleware`,
+  );
 
   if (context.AUTH) {
-    lines.push(`${config.packageManager} tbk make:factory <module>/<name>    # Generate factory`);
-    lines.push(`${config.packageManager} tbk make:seeder <module>/<name>     # Generate seeder`);
-    lines.push(`${config.packageManager} tbk seed                            # Run seeders`);
+    lines.push(
+      `${config.packageManager} tbk make:factory <module>/<name>    # Generate factory`,
+    );
+    lines.push(
+      `${config.packageManager} tbk make:seeder <module>/<name>     # Generate seeder`,
+    );
+    lines.push(
+      `${config.packageManager} tbk seed                            # Run seeders`,
+    );
   }
 
   lines.push('```');
@@ -461,7 +502,9 @@ export async function generateReadme(
 
   lines.push('## Learn More');
   lines.push('');
-  lines.push('- [TypeScript Backend Toolkit Documentation](https://github.com/your-repo)');
+  lines.push(
+    '- [TypeScript Backend Toolkit Documentation](https://github.com/your-repo)',
+  );
   lines.push('- [Express.js Documentation](https://expressjs.com/)');
   lines.push('- [Mongoose Documentation](https://mongoosejs.com/)');
   lines.push('');
