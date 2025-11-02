@@ -1,7 +1,9 @@
 import type { ToolkitPlugin, PluginFactory } from '@/plugins/types';
 import { LifecycleManager, type LifecycleOptions } from './lifecycle-manager';
 import { disconnectDatabase } from '@/lib/database';
+{{#if REALTIME}}
 import { Server as SocketServer } from 'socket.io';
+{{/if}}
 import { cacheProvider, RedisProvider } from '@/lib/cache';
 import { closeAllQueues } from '@/lib/queue';
 
@@ -26,8 +28,10 @@ export const lifecyclePlugin: PluginFactory<LifecycleOptions> = (
         if (cacheProvider instanceof RedisProvider) {
           await cacheProvider.getClient().quit();
         }
+{{#if REALTIME}}
         const io = app.locals?.io as SocketServer | undefined;
         io?.disconnectSockets(true);
+{{/if}}
       });
 
       lifecycle.setupSignalHandlers();
