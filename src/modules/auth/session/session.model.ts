@@ -40,11 +40,6 @@ const sessionSchema = new Schema<SessionDocument>(
       required: true,
       default: Date.now,
     },
-    expiresAt: {
-      type: Date,
-      required: true,
-      index: true,
-    },
     isRevoked: {
       type: Boolean,
       default: false,
@@ -55,7 +50,6 @@ const sessionSchema = new Schema<SessionDocument>(
   },
 );
 
-sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 sessionSchema.index({ userId: 1, createdAt: -1 });
 
 export const SessionModel = mongoose.model<SessionDocument>(

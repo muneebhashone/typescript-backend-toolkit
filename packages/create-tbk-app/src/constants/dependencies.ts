@@ -3,7 +3,7 @@ import type { ProjectConfig } from '../types/config.types.js';
 // Core dependencies - always included
 export const CORE_DEPENDENCIES = {
   express: '^4.19.2',
-  mongoose: '^8.5.1',
+  mongoose: '^8.19.2',
   zod: '^3.21.4',
   dotenv: '^16.4.5',
   '@asteasolutions/zod-to-openapi': '^7.1.1',
@@ -12,7 +12,7 @@ export const CORE_DEPENDENCIES = {
   yaml: '^2.5.0',
   compression: '^1.7.4',
   'cookie-parser': '^1.4.6',
-  validator: '^13.12.0',
+  validator: '^13.15.20',
   'express-async-handler': '^1.2.0',
   formidable: '^3.5.4',
   // Logger dependencies (logger plugin is always included)
@@ -27,7 +27,7 @@ export const CORE_DEV_DEPENDENCIES = {
   '@themuneebh-oss/tbk': '^0.0.3',
   typescript: '^5.1.6',
   '@types/express': '^4.17.15',
-  '@types/node': '^18.11.18',
+  '@types/node': '^24.9.2',
   '@types/cookie-parser': '^1.4.3',
   '@types/swagger-ui-express': '^4.1.6',
   '@types/validator': '^13.7.17',
@@ -42,7 +42,7 @@ export const CORE_DEV_DEPENDENCIES = {
   commander: '^14.0.1',
   eslint: '~9.4.0',
   '@eslint/js': '^9.4.0',
-  'typescript-eslint': '^7.11.0',
+  'typescript-eslint': '^8.46.2',
   'eslint-config-prettier': '^9.1.0',
   'eslint-plugin-prettier': '^5.1.3',
   'eslint-plugin-import': '^2.29.1',
@@ -54,13 +54,10 @@ export const FEATURE_DEPENDENCIES = {
   auth: {
     dependencies: {
       jsonwebtoken: '^9.0.2',
-      passport: '^0.7.0',
-      'passport-jwt': '^4.0.1',
       argon2: '^0.30.3',
     },
     devDependencies: {
       '@types/jsonwebtoken': '^9.0.6',
-      '@types/passport': '^1.0.11',
     },
   },
   security: {
@@ -70,43 +67,38 @@ export const FEATURE_DEPENDENCIES = {
       'express-rate-limit': '^8.1.0',
     },
     devDependencies: {
-      '@types/helmet': '^4.0.0',
       '@types/cors': '^2.8.13',
-      '@types/express-rate-limit': '^6.0.2',
     },
   },
   observabilityFull: {
     dependencies: {
       // pino, pino-http, pino-pretty, and nanoid are now in CORE_DEPENDENCIES
       'prom-client': '^15.1.3',
-      morgan: '^1.10.0',
     },
-    devDependencies: {
-      '@types/morgan': '^1.9.4',
-    },
+    devDependencies: {},
   },
   cacheRedis: {
     dependencies: {
-      ioredis: '^5.3.2',
+      ioredis: '^5.8.2',
     },
     devDependencies: {},
   },
   queues: {
     dependencies: {
-      bullmq: '^5.7.6',
+      bullmq: '^5.63.0',
     },
     devDependencies: {},
   },
   queueDashboard: {
     dependencies: {
-      '@bull-board/api': '^5.19.0',
-      '@bull-board/express': '^5.16.0',
+      '@bull-board/api': '^6.14.0',
+      '@bull-board/express': '^6.14.0',
     },
     devDependencies: {},
   },
   storage: {
     dependencies: {
-      '@aws-sdk/client-s3': '^3.606.0',
+      '@aws-sdk/client-s3': '^3.922.0',
     },
     devDependencies: {},
   },
@@ -133,13 +125,14 @@ export const FEATURE_DEPENDENCIES = {
   },
   emailTemplates: {
     dependencies: {
-      '@react-email/components': '^0.0.28',
-      '@react-email/render': '^1.0.2',
-      react: '^18.3.1',
-      'react-email': '^3.0.2',
+      '@react-email/components': '^0.5.7',
+      '@react-email/render': '^1.4.0',
+      react: '^19.2.0',
+      'react-email': '^4.3.2',
     },
     devDependencies: {
-      '@types/react': '^18.3.12',
+      '@types/react': '^19.2.2',
+      '@react-email/preview-server': '^4.3.2',
     },
   },
   realtime: {
