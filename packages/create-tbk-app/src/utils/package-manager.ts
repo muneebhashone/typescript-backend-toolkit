@@ -9,6 +9,10 @@ export async function installDependencies(
     const command = packageManager;
     const args = ['install'];
 
+    if (packageManager === 'npm' || packageManager === 'yarn') {
+      args.push('--force');
+    }
+
     const child = spawn(command, args, {
       cwd: targetDir,
       stdio: 'inherit',
