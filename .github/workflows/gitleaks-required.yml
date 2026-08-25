@@ -1,0 +1,51 @@
+name: Secret protection
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install Gitleaks 8.30.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="${RUNNER_TEMP}/gitleaks.tar.gz"
+          curl --fail --silent --show-error --location \
+            "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz" \
+            --output "$archive"
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $archive" | sha256sum --check
+          tar -xzf "$archive" -C "$RUNNER_TEMP" gitleaks
+          sudo install "$RUNNER_TEMP/gitleaks" /usr/local/bin/gitleaks
+
+      - name: Reject plaintext environment files
+        shell: bash
+        run: |
+          set -euo pipefail
+          violations="$(git ls-files | grep -E '(^|/)(\.env($|\.)|[^/]+\.env($|\.)|credentials\.env$)' || true)"
+          if [[ -n "$violations" ]]; then
+            echo "Tracked plaintext environment files are prohibited:"
+            echo "$violations"
+            exit 1
+          fi
+
+      - name: Scan current repository contents
+        run: gitleaks dir --redact --verbose .
+
+      - name: Scan complete Git history
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: gitleaks git --redact --verbose --log-opts="--all"
